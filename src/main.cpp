@@ -140,17 +140,20 @@ int main() {
   //
   auto layout = new ENDER::BufferLayout({{ENDER::LayoutObjectType::Float3}});
 
+  auto vao = new ENDER::ArrayObject();
+
+  vao->bind();
+
   auto vbo = new ENDER::BufferObject(layout);
 
-  
+  vbo->setData(vertices, sizeof(vertices));
 
-  auto vao = new ENDER::ArrayObject();
-vbo->setData(vertices);
   vao->addVBO(vbo);
   // uncomment this call to draw in wireframe polygons.
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  // render loop
+  // render loo
+
   // -----------
   while (!glfwWindowShouldClose(window)) {
     // input

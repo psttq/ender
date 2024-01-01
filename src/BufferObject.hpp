@@ -19,6 +19,6 @@ public:
 
   BufferLayout &getLayout() const;
 
-  void setData(float *data);
+  void setData(float *data, unsigned int size);
 };
 } // namespace ENDER

@@ -8,9 +8,14 @@ ENDER::ArrayObject::ArrayObject() {
   spdlog::info("VAO created. Index: {}", m_id);
 }
 
-void ENDER::ArrayObject::bind() { glBindVertexArray(m_id); }
+void ENDER::ArrayObject::bind() {
+  spdlog::debug("Bind VAO. Index: {}", m_id);
+  glBindVertexArray(m_id);
+}
 
-void ENDER::ArrayObject::unbind() { glBindVertexArray(0); }
+void ENDER::ArrayObject::unbind() { 
+  spdlog::debug("Unbind VAO. Index {}", m_id);
+  glBindVertexArray(0); }
 
 void ENDER::ArrayObject::addVBO(ENDER::BufferObject *vbo) {
   bind();
