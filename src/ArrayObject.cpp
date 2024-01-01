@@ -8,13 +8,13 @@ ENDER::ArrayObject::ArrayObject() {
   spdlog::info("VAO created. Index: {}", m_id);
 }
 
-void ENDER::ArrayObject::bind() {
-  spdlog::debug("Bind VAO. Index: {}", m_id);
+void ENDER::ArrayObject::bind() const {
+  // spdlog::debug("Bind VAO. Index: {}", m_id);
   glBindVertexArray(m_id);
 }
 
-void ENDER::ArrayObject::unbind() { 
-  spdlog::debug("Unbind VAO. Index {}", m_id);
+void ENDER::ArrayObject::unbind() const{
+  // spdlog::debug("Unbind VAO. Index {}", m_id);
   glBindVertexArray(0); }
 
 void ENDER::ArrayObject::addVBO(ENDER::BufferObject *vbo) {
@@ -23,10 +23,8 @@ void ENDER::ArrayObject::addVBO(ENDER::BufferObject *vbo) {
   spdlog::info("Adding VBO[Index: {}] to VAO[Index: {}]", vbo->getIndex(),
                m_id);
   for (auto &el : vbo->getLayout()) {
-    spdlog::debug("Applying vertex attribue with type {}:{}:{} ",
-                  BufferLayout::convertTypeToString(el.type),
-                  BufferLayout::convertTypeToGLType(el.type),
-                  (const void *)el.offset);
+    spdlog::debug("Applying vertex attribue with type {}",
+                  BufferLayout::convertTypeToString(el.type));
     glVertexAttribPointer(m_index,
                           BufferLayout::convertTypeToNumberOfElements(el.type),
                           BufferLayout::convertTypeToGLType(el.type), GL_FALSE,

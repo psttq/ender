@@ -9,7 +9,12 @@ class BufferObject {
 public:
   BufferObject(BufferLayout *layout);
   ~BufferObject(){
+    if(m_id > 0) {
+      glDeleteBuffers(1, &m_id);
+      spdlog::info("Deallocated VBO. Index: {}.", m_id);
+    }
     delete m_layout;
+
   }
 
   void bind();

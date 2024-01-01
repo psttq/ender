@@ -11,9 +11,9 @@ enum class LayoutObjectType { Float1, Float2, Float3, Float4 };
 
 struct LayoutObject {
   LayoutObjectType type;
-  unsigned int size;
-  unsigned int stride;
-  size_t offset;
+  unsigned int size = 0;
+  unsigned int stride = 0;
+  size_t offset = 0;
 
   LayoutObject(const LayoutObjectType &obj_type) { type = obj_type; }
 };
@@ -36,7 +36,7 @@ class BufferLayout {
   }
 
 public:
-  BufferLayout(std::initializer_list<LayoutObject> objects)
+  BufferLayout(const std::initializer_list<LayoutObject> &objects)
       : m_layout(objects) {
     calculateLayoutProperties();
     spdlog::info("Created new buffer layout");
@@ -45,7 +45,7 @@ public:
 
   void addObject(const LayoutObject &object) { m_layout.push_back(object); }
 
-  void debugPrint() {
+  void debugPrint() const {
     spdlog::debug("LayoutDebugPrint:");
     auto i = 0;
     for (auto &el : m_layout) {
@@ -58,19 +58,16 @@ public:
   static unsigned int convertTypeToSize(LayoutObjectType type) {
     switch (type) {
     case LayoutObjectType::Float1:
-      return sizeof(float);
     case LayoutObjectType::Float2:
-      return sizeof(float) * 2;
     case LayoutObjectType::Float3:
-      return sizeof(float) * 3;
     case LayoutObjectType::Float4:
-      return sizeof(float) * 4;
+      return convertTypeToNumberOfElements(type) * sizeof(float);
     default:
       spdlog::error("Unknown LayoutObjectType");
       throw;
     }
   }
-  static unsigned int convertTypeToGLType(LayoutObjectType type) {
+  static unsigned int convertTypeToGLType(const LayoutObjectType &type) {
     switch (type) {
     case LayoutObjectType::Float1:
     case LayoutObjectType::Float2:
@@ -82,7 +79,7 @@ public:
       throw;
     }
   }
-  static unsigned int convertTypeToNumberOfElements(LayoutObjectType type) {
+  static unsigned int convertTypeToNumberOfElements(const LayoutObjectType &type) {
     switch (type) {
     case LayoutObjectType::Float1:
       return 1;
@@ -97,7 +94,7 @@ public:
       throw;
     }
   }
-  static std::string convertTypeToString(LayoutObjectType type) {
+  static std::string convertTypeToString(const LayoutObjectType &type) {
     switch (type) {
     case LayoutObjectType::Float1:
       return "Float1";
@@ -122,8 +119,8 @@ public:
   auto end() const { return m_layout.end(); }
 
   unsigned int getStride() {
-    unsigned int stride;
-    for (auto &el : m_layout) {
+    unsigned int stride = 0;
+    for (const auto &el : m_layout) {
       stride += el.size;
     }
     return stride;
