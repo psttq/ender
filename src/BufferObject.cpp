@@ -11,9 +11,15 @@ void ENDER::BufferObject::setData(float *data) {
   spdlog::info("Setting data to VBO. Index: {}", m_id);
   bind();
   glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
-  //unbind();
+  // unbind();
 }
 
 void ENDER::BufferObject::bind() { glBindBuffer(GL_ARRAY_BUFFER, m_id); }
 
 void ENDER::BufferObject::unbind() { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+
+unsigned int ENDER::BufferObject::getIndex() const { return m_id; }
+
+ENDER::BufferLayout &ENDER::BufferObject::getLayout() const {
+  return *m_layout;
+}

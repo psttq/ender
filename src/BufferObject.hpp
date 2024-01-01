@@ -15,6 +15,10 @@ public:
   void bind();
   void unbind();
 
+  unsigned int getIndex() const;
+
+  BufferLayout &getLayout() const;
+
   void setData(float *data);
 };
 } // namespace ENDER
