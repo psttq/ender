@@ -1,5 +1,5 @@
-#include "BufferObject.hpp"
-#include "spdlog/spdlog.h"
+#include <BufferObject.hpp>
+#include <spdlog/spdlog.h>
 #include <glad/glad.h>
 
 ENDER::BufferObject::BufferObject(ENDER::BufferLayout *layout)

@@ -1,7 +1,7 @@
-#include "ArrayObject.hpp"
-#include "BufferObject.hpp"
-#include "glad/glad.h"
-#include "spdlog/spdlog.h"
+#include <ArrayObject.hpp>
+#include <BufferObject.hpp>
+#include <glad/glad.h>
+#include <spdlog/spdlog.h>
 
 ENDER::ArrayObject::ArrayObject() {
   glGenVertexArrays(1, &m_id);
