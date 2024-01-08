@@ -2,5 +2,6 @@
 
 
 ### Todo
-- [ ] Index buffer
+- [x] Index buffer
+- [ ] Changing params for textures
 - [ ] Build as library and link
