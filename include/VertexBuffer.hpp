@@ -2,13 +2,13 @@
 
 #include "BufferLayout.hpp"
 namespace ENDER {
-class BufferObject {
+class VertexBuffer {
   unsigned int m_id = 0;
   BufferLayout *m_layout;
 
 public:
-  BufferObject(BufferLayout *layout);
-  ~BufferObject(){
+  VertexBuffer(BufferLayout *layout);
+  ~VertexBuffer(){
     if(m_id > 0) {
       glDeleteBuffers(1, &m_id);
       spdlog::info("Deallocated VBO. Index: {}.", m_id);

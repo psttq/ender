@@ -1,32 +1,32 @@
-#include <BufferObject.hpp>
+#include <VertexBuffer.hpp>
 #include <spdlog/spdlog.h>
 #include <glad/glad.h>
 
-ENDER::BufferObject::BufferObject(ENDER::BufferLayout *layout)
+ENDER::VertexBuffer::VertexBuffer(ENDER::BufferLayout *layout)
     : m_layout(layout) {
   glGenBuffers(1, &m_id);
   spdlog::info("Created VBO. Index: {}", m_id);
 }
 
-void ENDER::BufferObject::setData(float *data, unsigned int size) {
+void ENDER::VertexBuffer::setData(float *data, unsigned int size) {
   spdlog::info("Setting data to VBO. Index: {}. Size of data: {}", m_id, size);
   bind();
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
   // unbind();
 }
 
-void ENDER::BufferObject::bind() {
+void ENDER::VertexBuffer::bind() {
   spdlog::debug("Bind VBO. Index: {}", m_id);
   glBindBuffer(GL_ARRAY_BUFFER, m_id);
 }
 
-void ENDER::BufferObject::unbind() {
+void ENDER::VertexBuffer::unbind() {
   spdlog::debug("Unbind VBO. Index: {}", m_id);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-unsigned int ENDER::BufferObject::getIndex() const { return m_id; }
+unsigned int ENDER::VertexBuffer::getIndex() const { return m_id; }
 
-ENDER::BufferLayout &ENDER::BufferObject::getLayout() const {
+ENDER::BufferLayout &ENDER::VertexBuffer::getLayout() const {
   return *m_layout;
 }

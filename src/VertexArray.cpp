@@ -1,23 +1,24 @@
-#include <ArrayObject.hpp>
-#include <BufferObject.hpp>
+#include <VertexArray.hpp>
+#include <VertexBuffer.hpp>
 #include <glad/glad.h>
-#include <spdlog/spdlog.h>
 
-ENDER::ArrayObject::ArrayObject() {
+
+ENDER::VertexArray::VertexArray() {
   glGenVertexArrays(1, &m_id);
   spdlog::info("VAO created. Index: {}", m_id);
 }
 
-void ENDER::ArrayObject::bind() const {
+void ENDER::VertexArray::bind() const {
   // spdlog::debug("Bind VAO. Index: {}", m_id);
   glBindVertexArray(m_id);
 }
 
-void ENDER::ArrayObject::unbind() const{
+void ENDER::VertexArray::unbind() const {
   // spdlog::debug("Unbind VAO. Index {}", m_id);
-  glBindVertexArray(0); }
+  glBindVertexArray(0);
+}
 
-void ENDER::ArrayObject::addVBO(ENDER::BufferObject *vbo) {
+void ENDER::VertexArray::addVBO(ENDER::VertexBuffer *vbo) {
   bind();
   vbo->bind();
   spdlog::info("Adding VBO[Index: {}] to VAO[Index: {}]", vbo->getIndex(),
@@ -32,5 +33,12 @@ void ENDER::ArrayObject::addVBO(ENDER::BufferObject *vbo) {
     glEnableVertexAttribArray(m_index);
     m_index++;
   }
-  m_vbos.push_back(vbo->getIndex());
+  m_vbos.push_back(vbo);
+}
+
+void ENDER::VertexArray::setIndexBuffer(ENDER::IndexBuffer *indexBuffer){
+  bind();
+  indexBuffer->bind();
+  m_indexBuffer = indexBuffer;
+  spdlog::info("Adding IndexBuffer[Index: {}] to VAO[Index: {}]", indexBuffer->getIndex(), m_id);
 }
