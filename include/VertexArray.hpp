@@ -34,5 +34,9 @@ public:
 
   void addVBO(VertexBuffer *vbo);
 
+  unsigned int getIndex() const{
+    return m_id;
+  }
+
 };
 } // namespace ENDER

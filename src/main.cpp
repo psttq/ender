@@ -2,6 +2,7 @@
 #include "Texture.hpp"
 #include "VertexArray.hpp"
 #include "VertexBuffer.hpp"
+#include "spdlog/common.h"
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <stb_image.h>
@@ -22,6 +23,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int main() {
+  // spdlog::set_level(spdlog::level::debug);
   // glfw: initialize and configure
   // ------------------------------
   glfwInit();
@@ -86,6 +88,21 @@ int main() {
       -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
       0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
       -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
+  float vertices2[] = {
+      -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+      -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,
+
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+      0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,
+      0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 1.0f,
+      0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
+      -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
   // world space positions of our cubes
   glm::vec3 cubePositions[] = {
       glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
@@ -105,12 +122,21 @@ int main() {
 
   vao->addVBO(vertexBuffer);
 
+  auto vertexBuffer2 = new ENDER::VertexBuffer(layout);
+  vertexBuffer2->setData(vertices2, sizeof(vertices2));
+
+  auto vao2 = new ENDER::VertexArray();
+
+  vao2->addVBO(vertexBuffer2);
+
   // load and create a texture
   auto texture1 = new ENDER::Texture();
   texture1->loadFromFile("../resources/textures/container.jpg", GL_RGB);
 
   auto texture2 = new ENDER::Texture();
   texture2->loadFromFile("../resources/textures/awesomeface.png", GL_RGBA);
+
+  //Renderer <-- Scene <- Object 
 
   // tell opengl for each sampler to which texture unit it belongs to (only has
   // to be done once)
@@ -133,10 +159,6 @@ int main() {
             GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
     // bind textures on corresponding texture units
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1->getIndex());
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2->getIndex());
 
     // activate shader
     ourShader.use();
@@ -159,10 +181,17 @@ int main() {
     ourShader.setMat4("view", view);
 
     // render boxes
-    vao->bind();
     for (unsigned int i = 0; i < 10; i++) {
       // calculate the model matrix for each object and pass it to shader before
       // drawing
+
+      glActiveTexture(GL_TEXTURE0);
+      if (i % 2 == 0){
+        vao->bind();
+        glBindTexture(GL_TEXTURE_2D, texture1->getIndex());}
+      else{
+        vao2->bind();
+        glBindTexture(GL_TEXTURE_2D, texture2->getIndex());}
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       float angle = 20.0f * i;
