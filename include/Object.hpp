@@ -2,20 +2,29 @@
 
 #include "Texture.hpp"
 #include "VertexArray.hpp"
+#include <glm/glm.hpp>
 
-namespace ENDER {
-class Object {
-  std::string m_name;
-  VertexArray *m_vertexArray;
-  Texture *m_texture;
-public: 
-  Object(const std::string &name, VertexArray *vertexArray);
+namespace ENDER
+{
+  class Object
+  {
+    std::string _name;
+    VertexArray *_vertexArray;
+    Texture *_texture = nullptr;
+    glm::vec3 _position;
 
-  void setTexture(Texture *texture);
-  Texture *getTexture() const;
+  public:
+    Object(const std::string &name, VertexArray *vertexArray);
 
-  VertexArray *getVertexArray() const;
+    void setTexture(Texture *texture);
+    Texture *getTexture() const;
 
-  std::string getName() const;
-};
+    void setPosition(const glm::vec3 &position);
+
+    glm::vec3 getPosition() const;
+
+    VertexArray *getVertexArray() const;
+
+    std::string getName() const;
+  };
 } // namespace ENDER

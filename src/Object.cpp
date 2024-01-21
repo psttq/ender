@@ -1,25 +1,38 @@
 #include "VertexArray.hpp"
 #include <Object.hpp>
+#include <glm/glm.hpp>
 
-ENDER::Object::Object(const std::string &name, VertexArray *vertexArray) : m_name(name), m_vertexArray(vertexArray){
+ENDER::Object::Object(const std::string &name, VertexArray *vertexArray) : _name(name), _vertexArray(vertexArray)
+{
   spdlog::debug("Created object[name: {}] with VertexArray[index: {}]", name, vertexArray->getIndex());
 }
 
-void ENDER::Object::setTexture(Texture *texture){
-  m_texture = texture;
+void ENDER::Object::setTexture(Texture *texture)
+{
+  _texture = texture;
 }
 
-ENDER::Texture *ENDER::Object::getTexture() const{
-  return m_texture;
+void ENDER::Object::setPosition(const glm::vec3 &position)
+{
+  _position = position;
 }
 
-std::string ENDER::Object::getName() const{
-  return m_name;
+glm::vec3 ENDER::Object::getPosition() const
+{
+  return _position;
 }
 
-ENDER::VertexArray *ENDER::Object::getVertexArray() const{
-  return m_vertexArray;
+ENDER::Texture *ENDER::Object::getTexture() const
+{
+  return _texture;
 }
 
+std::string ENDER::Object::getName() const
+{
+  return _name;
+}
 
-
+ENDER::VertexArray *ENDER::Object::getVertexArray() const
+{
+  return _vertexArray;
+}

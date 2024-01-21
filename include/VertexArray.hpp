@@ -4,39 +4,44 @@
 #include <IndexBuffer.hpp>
 #include <spdlog/spdlog.h>
 #include <vector>
-namespace ENDER {
+namespace ENDER
+{
 
-class VertexArray {
-  unsigned int m_id;
-  std::vector<VertexBuffer *> m_vbos;
-  IndexBuffer *m_indexBuffer;
+  class VertexArray
+  {
+    unsigned int _id;
+    std::vector<VertexBuffer *> _vbos;
+    IndexBuffer *_indexBuffer;
 
-  unsigned int m_index = 0;
+    unsigned int _index = 0;
 
-public:
-  VertexArray();
+  public:
+    VertexArray();
 
-  ~VertexArray() {
-    if(m_id > 0) {
-      glDeleteVertexArrays(1, &m_id);
-      spdlog::info("Deallocated VAO. Index: {}.", m_id);
+    ~VertexArray()
+    {
+      if (_id > 0)
+      {
+        glDeleteVertexArrays(1, &_id);
+        spdlog::info("Deallocated VAO. Index: {}.", _id);
+      }
+      for (auto vbo : _vbos)
+      {
+        delete vbo;
+      }
     }
-    for(auto vbo: m_vbos){
-      delete vbo;
+
+    void bind() const;
+
+    void unbind() const;
+
+    void setIndexBuffer(IndexBuffer *indexBuffer);
+
+    void addVBO(VertexBuffer *vbo);
+
+    unsigned int getIndex() const
+    {
+      return _id;
     }
-  }
-
-  void bind() const;
-
-  void unbind() const;
-
-  void setIndexBuffer(IndexBuffer *indexBuffer);
-
-  void addVBO(VertexBuffer *vbo);
-
-  unsigned int getIndex() const{
-    return m_id;
-  }
-
-};
+  };
 } // namespace ENDER
