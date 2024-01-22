@@ -24,9 +24,7 @@ void ENDER::Texture::loadFromFile(const std::string &texturePath,
 {
   glBindTexture(GL_TEXTURE_2D, _id);
   stbi_set_flip_vertically_on_load(
-      true); // tell stb_image.h to flip loaded texture's on the y-axis.
-  // The FileSystem::getPath(...) is part of the GitHub repository so we can
-  // find files on any IDE/platform; replace it with your own image path.
+      true);
   unsigned char *data =
       stbi_load(texturePath.c_str(), &_width, &_height, &_nrChannels, 0);
   if (data)

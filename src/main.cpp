@@ -1,10 +1,4 @@
-#include "BufferLayout.hpp"
-#include "Texture.hpp"
-#include "VertexArray.hpp"
-#include "VertexBuffer.hpp"
-#include <Renderer.hpp>
-#include <Object.hpp>
-#include <Window.hpp>
+#include <Ender.hpp>
 
 #include <spdlog/spdlog.h>
 #include <GLFW/glfw3.h>
@@ -14,8 +8,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include <Shader.hpp>
 
 #include <iostream>
 

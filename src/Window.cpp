@@ -17,7 +17,7 @@ void ENDER::Window::init(unsigned int width, unsigned int height)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
     instance()._window =
-        glfwCreateWindow(width, height, "LearnOpenGL", NULL, NULL);
+        glfwCreateWindow(width, height, "ENDER test", NULL, NULL);
     if (instance()._window == NULL)
     {
         spdlog::error("Failed to create GLFW window");
