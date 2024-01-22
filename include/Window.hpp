@@ -41,6 +41,7 @@ namespace ENDER
         static void pollEvents();
 
         static int getHeight();
+
         static int getWidth();
 
         GLFWwindow *getNativeWindow();

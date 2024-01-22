@@ -12,8 +12,12 @@ namespace ENDER
         glm::mat4 _projectMatrix;
         glm::mat4 _viewMatrix;
 
+        VertexArray *cubeVAO;
+
         Renderer();
         ~Renderer();
+
+        void createCubeVAO();
 
     public:
         static Renderer &instance()
@@ -33,5 +37,11 @@ namespace ENDER
         static void swapBuffers();
 
         static void framebufferSizeCallback(int width, int height);
+
+        static VertexArray *getCubeVAO()
+        {
+            return instance().cubeVAO;
+        }
     };
+
 } // namespace EMDER

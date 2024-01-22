@@ -1,6 +1,7 @@
 #include "VertexArray.hpp"
 #include <Object.hpp>
 #include <glm/glm.hpp>
+#include <Renderer.hpp>
 
 ENDER::Object::Object(const std::string &name, VertexArray *vertexArray) : _name(name), _vertexArray(vertexArray)
 {
@@ -45,4 +46,10 @@ std::string ENDER::Object::getName() const
 ENDER::VertexArray *ENDER::Object::getVertexArray() const
 {
   return _vertexArray;
+}
+
+ENDER::Object *ENDER::Object::createCube(const std::string &name)
+{
+  Object *cube = new Object(name, Renderer::getCubeVAO());
+  return cube;
 }

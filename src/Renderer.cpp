@@ -5,6 +5,7 @@
 
 ENDER::Renderer::Renderer()
 {
+    createCubeVAO();
 }
 
 void ENDER::Renderer::init()
@@ -48,6 +49,7 @@ ENDER::Renderer::~Renderer()
 {
     spdlog::info("Deallocation renderer.");
     delete _shader;
+    delete cubeVAO;
 }
 
 void ENDER::Renderer::renderObject(Object *object)
@@ -89,4 +91,16 @@ void ENDER::Renderer::clear()
 void ENDER::Renderer::swapBuffers()
 {
     Window::swapBuffers();
+}
+
+void ENDER::Renderer::createCubeVAO()
+{
+    BufferLayout *cubeLayout = new BufferLayout(
+        {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}});
+
+    VertexBuffer *cubeVBO = new VertexBuffer(cubeLayout);
+
+    cubeVBO->setData(CUBE_VERTICES, sizeof(CUBE_VERTICES));
+    cubeVAO = new VertexArray();
+    cubeVAO->addVBO(cubeVBO);
 }
