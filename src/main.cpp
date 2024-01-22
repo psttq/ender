@@ -4,7 +4,9 @@
 #include "VertexBuffer.hpp"
 #include <Renderer.hpp>
 #include <Object.hpp>
-#include "spdlog/common.h"
+#include <Window.hpp>
+
+#include <spdlog/spdlog.h>
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <stb_image.h>
@@ -17,7 +19,6 @@
 
 #include <iostream>
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
@@ -26,48 +27,13 @@ const unsigned int SCR_HEIGHT = 600;
 
 int main()
 {
+
+  ENDER::Window::init(SCR_WIDTH, SCR_HEIGHT);
+
+  ENDER::Renderer::init();
+
   spdlog::set_level(spdlog::level::debug);
-  // glfw: initialize and configure
-  // ------------------------------
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-  // glfw window creation
-  // --------------------
-  GLFWwindow *window =
-      glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-  if (window == NULL)
-  {
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
-    return -1;
-  }
-  glfwMakeContextCurrent(window);
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-  // glad: load all OpenGL function pointers
-  // ---------------------------------------
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-  {
-    std::cout << "Failed to initialize GLAD" << std::endl;
-    return -1;
-  }
-
-  // configure global opengl state
-  // -----------------------------
-  glEnable(GL_DEPTH_TEST);
-
-  // build and compile our shader zprogram
-  // ------------------------------------
-
-  // set up vertex data (and buffer(s)) and configure vertex attributes
-  // ------------------------------------------------------------------
   float vertices[] = {
       -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
       0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
@@ -140,72 +106,42 @@ int main()
   auto texture2 = new ENDER::Texture();
   texture2->loadFromFile("../resources/textures/awesomeface.png", GL_RGBA);
 
-  // Renderer <-- Scene <- Object
-
-  // tell opengl for each sampler to which texture unit it belongs to (only has
-  // to be done once)
-  // -------------------------------------------------------------------------------------------
-
-  auto renderer = new ENDER::Renderer();
-
   auto cubeObject = new ENDER::Object("cube", vao);
   cubeObject->setTexture(texture1);
   cubeObject->setPosition(glm::vec3(1.5f, 0.2f, -1.5f));
+  cubeObject->setRotation(glm::vec3(0, glm::pi<float>() / 4, 0));
 
-  auto cubeObject2 = new ENDER::Object("cube", vao);
+  auto cubeObject2 = new ENDER::Object("cube2", vao);
   cubeObject2->setTexture(texture2);
   cubeObject2->setPosition(glm::vec3(-1.5f, 0.2f, -1.5f));
 
-  // render loop
-  // -----------
-  while (!glfwWindowShouldClose(window))
+  auto rot = cubeObject->getRotation();
+
+  spdlog::debug("Rotatation[x: {}, y: {}, z: {}]", rot.x, rot.y, rot.z);
+
+  ENDER::Renderer::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
+
+  while (!ENDER::Window::windowShouldClose())
   {
-    // input
-    // -----
-    processInput(window);
 
-    // render
-    // ------
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT |
-            GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
+    processInput(ENDER::Window::instance().getNativeWindow());
 
-    renderer->renderObject(cubeObject);
-    renderer->renderObject(cubeObject2);
+    ENDER::Renderer::clear();
 
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved
-    // etc.)
-    // -------------------------------------------------------------------------------
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+    ENDER::Renderer::renderObject(cubeObject);
+    ENDER::Renderer::renderObject(cubeObject2);
+
+    ENDER::Renderer::swapBuffers();
+    ENDER::Window::pollEvents();
   }
-
-  // optional: de-allocate all resources once they've outlived their purpose:
-  // ------------------------------------------------------------------------
 
   delete vao;
 
-  // glfw: terminate, clearing all previously allocated GLFW resources.
-  // ------------------------------------------------------------------
-  glfwTerminate();
   return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this
-// frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-}
-
-// glfw: whenever the window size changed (by OS or user resize) this callback
-// function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-  // make sure the viewport matches the new window dimensions; note that width
-  // and height will be significantly larger than specified on retina displays.
-  glViewport(0, 0, width, height);
 }

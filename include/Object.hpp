@@ -11,7 +11,8 @@ namespace ENDER
     std::string _name;
     VertexArray *_vertexArray;
     Texture *_texture = nullptr;
-    glm::vec3 _position;
+    glm::vec3 _position{};
+    glm::vec3 _rotation{};
 
   public:
     Object(const std::string &name, VertexArray *vertexArray);
@@ -20,8 +21,10 @@ namespace ENDER
     Texture *getTexture() const;
 
     void setPosition(const glm::vec3 &position);
+    void setRotation(const glm::vec3 &rotation);
 
     glm::vec3 getPosition() const;
+    glm::vec3 getRotation() const;
 
     VertexArray *getVertexArray() const;
 

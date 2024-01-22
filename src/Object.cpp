@@ -22,6 +22,16 @@ glm::vec3 ENDER::Object::getPosition() const
   return _position;
 }
 
+void ENDER::Object::setRotation(const glm::vec3 &rotation)
+{
+  _rotation = rotation;
+}
+
+glm::vec3 ENDER::Object::getRotation() const
+{
+  return _rotation;
+}
+
 ENDER::Texture *ENDER::Object::getTexture() const
 {
   return _texture;

@@ -5,40 +5,67 @@
 
 ENDER::Renderer::Renderer()
 {
-    _shader = new Shader("../resources/shader.vs", "../resources/shader.fs");
-    _shader->use();
-    _shader->setInt("texture1", 0);
+}
+
+void ENDER::Renderer::init()
+{
+    spdlog::info("Inititing renderer.");
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        spdlog::error("Failed to initialize GLAD");
+        throw;
+    }
+
+    ENDER::Window::setFramebufferSizeCallback(framebufferSizeCallback);
+
+    instance()._viewMatrix = glm::mat4(
+        1.0f);
+    instance()._projectMatrix = glm::mat4(1.0f);
+    instance()._projectMatrix =
+        glm::perspective(glm::radians(45.0f),
+                         (float)Window::getWidth() / (float)Window::getHeight(), 0.1f, 100.0f);
+    instance()._shader = new Shader("../resources/shader.vs", "../resources/shader.fs");
+    instance()._shader->use();
+    instance()._shader->setInt("texture1", 0);
+    instance()._shader->setMat4(
+        "projection",
+        instance()._projectMatrix);
+
+    instance()._viewMatrix = glm::translate(instance()._viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f)); // tmp
+
+    instance()._shader->setMat4("view", instance()._viewMatrix);
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+void ENDER::Renderer::framebufferSizeCallback(int width, int height)
+{
+    glViewport(0, 0, width, height);
 }
 
 ENDER::Renderer::~Renderer()
 {
+    spdlog::info("Deallocation renderer.");
     delete _shader;
 }
 
 void ENDER::Renderer::renderObject(Object *object)
 {
-    glm::mat4 view = glm::mat4(
-        1.0f); // make sure to initialize matrix to identity matrix first
-    glm::mat4 projection = glm::mat4(1.0f);
-    projection =
-        glm::perspective(glm::radians(45.0f),
-                         (float)800 / (float)600, 0.1f, 100.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-    // pass transformation matrices to the shader
-    _shader->setMat4(
-        "projection",
-        projection); // note: currently we set the projection matrix each frame,
-                     // but since the projection matrix rarely changes it's
-                     // often best practice to set it outside the main loop only
-                     // once.
-    _shader->setMat4("view", view);
+    instance()._shader->use();
+
+    auto objRotation = object->getRotation();
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, object->getPosition());
-    // TODO: rotation
-    //  model =
-    //      glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-    _shader->setMat4("model", model);
+    model =
+        glm::rotate(model, objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    model =
+        glm::rotate(model, objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    model =
+        glm::rotate(model, objRotation.z, glm::vec3(1.0f, 0.0f, 1.0f));
+
+    instance()._shader->setMat4("model", model);
 
     object->getVertexArray()->bind();
     if (object->getTexture() != nullptr)
@@ -46,4 +73,20 @@ void ENDER::Renderer::renderObject(Object *object)
         object->getTexture()->setAsCurrent();
     }
     glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void ENDER::Renderer::setClearColor(const glm::vec4 &color)
+{
+    glClearColor(color.r, color.g, color.b, color.a);
+}
+
+void ENDER::Renderer::clear()
+{
+    glClear(GL_COLOR_BUFFER_BIT |
+            GL_DEPTH_BUFFER_BIT);
+}
+
+void ENDER::Renderer::swapBuffers()
+{
+    Window::swapBuffers();
 }
