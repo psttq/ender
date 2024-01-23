@@ -44,6 +44,10 @@ namespace ENDER
 
         static int getWidth();
 
+        static void keyPressed(unsigned int key, std::function<void()> callBack);
+
+        static void close();
+
         GLFWwindow *getNativeWindow();
     };
 } // namespace ENDER

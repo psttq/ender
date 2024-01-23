@@ -1,5 +1,6 @@
 #pragma once
 #include <Object.hpp>
+#include <Scene.hpp>
 #include <Shader.hpp>
 #include <Window.hpp>
 
@@ -10,7 +11,6 @@ namespace ENDER
     {
         Shader *_shader;
         glm::mat4 _projectMatrix;
-        glm::mat4 _viewMatrix;
 
         VertexArray *cubeVAO;
 
@@ -18,6 +18,8 @@ namespace ENDER
         ~Renderer();
 
         void createCubeVAO();
+
+        void renderObject(Object *object);
 
     public:
         static Renderer &instance()
@@ -32,9 +34,10 @@ namespace ENDER
         // static void swapBuffers(const glm::vec4 &color);
 
         static void clear();
-        static void renderObject(Object *object);
 
         static void swapBuffers();
+
+        static void renderScene(Scene *scene);
 
         static void framebufferSizeCallback(int width, int height);
 

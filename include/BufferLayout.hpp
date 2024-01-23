@@ -56,6 +56,10 @@ namespace ENDER
       debugPrint();
     }
 
+    ~BufferLayout() {
+      spdlog::info("Deallocated BufferLayout");
+    }
+
     void addObject(const LayoutObject &object) { _layout.push_back(object); }
 
     void debugPrint() const

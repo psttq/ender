@@ -20,8 +20,6 @@ void ENDER::Renderer::init()
 
     ENDER::Window::setFramebufferSizeCallback(framebufferSizeCallback);
 
-    instance()._viewMatrix = glm::mat4(
-        1.0f);
     instance()._projectMatrix = glm::mat4(1.0f);
     instance()._projectMatrix =
         glm::perspective(glm::radians(45.0f),
@@ -33,9 +31,7 @@ void ENDER::Renderer::init()
         "projection",
         instance()._projectMatrix);
 
-    instance()._viewMatrix = glm::translate(instance()._viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f)); // tmp
 
-    instance()._shader->setMat4("view", instance()._viewMatrix);
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -47,9 +43,9 @@ void ENDER::Renderer::framebufferSizeCallback(int width, int height)
 
 ENDER::Renderer::~Renderer()
 {
-    spdlog::info("Deallocation renderer.");
     delete _shader;
     delete cubeVAO;
+    spdlog::info("Deallocation renderer.");
 }
 
 void ENDER::Renderer::renderObject(Object *object)
@@ -93,12 +89,20 @@ void ENDER::Renderer::swapBuffers()
     Window::swapBuffers();
 }
 
+void ENDER::Renderer::renderScene(Scene *scene) {
+    instance()._shader->setMat4("view", scene->calculateView());
+
+    for(const auto &obj: scene->getObjects()) {
+        instance().renderObject(obj);
+    }
+}
+
 void ENDER::Renderer::createCubeVAO()
 {
-    BufferLayout *cubeLayout = new BufferLayout(
+    auto *cubeLayout = new BufferLayout(
         {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}});
 
-    VertexBuffer *cubeVBO = new VertexBuffer(cubeLayout);
+    auto *cubeVBO = new VertexBuffer(cubeLayout);
 
     cubeVBO->setData(CUBE_VERTICES, sizeof(CUBE_VERTICES));
     cubeVAO = new VertexArray();

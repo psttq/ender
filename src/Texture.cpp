@@ -19,6 +19,10 @@ ENDER::Texture::Texture()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
+ENDER::Texture::~Texture() {
+  spdlog::debug("Deallocation Texture[id: {}]", _id);
+}
+
 void ENDER::Texture::loadFromFile(const std::string &texturePath,
                                   unsigned int type)
 {

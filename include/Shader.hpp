@@ -72,6 +72,10 @@ namespace ENDER
             glDeleteShader(fragment);
             spdlog::debug("Shader created successfully!");
         }
+
+        ~Shader() {
+            spdlog::debug("Deallocation Shader");
+        }
         // activate the shader
         // ------------------------------------------------------------------------
         void use() const

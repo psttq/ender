@@ -8,3 +8,4 @@
 #include <Object.hpp>
 #include <Window.hpp>
 #include <Shader.hpp>
+#include <Scene.hpp>

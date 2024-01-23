@@ -85,6 +85,16 @@ int ENDER::Window::getWidth()
     return instance()._width;
 }
 
+void ENDER::Window::keyPressed(unsigned int key, std::function<void()> callBack) {
+    if (glfwGetKey(instance()._window, key) == GLFW_PRESS) {
+        callBack();
+    }
+}
+
+void ENDER::Window::close() {
+    glfwSetWindowShouldClose(instance()._window, true);
+}
+
 GLFWwindow *ENDER::Window::getNativeWindow()
 {
     return _window;

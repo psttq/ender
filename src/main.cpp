@@ -33,18 +33,9 @@ int main()
       glm::vec3(1.3f, -2.0f, -2.5f), glm::vec3(1.5f, 2.0f, -2.5f),
       glm::vec3(1.5f, 0.2f, -1.5f), glm::vec3(-1.3f, 1.0f, -1.5f)};
 
-  // auto layout = new ENDER::BufferLayout(
-  //     {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}});
 
-  // auto vertexBuffer = new ENDER::VertexBuffer(layout);
+  auto *scene = new ENDER::Scene();
 
-  // vertexBuffer->setData(vertices, sizeof(vertices));
-
-  // auto vao = new ENDER::VertexArray();
-
-  // vao->addVBO(vertexBuffer);
-
-  // load and create a texture
   auto texture1 = new ENDER::Texture();
   texture1->loadFromFile("../resources/textures/container.jpg", GL_RGB);
 
@@ -58,6 +49,9 @@ int main()
   auto cubeObject2 = ENDER::Object::createCube("cube2");
   cubeObject2->setTexture(texture2);
   cubeObject2->setPosition(glm::vec3(-1.5f, 0.2f, -1.5f));
+
+  scene->addObject(cubeObject);
+  scene->addObject(cubeObject2);
 
   ENDER::Renderer::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
 
@@ -74,25 +68,20 @@ int main()
     cubeObject->setRotation(glm::vec3(0, angle, 0));
     // spdlog::debug(" fps={}", 1 / deltaTime);
 
-    processInput(ENDER::Window::instance().getNativeWindow());
+    ENDER::Window::keyPressed(GLFW_KEY_ESCAPE, [] { ENDER::Window::close(); });
 
     ENDER::Renderer::clear();
 
-    ENDER::Renderer::renderObject(cubeObject);
-    ENDER::Renderer::renderObject(cubeObject2);
+    ENDER::Renderer::renderScene(scene);
 
     ENDER::Renderer::swapBuffers();
     ENDER::Window::pollEvents();
   }
 
-  // delete cubeObject;
-  // delete cubeObject2;
+  delete cubeObject;
+  delete cubeObject2;
+  delete scene;
 
   return 0;
 }
 
-void processInput(GLFWwindow *window)
-{
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
-}
