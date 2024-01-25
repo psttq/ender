@@ -1,17 +1,26 @@
 #pragma once
-#include <glfw/glfw3.h>
 #include <functional>
+#include <unordered_map>
+
+#include <glfw/glfw3.h>
 #include <spdlog/spdlog.h>
 
 namespace ENDER
 {
     class Window
     {
+        typedef std::function<void(int, int)> mousePosCallback;
+
         GLFWwindow *_window = nullptr;
         unsigned int _width;
         unsigned int _height;
 
+        double _deltaTime = 0;
+        double _lastFrame = 0;
+
         std::function<void(int, int)> _framebufferSizeCallback;
+
+        std::unordered_map<int, mousePosCallback> _mousePosCallbacks;
 
         Window();
 
@@ -21,12 +30,18 @@ namespace ENDER
             glfwTerminate();
         }
 
+        void _posCursorCallback(GLFWwindow *window, double xpos, double ypos);
+
     public:
         static Window &instance()
         {
             static Window _instance;
             return _instance;
         }
+
+        static int addMousePosCallback(mousePosCallback callback);
+
+        static void deleteMousePosCallback(int key);
 
         static void setFramebufferSizeCallback(std::function<void(int, int)> framebufferSizeCallback);
 
@@ -47,6 +62,14 @@ namespace ENDER
         static void keyPressed(unsigned int key, std::function<void()> callBack);
 
         static void close();
+
+        static void flash();
+
+        static double deltaTime();
+
+        static void enableCursor();
+        static void disableCursor();
+
 
         GLFWwindow *getNativeWindow();
     };

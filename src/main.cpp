@@ -11,77 +11,71 @@
 
 #include <iostream>
 
+#include "FirstPersonCamera.hpp"
+
 void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int main()
-{
+int main() {
+    ENDER::Window::init(SCR_WIDTH, SCR_HEIGHT);
 
-  ENDER::Window::init(SCR_WIDTH, SCR_HEIGHT);
+    ENDER::Renderer::init();
 
-  ENDER::Renderer::init();
+    spdlog::set_level(spdlog::level::debug);
 
-  spdlog::set_level(spdlog::level::debug);
+    auto *scene = new ENDER::Scene();
 
-  glm::vec3 cubePositions[] = {
-      glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(2.0f, 5.0f, -15.0f),
-      glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
-      glm::vec3(2.4f, -0.4f, -3.5f), glm::vec3(-1.7f, 3.0f, -7.5f),
-      glm::vec3(1.3f, -2.0f, -2.5f), glm::vec3(1.5f, 2.0f, -2.5f),
-      glm::vec3(1.5f, 0.2f, -1.5f), glm::vec3(-1.3f, 1.0f, -1.5f)};
+    auto texture1 = new ENDER::Texture();
+    texture1->loadFromFile("../resources/textures/container.jpg", GL_RGB);
+
+    auto texture2 = new ENDER::Texture();
+    texture2->loadFromFile("../resources/textures/awesomeface.png", GL_RGBA);
+
+    auto cubeObject = ENDER::Object::createCube("cube");
+    cubeObject->setTexture(texture1);
+    cubeObject->setPosition(glm::vec3(1.5f, 0.2f, -1.5f));
+
+    auto cubeObject2 = ENDER::Object::createCube("cube2");
+    cubeObject2->setTexture(texture2);
+    cubeObject2->setPosition(glm::vec3(-1.5f, 0.2f, -1.5f));
+
+    scene->addObject(cubeObject);
+    scene->addObject(cubeObject2);
+
+    auto *camera = new ENDER::FirstPersonCamera({});
+
+    scene->setCamera(camera);
+
+    ENDER::Renderer::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
+
+    ENDER::Window::disableCursor();
+
+    float angle = 0;
+    while (!ENDER::Window::windowShouldClose()) {
+        angle += 1.0f * ENDER::Window::deltaTime();
+        cubeObject->setRotation(glm::vec3(0, angle, 0));
+        // spdlog::debug(" fps={}", 1 / deltaTime);
+
+        ENDER::Window::keyPressed(GLFW_KEY_ESCAPE, [] { ENDER::Window::close(); });
 
 
-  auto *scene = new ENDER::Scene();
+        ENDER::Renderer::clear();
 
-  auto texture1 = new ENDER::Texture();
-  texture1->loadFromFile("../resources/textures/container.jpg", GL_RGB);
+        ENDER::Renderer::renderScene(scene);
 
-  auto texture2 = new ENDER::Texture();
-  texture2->loadFromFile("../resources/textures/awesomeface.png", GL_RGBA);
+        ENDER::Renderer::swapBuffers();
+        ENDER::Window::flash();
 
-  auto cubeObject = ENDER::Object::createCube("cube");
-  cubeObject->setTexture(texture1);
-  cubeObject->setPosition(glm::vec3(1.5f, 0.2f, -1.5f));
+        camera->proccessInput();
+    }
 
-  auto cubeObject2 = ENDER::Object::createCube("cube2");
-  cubeObject2->setTexture(texture2);
-  cubeObject2->setPosition(glm::vec3(-1.5f, 0.2f, -1.5f));
+    delete cubeObject;
+    delete cubeObject2;
+    delete scene;
+    delete camera;
 
-  scene->addObject(cubeObject);
-  scene->addObject(cubeObject2);
-
-  ENDER::Renderer::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
-
-  float angle = 0;
-
-  double lastFrame = glfwGetTime();
-  while (!ENDER::Window::windowShouldClose())
-  {
-    double currentTime = glfwGetTime();
-    double deltaTime = (currentTime - lastFrame);
-    lastFrame = currentTime;
-
-    angle += 1.0f * deltaTime;
-    cubeObject->setRotation(glm::vec3(0, angle, 0));
-    // spdlog::debug(" fps={}", 1 / deltaTime);
-
-    ENDER::Window::keyPressed(GLFW_KEY_ESCAPE, [] { ENDER::Window::close(); });
-
-    ENDER::Renderer::clear();
-
-    ENDER::Renderer::renderScene(scene);
-
-    ENDER::Renderer::swapBuffers();
-    ENDER::Window::pollEvents();
-  }
-
-  delete cubeObject;
-  delete cubeObject2;
-  delete scene;
-
-  return 0;
+    return 0;
 }
-

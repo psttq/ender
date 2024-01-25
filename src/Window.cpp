@@ -3,6 +3,13 @@
 
 ENDER::Window::Window()
 {
+
+}
+
+void ENDER::Window::_posCursorCallback(GLFWwindow *window, double xpos, double ypos) {
+    for(auto &func: _mousePosCallbacks) {
+        func.second(xpos, ypos);
+    }
 }
 
 void ENDER::Window::init(unsigned int width, unsigned int height)
@@ -28,6 +35,20 @@ void ENDER::Window::init(unsigned int width, unsigned int height)
 
     instance()._width = width;
     instance()._height = height;
+
+    glfwSetCursorPosCallback(instance()._window, [](GLFWwindow *window, double xpos, double ypos) {
+        instance()._posCursorCallback(window, xpos, ypos);
+    });
+}
+
+int ENDER::Window::addMousePosCallback(mousePosCallback callback) {
+    int key = instance()._mousePosCallbacks.size();
+    instance()._mousePosCallbacks.insert({key, callback});
+    return key;
+}
+
+void ENDER::Window::deleteMousePosCallback(int key) {
+    instance()._mousePosCallbacks.erase(key);
 }
 
 void ENDER::Window::setFramebufferSizeCallback(std::function<void(int, int)> framebufferSizeCallback)
@@ -93,6 +114,25 @@ void ENDER::Window::keyPressed(unsigned int key, std::function<void()> callBack)
 
 void ENDER::Window::close() {
     glfwSetWindowShouldClose(instance()._window, true);
+}
+
+void ENDER::Window::flash() {
+    pollEvents();
+    auto currentTime = glfwGetTime();
+    instance()._deltaTime = currentTime - instance()._lastFrame;
+    instance()._lastFrame = currentTime;
+}
+
+double ENDER::Window::deltaTime() {
+    return instance()._deltaTime;
+}
+
+void ENDER::Window::enableCursor() {
+    glfwSetInputMode(instance()._window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+void ENDER::Window::disableCursor() {
+    glfwSetInputMode(instance()._window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 GLFWwindow *ENDER::Window::getNativeWindow()

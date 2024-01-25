@@ -7,8 +7,11 @@ ENDER::Scene::Scene() {
 
 glm::mat4 ENDER::Scene::calculateView() {
     auto view = glm::mat4(
-        1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+       1.0f);
+    if(_camera == nullptr)
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    else
+        view = _camera->getView();
     return view;
 }
 
@@ -18,5 +21,9 @@ std::vector<ENDER::Object *> &ENDER::Scene::getObjects() {
 
 void ENDER::Scene::addObject(Object *object) {
     _objects.push_back(object);
+}
+
+void ENDER::Scene::setCamera(Camera *camera) {
+    _camera = camera;
 }
 

@@ -70,6 +70,7 @@ void ENDER::Renderer::renderObject(Object *object)
     {
         object->getTexture()->setAsCurrent();
     }
+    //FIXME: count?
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
