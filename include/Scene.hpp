@@ -18,6 +18,7 @@ namespace ENDER
         void addObject(Object *object);
 
         void setCamera(Camera *camera);
+        Camera *getCamera();
 
         std::vector<Object *> &getObjects();
     };

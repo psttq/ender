@@ -9,7 +9,24 @@ namespace ENDER
 {
     class Window
     {
+    public:
+        enum class MouseButton {
+            Left,
+            Right,
+            None
+        };
+
+        enum class EventStatus {
+            Release,
+            Press,
+            None
+        };
+
+    private:
+
         typedef std::function<void(int, int)> mousePosCallback;
+        typedef std::function<void(MouseButton, EventStatus)> mouseClickCallback;
+
 
         GLFWwindow *_window = nullptr;
         unsigned int _width;
@@ -21,6 +38,8 @@ namespace ENDER
         std::function<void(int, int)> _framebufferSizeCallback;
 
         std::unordered_map<int, mousePosCallback> _mousePosCallbacks;
+        std::unordered_map<int, mouseClickCallback> _mouseClickCallbacks;
+
 
         Window();
 
@@ -31,8 +50,11 @@ namespace ENDER
         }
 
         void _posCursorCallback(GLFWwindow *window, double xpos, double ypos);
+        void _clickCursorCallback(GLFWwindow* window, int button, int action, int mods);
 
     public:
+
+
         static Window &instance()
         {
             static Window _instance;
@@ -42,6 +64,10 @@ namespace ENDER
         static int addMousePosCallback(mousePosCallback callback);
 
         static void deleteMousePosCallback(int key);
+
+        static int addMouseClickCallback(mouseClickCallback callback);
+
+        static void deleteMouseClickCallback(int key);
 
         static void setFramebufferSizeCallback(std::function<void(int, int)> framebufferSizeCallback);
 
@@ -61,6 +87,17 @@ namespace ENDER
 
         static void keyPressed(unsigned int key, std::function<void()> callBack);
 
+        static bool isKeyPressed(unsigned int key);
+
+        static bool isKeyReleased(unsigned int key);
+
+        static void keyReleased(unsigned int key, std::function<void()> callBack);
+
+
+        static bool isMouseButtonPressed(const MouseButton &button);
+
+        static void mouseButtonPressed(const MouseButton &button, std::function<void()> callBack);
+
         static void close();
 
         static void flash();
@@ -70,7 +107,10 @@ namespace ENDER
         static void enableCursor();
         static void disableCursor();
 
-
         GLFWwindow *getNativeWindow();
+
+    private:
+        EventStatus glfwActionToEventStatus(unsigned int action);
+
     };
 } // namespace ENDER

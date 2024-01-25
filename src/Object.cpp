@@ -28,9 +28,25 @@ void ENDER::Object::setRotation(const glm::vec3 &rotation)
   _rotation = rotation;
 }
 
+void ENDER::Object::setScale(const glm::vec3 &scale) {
+  _scale = scale;
+}
+
 glm::vec3 ENDER::Object::getRotation() const
 {
   return _rotation;
+}
+
+glm::vec3 ENDER::Object::getScale() const {
+  return _scale;
+}
+
+void ENDER::Object::setShader(Shader *shader) {
+  _shader = shader;
+}
+
+ENDER::Shader * ENDER::Object::getShader() {
+  return _shader;
 }
 
 ENDER::Texture *ENDER::Object::getTexture() const

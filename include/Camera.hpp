@@ -7,5 +7,9 @@ namespace ENDER {
         virtual ~Camera() = default;
 
         virtual glm::mat4 getView() const = 0;
+        virtual glm::vec3 getPosition() const = 0;
+        virtual glm::vec3 getFront() const = 0;
+        virtual bool getSpotlightToggled() const = 0;
+
     };
 }

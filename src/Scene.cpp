@@ -27,3 +27,7 @@ void ENDER::Scene::setCamera(Camera *camera) {
     _camera = camera;
 }
 
+ENDER::Camera * ENDER::Scene::getCamera() {
+    return _camera;
+}
+

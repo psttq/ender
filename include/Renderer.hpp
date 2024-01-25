@@ -6,10 +6,11 @@
 
 namespace ENDER
 {
-    // TODO: Singleton
     class Renderer
     {
-        Shader *_shader;
+        Shader *_simpleShader;
+        Shader *_textureShader;
+
         glm::mat4 _projectMatrix;
 
         VertexArray *cubeVAO;
@@ -19,7 +20,7 @@ namespace ENDER
 
         void createCubeVAO();
 
-        void renderObject(Object *object);
+        void renderObject(Object *object, Camera *camera);
 
     public:
         static Renderer &instance()
@@ -36,6 +37,14 @@ namespace ENDER
         static void clear();
 
         static void swapBuffers();
+
+        static void begin(std::function<void()> imguiDrawCallback);
+
+        static void end();
+
+        static glm::mat4 getProjectMatrix();
+
+        static Shader *shader();
 
         static void renderScene(Scene *scene);
 
