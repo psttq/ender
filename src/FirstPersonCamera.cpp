@@ -56,7 +56,7 @@ void ENDER::FirstPersonCamera::proccessInput() {
 }
 
 void ENDER::FirstPersonCamera::proccessMouseInput(double xpos, double ypos) {
-    if(!Window::isMouseButtonPressed(Window::MouseButton::Right))
+    if(!Window::isMouseButtonPressed(Window::MouseButton::Right) && !Window::isKeyPressed(GLFW_KEY_E))
         return;
 
     Window::disableCursor();
