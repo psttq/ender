@@ -15,6 +15,8 @@
 
 #include <imgui.h>
 
+#include "PointLight.hpp"
+
 void processInput(GLFWwindow *window);
 
 // settings
@@ -52,45 +54,61 @@ int main() {
 
     auto *scene = new ENDER::Scene();
 
-    auto texture = new ENDER::Texture();
-    texture->loadFromFile("../resources/textures/container2.png", GL_RGBA);
-
     std::vector<ENDER::Object *> cubes;
 
+    int i = 0;
     for (auto pos: cubePositions) {
-        auto cubeObject = ENDER::Object::createCube("cube");
+        auto cubeObject = ENDER::Object::createCube(std::string("Cube ")+std::to_string(i));
         cubeObject->setPosition(pos);
-        // cubeObject->setTexture(texture);
         scene->addObject(cubeObject);
         cubes.push_back(cubeObject);
+        i++;
     }
 
-    for(auto pos: pointLightPositions) {
-        auto lightCube = ENDER::Object::createCube("cube2");
-        lightCube->setPosition(pos);
-        lightCube->setScale(glm::vec3(0.2f));
-        lightCube->setShader(lightCubeShader);
-        scene->addObject(lightCube);
-    }
 
     auto *camera = new ENDER::FirstPersonCamera({});
 
     scene->setCamera(camera);
 
-    ENDER::Renderer::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
+    auto pointLight = new ENDER::PointLight(pointLightPositions[0], glm::vec3(1));
+    scene->addLight(pointLight);
+
+
+    ENDER::Renderer::setClearColor({0.093f, 0.093f, 0.093f, 1.0f});
+
+    ENDER::Window::addInputCallback([&](int key, ENDER::Window::EventStatus status) {
+        if(key == GLFW_KEY_SPACE && status == ENDER::Window::EventStatus::Press) {
+            auto pos = scene->getCamera()->getPosition();
+
+            spdlog::debug("{}, {}, {}", pos.x, pos.y, pos.z);
+
+            auto lightCube = ENDER::Object::createCube("Light Debug Cube");
+            lightCube->setPosition(pos);
+            lightCube->setScale(glm::vec3(0.2f));
+            lightCube->setShader(lightCubeShader);
+            scene->addObject(lightCube);
+
+            auto pointLight = new ENDER::PointLight(pos, glm::vec3(1));
+            scene->addLight(pointLight);
+        }
+     });
 
     float angle = 0;
     while (!ENDER::Window::windowShouldClose()) {
-        ENDER::Renderer::begin([]() {
-            ImGui::ShowDemoWindow();
+        ENDER::Renderer::begin([&]() {
+            for(auto obj: scene->getObjects()) {
+                ImGui::Text( obj->getName().c_str());
+            }
+            for(auto light: scene->getLights()) {
+                if(light->type == ENDER::Light::LightType::PointLight)
+                    ImGui::Text( "PointLight");
+           }
         });
 
         ENDER::Renderer::shader()->use();
 
-        ENDER::Renderer::shader()->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        ENDER::Renderer::shader()->setFloat("material.shininess", 64.0f);
-        ENDER::Renderer::shader()->setVec3("material.diffuse", {1.0f, 0.5f, 0.31f});
-        ENDER::Renderer::shader()->setVec3("material.ambient", {1.0f, 0.5f, 0.31f});
+
+
 
 
         ENDER::Renderer::shader()->setVec3("viewPos", camera->getPosition());
@@ -99,45 +117,15 @@ int main() {
         ENDER::Renderer::shader()->setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
         ENDER::Renderer::shader()->setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         ENDER::Renderer::shader()->setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-        // point light 1
-        ENDER::Renderer::shader()->setVec3("pointLights[0].position", pointLightPositions[0]);
-        ENDER::Renderer::shader()->setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-        ENDER::Renderer::shader()->setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-        ENDER::Renderer::shader()->setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[0].constant", 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[0].linear", 0.09f);
-        ENDER::Renderer::shader()->setFloat("pointLights[0].quadratic", 0.032f);
-        // point light 2
-        ENDER::Renderer::shader()->setVec3("pointLights[1].position", pointLightPositions[1]);
-        ENDER::Renderer::shader()->setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-        ENDER::Renderer::shader()->setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-        ENDER::Renderer::shader()->setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[1].constant", 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[1].linear", 0.09f);
-        ENDER::Renderer::shader()->setFloat("pointLights[1].quadratic", 0.032f);
-        // point light 3
-        ENDER::Renderer::shader()->setVec3("pointLights[2].position", pointLightPositions[2]);
-        ENDER::Renderer::shader()->setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-        ENDER::Renderer::shader()->setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-        ENDER::Renderer::shader()->setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[2].constant", 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[2].linear", 0.09f);
-        ENDER::Renderer::shader()->setFloat("pointLights[2].quadratic", 0.032f);
-        // point light 4
-        ENDER::Renderer::shader()->setVec3("pointLights[3].position", pointLightPositions[3]);
-        ENDER::Renderer::shader()->setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-        ENDER::Renderer::shader()->setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-        ENDER::Renderer::shader()->setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[3].constant", 1.0f);
-        ENDER::Renderer::shader()->setFloat("pointLights[3].linear", 0.09f);
-        ENDER::Renderer::shader()->setFloat("pointLights[3].quadratic", 0.032f);
-        // spotLight
 
 
         angle += 1.0f * ENDER::Window::deltaTime();
 
         // cubeObject->setRotation(glm::vec3(0, angle, 0));
         // spdlog::debug(" fps={}", 1 / deltaTime);
+
+
+
 
         ENDER::Window::keyPressed(GLFW_KEY_ESCAPE, [] { ENDER::Window::close(); });
 

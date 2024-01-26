@@ -41,6 +41,10 @@ glm::vec3 ENDER::Object::getScale() const {
   return _scale;
 }
 
+const std::string & ENDER::Object::getName() {
+  return _name;
+}
+
 void ENDER::Object::setShader(Shader *shader) {
   _shader = shader;
 }

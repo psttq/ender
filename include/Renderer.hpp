@@ -6,6 +6,8 @@
 
 namespace ENDER
 {
+#define MAX_POINT_LIGHTS_NUMBER 100
+
     class Renderer
     {
         Shader *_simpleShader;
@@ -20,7 +22,7 @@ namespace ENDER
 
         void createCubeVAO();
 
-        void renderObject(Object *object, Camera *camera);
+        void renderObject(Object *object, Scene *scene);
 
     public:
         static Renderer &instance()

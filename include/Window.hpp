@@ -26,6 +26,7 @@ namespace ENDER
 
         typedef std::function<void(int, int)> mousePosCallback;
         typedef std::function<void(MouseButton, EventStatus)> mouseClickCallback;
+        typedef std::function<void(int, EventStatus)> inputCallback;
 
 
         GLFWwindow *_window = nullptr;
@@ -39,6 +40,7 @@ namespace ENDER
 
         std::unordered_map<int, mousePosCallback> _mousePosCallbacks;
         std::unordered_map<int, mouseClickCallback> _mouseClickCallbacks;
+        std::unordered_map<int, inputCallback> _inputCallbacks;
 
 
         Window();
@@ -51,6 +53,7 @@ namespace ENDER
 
         void _posCursorCallback(GLFWwindow *window, double xpos, double ypos);
         void _clickCursorCallback(GLFWwindow* window, int button, int action, int mods);
+        void _inputCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
     public:
 
@@ -68,6 +71,10 @@ namespace ENDER
         static int addMouseClickCallback(mouseClickCallback callback);
 
         static void deleteMouseClickCallback(int key);
+
+        static int addInputCallback(inputCallback callback);
+
+        static  void deleteInputCallback(int key);
 
         static void setFramebufferSizeCallback(std::function<void(int, int)> framebufferSizeCallback);
 

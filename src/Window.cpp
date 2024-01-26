@@ -1,39 +1,42 @@
 #include <Window.hpp>
 #include <spdlog/spdlog.h>
 
-ENDER::Window::Window()
-{
-
+ENDER::Window::Window() {
 }
 
 void ENDER::Window::_posCursorCallback(GLFWwindow *window, double xpos, double ypos) {
-    for(auto &func: _mousePosCallbacks) {
+    for (auto &func: _mousePosCallbacks) {
         func.second(xpos, ypos);
     }
 }
 
 void ENDER::Window::_clickCursorCallback(GLFWwindow *window, int button, int action, int mods) {
     MouseButton _button;
-    switch(button) {
+    switch (button) {
         case GLFW_MOUSE_BUTTON_RIGHT:
             _button = MouseButton::Right;
-        break;
+            break;
         case GLFW_MOUSE_BUTTON_LEFT:
             _button = MouseButton::Left;
-        break;
+            break;
         default:
             _button = MouseButton::None;
     }
 
     EventStatus _status = glfwActionToEventStatus(action);
-    for(auto &func : _mouseClickCallbacks) {
+    for (auto &func: _mouseClickCallbacks) {
         func.second(_button, _status);
     }
 }
 
-void ENDER::Window::init(unsigned int width, unsigned int height)
-{
+void ENDER::Window::_inputCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    EventStatus _status = glfwActionToEventStatus(action);
+    for (auto &func: _inputCallbacks) {
+        func.second(key, _status);
+    }
+}
 
+void ENDER::Window::init(unsigned int width, unsigned int height) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -44,9 +47,8 @@ void ENDER::Window::init(unsigned int width, unsigned int height)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
     instance()._window =
-        glfwCreateWindow(width, height, "ENDER test", NULL, NULL);
-    if (instance()._window == NULL)
-    {
+            glfwCreateWindow(width, height, "ENDER test", NULL, NULL);
+    if (instance()._window == NULL) {
         spdlog::error("Failed to create GLFW window");
         glfwTerminate();
         throw;
@@ -61,9 +63,12 @@ void ENDER::Window::init(unsigned int width, unsigned int height)
     glfwSetCursorPosCallback(instance()._window, [](GLFWwindow *window, double xpos, double ypos) {
         instance()._posCursorCallback(window, xpos, ypos);
     });
-    glfwSetMouseButtonCallback(instance()._window, [](GLFWwindow* window, int button, int action, int mods) {
-    instance()._clickCursorCallback(window, button, action, mods);
-});
+    glfwSetMouseButtonCallback(instance()._window, [](GLFWwindow *window, int button, int action, int mods) {
+        instance()._clickCursorCallback(window, button, action, mods);
+    });
+    glfwSetKeyCallback(instance()._window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+       instance()._inputCallback(window, key, scancode, action, mods);
+   });
 }
 
 int ENDER::Window::addMousePosCallback(mousePosCallback callback) {
@@ -86,58 +91,57 @@ void ENDER::Window::deleteMouseClickCallback(int key) {
     instance()._mouseClickCallbacks.erase(key);
 }
 
-void ENDER::Window::setFramebufferSizeCallback(std::function<void(int, int)> framebufferSizeCallback)
-{
-    if (instance()._window == nullptr)
-    {
+int ENDER::Window::addInputCallback(inputCallback callback) {
+    int key = instance()._inputCallbacks.size();
+    instance()._inputCallbacks.insert({key, callback});
+    return key;
+}
+
+void ENDER::Window::deleteInputCallback(int key) {
+    instance()._inputCallbacks.erase(key);
+}
+
+void ENDER::Window::setFramebufferSizeCallback(std::function<void(int, int)> framebufferSizeCallback) {
+    if (instance()._window == nullptr) {
         spdlog::error("First you should init Window.");
     }
     instance()._framebufferSizeCallback = framebufferSizeCallback;
     glfwSetFramebufferSizeCallback(instance()._window, __framebufferSizeCallback);
 }
 
-void ENDER::Window::__framebufferSizeCallback(GLFWwindow *window, int width, int height)
-{
+void ENDER::Window::__framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     instance()._framebufferSizeCallback(width, height);
     instance()._width = width;
     instance()._height = height;
     spdlog::debug("Window resized. [width: {}, height: {}]", width, height);
 }
 
-bool ENDER::Window::windowShouldClose()
-{
-    if (instance()._window == nullptr)
-    {
+bool ENDER::Window::windowShouldClose() {
+    if (instance()._window == nullptr) {
         spdlog::error("First you should init Window.");
     }
     return glfwWindowShouldClose(instance()._window);
 }
 
-void ENDER::Window::swapBuffers()
-{
-    if (instance()._window == nullptr)
-    {
+void ENDER::Window::swapBuffers() {
+    if (instance()._window == nullptr) {
         spdlog::error("First you should init Window.");
     }
     glfwSwapBuffers(instance()._window);
 }
 
-void ENDER::Window::pollEvents()
-{
-    if (instance()._window == nullptr)
-    {
+void ENDER::Window::pollEvents() {
+    if (instance()._window == nullptr) {
         spdlog::error("First you should init Window.");
     }
     glfwPollEvents();
 }
 
-int ENDER::Window::getHeight()
-{
+int ENDER::Window::getHeight() {
     return instance()._height;
 }
 
-int ENDER::Window::getWidth()
-{
+int ENDER::Window::getWidth() {
     return instance()._width;
 }
 
@@ -162,7 +166,7 @@ void ENDER::Window::keyReleased(unsigned key, std::function<void()> callBack) {
 }
 
 bool ENDER::Window::isMouseButtonPressed(const MouseButton &button) {
-    switch(button) {
+    switch (button) {
         case MouseButton::Left:
             return glfwGetMouseButton(instance()._window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
         case MouseButton::Right:
@@ -174,7 +178,7 @@ bool ENDER::Window::isMouseButtonPressed(const MouseButton &button) {
 }
 
 void ENDER::Window::mouseButtonPressed(const MouseButton &button, std::function<void()> callBack) {
-    if(isMouseButtonPressed(button))
+    if (isMouseButtonPressed(button))
         callBack();
 }
 
@@ -201,8 +205,7 @@ void ENDER::Window::disableCursor() {
     glfwSetInputMode(instance()._window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
-GLFWwindow *ENDER::Window::getNativeWindow()
-{
+GLFWwindow *ENDER::Window::getNativeWindow() {
     return _window;
 }
 
@@ -211,10 +214,10 @@ ENDER::Window::EventStatus ENDER::Window::glfwActionToEventStatus(unsigned actio
     switch (action) {
         case GLFW_PRESS:
             _status = EventStatus::Press;
-        break;
+            break;
         case GLFW_RELEASE:
             _status = EventStatus::Release;
-        break;
+            break;
         default:
             _status = EventStatus::None;
     }

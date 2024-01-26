@@ -7,18 +7,17 @@
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
+#include "PointLight.hpp"
 
-ENDER::Renderer::Renderer()
-{
+
+ENDER::Renderer::Renderer() {
     createCubeVAO();
 }
 
-void ENDER::Renderer::init()
-{
+void ENDER::Renderer::init() {
     spdlog::info("Inititing renderer.");
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         spdlog::error("Failed to initialize GLAD");
         throw;
     }
@@ -27,8 +26,8 @@ void ENDER::Renderer::init()
 
     instance()._projectMatrix = glm::mat4(1.0f);
     instance()._projectMatrix =
-        glm::perspective(glm::radians(45.0f),
-                         (float)Window::getWidth() / (float)Window::getHeight(), 0.1f, 100.0f);
+            glm::perspective(glm::radians(45.0f),
+                             (float) Window::getWidth() / (float) Window::getHeight(), 0.1f, 100.0f);
     instance()._simpleShader = new Shader("../resources/simpleShader.vs", "../resources/simpleShader.fs");
     instance()._simpleShader->use();
 
@@ -41,25 +40,24 @@ void ENDER::Renderer::init()
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(Window::instance().getNativeWindow(), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplGlfw_InitForOpenGL(Window::instance().getNativeWindow(), true);
+    // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
 }
 
-void ENDER::Renderer::framebufferSizeCallback(int width, int height)
-{
+void ENDER::Renderer::framebufferSizeCallback(int width, int height) {
     instance()._projectMatrix =
-       glm::perspective(glm::radians(45.0f),
-                        (float)Window::getWidth() / (float)Window::getHeight(), 0.1f, 100.0f);
+            glm::perspective(glm::radians(45.0f),
+                             (float) Window::getWidth() / (float) Window::getHeight(), 0.1f, 100.0f);
     glViewport(0, 0, width, height);
 }
 
-ENDER::Renderer::~Renderer()
-{
+ENDER::Renderer::~Renderer() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -70,20 +68,28 @@ ENDER::Renderer::~Renderer()
     spdlog::info("Deallocation renderer.");
 }
 
-void ENDER::Renderer::renderObject(Object *object, Camera *camera)
-{
+void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
+    auto camera = scene->getCamera();
+
     Shader *currentShader = object->getShader();
 
-    if(currentShader == nullptr) {
-        currentShader=instance()._simpleShader;
-        if (object->getTexture() != nullptr)
-        {
-            currentShader=instance()._textureShader;
+    if (currentShader == nullptr) {
+        currentShader = instance()._simpleShader;
+        currentShader->use();
+        currentShader->setVec3("material.diffuse", {1.0f, 0.5f, 0.31f});
+        currentShader->setVec3("material.ambient", {1.0f, 0.5f, 0.31f});
+        if (object->getTexture() != nullptr) {
+            currentShader = instance()._textureShader;
             object->getTexture()->setAsCurrent();
+            currentShader->use();
+            currentShader->setInt("material.diffuse", 0);
         }
     }
+    else
+        currentShader->use();
 
-    currentShader->use();
+    currentShader->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    currentShader->setFloat("material.shininess", 64.0f);
 
     currentShader->setVec3("spotLight.position", camera->getPosition());
     currentShader->setVec3("spotLight.direction", camera->getFront());
@@ -108,15 +114,47 @@ void ENDER::Renderer::renderObject(Object *object, Camera *camera)
 
     model = glm::translate(model, object->getPosition());
     model =
-        glm::rotate(model, objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+            glm::rotate(model, objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
     model =
-        glm::rotate(model, objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::rotate(model, objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
     model =
-        glm::rotate(model, objRotation.z, glm::vec3(1.0f, 0.0f, 1.0f));
+            glm::rotate(model, objRotation.z, glm::vec3(1.0f, 0.0f, 1.0f));
 
     model = glm::scale(model, object->getScale());
 
     currentShader->setMat4("model", model);
+
+    unsigned int pointLightsCount = 0;
+
+    for (auto light: scene->getLights()) {
+        switch (light->type) {
+            case Light::LightType::PointLight: {
+                if (pointLightsCount == MAX_POINT_LIGHTS_NUMBER)
+                    continue;
+
+                auto pointLight = dynamic_cast<PointLight *>(light);
+                if (pointLight == nullptr) {
+                    spdlog::error("ENDER::Renderer::renderObject: something went wrong when casting light");
+                    continue;
+                }
+                std::string pointLightLabel = std::string("pointLights[") + std::to_string(pointLightsCount) + "]";
+
+                // spdlog::debug("ENDER::Renderer::renderObject: adding {}", pointLightLabel);
+
+                currentShader->setVec3(pointLightLabel + ".position", pointLight->position());
+                currentShader->setVec3(pointLightLabel + ".ambient", pointLight->ambient());
+                currentShader->setVec3(pointLightLabel + ".diffuse", pointLight->diffuse());
+                currentShader->setVec3(pointLightLabel + ".specular", pointLight->specular());
+                currentShader->setFloat(pointLightLabel + ".constant", pointLight->constant());
+                currentShader->setFloat(pointLightLabel + ".linear", pointLight->linear());
+                currentShader->setFloat(pointLightLabel + ".quadratic", pointLight->quadratic());
+
+                pointLightsCount++;
+            }
+        }
+    }
+
+    currentShader->setInt("pointLightsCount", pointLightsCount);
 
     object->getVertexArray()->bind();
 
@@ -124,19 +162,16 @@ void ENDER::Renderer::renderObject(Object *object, Camera *camera)
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-void ENDER::Renderer::setClearColor(const glm::vec4 &color)
-{
+void ENDER::Renderer::setClearColor(const glm::vec4 &color) {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
-void ENDER::Renderer::clear()
-{
+void ENDER::Renderer::clear() {
     glClear(GL_COLOR_BUFFER_BIT |
             GL_DEPTH_BUFFER_BIT);
 }
 
-void ENDER::Renderer::swapBuffers()
-{
+void ENDER::Renderer::swapBuffers() {
     Window::swapBuffers();
 }
 
@@ -164,15 +199,14 @@ ENDER::Shader *ENDER::Renderer::shader() {
 }
 
 void ENDER::Renderer::renderScene(Scene *scene) {
-    for(const auto &obj: scene->getObjects()) {
-        instance().renderObject(obj, scene->getCamera());
+    for (const auto &obj: scene->getObjects()) {
+        instance().renderObject(obj, scene);
     }
 }
 
-void ENDER::Renderer::createCubeVAO()
-{
+void ENDER::Renderer::createCubeVAO() {
     auto *cubeLayout = new BufferLayout(
-        {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float3},{ENDER::LayoutObjectType::Float2}});
+        {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}});
 
     auto *cubeVBO = new VertexBuffer(cubeLayout);
 

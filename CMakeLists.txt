@@ -19,7 +19,10 @@ add_executable(target ${SRC_FILES} ${GLAD_FILES} ${IMGUI_FILES}
         include/FirstPersonCamera.hpp
         src/FirstPersonCamera.cpp
         src/Camera.cpp
-        include/Camera.hpp)
+        include/Camera.hpp
+        include/Light.hpp
+        src/PointLight.cpp
+        include/PointLight.hpp)
 
 target_include_directories(target PUBLIC ${PROJECT_SOURCE_DIR}/3rd/glad/include ${PROJECT_SOURCE_DIR}/3rd/stb ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/3rd ${PROJECT_SOURCE_DIR}/3rd/imgui)
 

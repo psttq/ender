@@ -5,7 +5,7 @@ ENDER::Scene::Scene() {
     spdlog::debug("Creating scene.");
 }
 
-glm::mat4 ENDER::Scene::calculateView() {
+glm::mat4 ENDER::Scene::calculateView() const {
     auto view = glm::mat4(
        1.0f);
     if(_camera == nullptr)
@@ -27,7 +27,15 @@ void ENDER::Scene::setCamera(Camera *camera) {
     _camera = camera;
 }
 
-ENDER::Camera * ENDER::Scene::getCamera() {
+ENDER::Camera *ENDER::Scene::getCamera() {
     return _camera;
+}
+
+void ENDER::Scene::addLight(Light *light) {
+    _lights.push_back(light);
+}
+
+const std::vector<ENDER::Light *> & ENDER::Scene::getLights() {
+    return _lights;
 }
 

@@ -30,6 +30,8 @@ struct PointLight {
 };
 
 struct SpotLight {
+    bool toggled;
+
     vec3 position;
     vec3 direction;
     float cutOff;
@@ -44,7 +46,7 @@ struct SpotLight {
     vec3 specular;
 };
 
-#define NR_POINT_LIGHTS 4
+#define NR_POINT_LIGHTS 100
 
 in vec3 FragPos;
 in vec3 Normal;
@@ -55,6 +57,7 @@ uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 uniform Material material;
+uniform int pointLightsCount;
 
 // function prototypes
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
@@ -76,8 +79,11 @@ void main()
     // phase 1: directional lighting
     vec3 result = CalcDirLight(dirLight, norm, viewDir);
     // phase 2: point lights
-    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+    for(int i = 0; i < pointLightsCount; i++)
         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+
+    if(spotLight.toggled)
+        result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
 
     FragColor = vec4(result, 1.0);
 }
