@@ -10,6 +10,7 @@ struct Material {
 };
 
 struct DirLight {
+    bool enabled;
     vec3 direction;
 
     vec3 ambient;
@@ -77,7 +78,10 @@ void main()
     // this fragment's final color.
     // == =====================================================
     // phase 1: directional lighting
-    vec3 result = CalcDirLight(dirLight, norm, viewDir);
+    vec3 result = vec3(0.0);
+
+    if(dirLight.enabled)
+        result += CalcDirLight(dirLight, norm, viewDir);
     // phase 2: point lights
     for(int i = 0; i < pointLightsCount; i++)
         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);

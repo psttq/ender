@@ -15,6 +15,7 @@
 
 #include <imgui.h>
 
+#include "DirectionalLight.hpp"
 #include "PointLight.hpp"
 
 void processInput(GLFWwindow *window);
@@ -35,13 +36,6 @@ int main() {
         glm::vec3(1.5f, 2.0f, -2.5f),
         glm::vec3(1.5f, 0.2f, -1.5f),
         glm::vec3(-1.3f, 1.0f, -1.5f)
-    };
-
-    glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.7f, 0.2f, 2.0f),
-        glm::vec3(2.3f, -3.3f, -4.0f),
-        glm::vec3(-4.0f, 2.0f, -12.0f),
-        glm::vec3(0.0f, 0.0f, -3.0f)
     };
 
     ENDER::Window::init(SCR_WIDTH, SCR_HEIGHT);
@@ -65,13 +59,10 @@ int main() {
         i++;
     }
 
-
     auto *camera = new ENDER::FirstPersonCamera({});
 
     scene->setCamera(camera);
 
-    auto pointLight = new ENDER::PointLight(pointLightPositions[0], glm::vec3(1));
-    scene->addLight(pointLight);
 
 
     ENDER::Renderer::setClearColor({0.093f, 0.093f, 0.093f, 1.0f});
@@ -93,9 +84,17 @@ int main() {
         }
      });
 
-    float angle = 0;
+    glm::vec3 dir = {0.0f,0.0f,0.0f};
+
+    auto directionalLight = new ENDER::DirectionalLight(dir, {1,1,1});
+    scene->addLight(directionalLight);
+
     while (!ENDER::Window::windowShouldClose()) {
         ENDER::Renderer::begin([&]() {
+            if(ImGui::SliderFloat3("Direciton", glm::value_ptr(dir), -1, 1)) {
+                directionalLight->setDirection(dir);
+            }
+
             for(auto obj: scene->getObjects()) {
                 ImGui::Text( obj->getName().c_str());
             }
@@ -106,26 +105,6 @@ int main() {
         });
 
         ENDER::Renderer::shader()->use();
-
-
-
-
-
-        ENDER::Renderer::shader()->setVec3("viewPos", camera->getPosition());
-
-        ENDER::Renderer::shader()->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        ENDER::Renderer::shader()->setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-        ENDER::Renderer::shader()->setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        ENDER::Renderer::shader()->setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-
-
-        angle += 1.0f * ENDER::Window::deltaTime();
-
-        // cubeObject->setRotation(glm::vec3(0, angle, 0));
-        // spdlog::debug(" fps={}", 1 / deltaTime);
-
-
-
 
         ENDER::Window::keyPressed(GLFW_KEY_ESCAPE, [] { ENDER::Window::close(); });
 

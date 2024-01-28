@@ -7,6 +7,7 @@
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
+#include "DirectionalLight.hpp"
 #include "PointLight.hpp"
 
 
@@ -88,6 +89,8 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
     else
         currentShader->use();
 
+    currentShader->setVec3("viewPos", camera->getPosition());
+
     currentShader->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
     currentShader->setFloat("material.shininess", 64.0f);
 
@@ -150,7 +153,23 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
                 currentShader->setFloat(pointLightLabel + ".quadratic", pointLight->quadratic());
 
                 pointLightsCount++;
-            }
+            } break;
+            case Light::LightType::DirectionalLight: {
+                auto directionalLight = dynamic_cast<DirectionalLight *>(light);
+                if (directionalLight == nullptr) {
+                    spdlog::error("ENDER::Renderer::renderObject: something went wrong when casting light");
+                    continue;
+                }
+                currentShader->setBool("dirLight.enabled", true);
+                currentShader->setVec3("dirLight.direction", directionalLight->direction());
+                currentShader->setVec3("dirLight.ambient", directionalLight->ambient());
+                currentShader->setVec3("dirLight.diffuse", directionalLight->diffuse());
+                currentShader->setVec3("dirLight.specular", directionalLight->specular());
+            } break;
+            default:
+                spdlog::error("ENDER::Renderer::renderObject: unknown type of light");
+                continue;
+
         }
     }
 
