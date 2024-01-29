@@ -49,6 +49,9 @@ namespace ENDER {
         std::string getName() const;
 
         static Object *createCube(const std::string &name);
+
+        static Object *createGrid(const std::string &name);
+
     };
 
     static float CUBE_VERTICES[] = {
@@ -95,4 +98,13 @@ namespace ENDER {
         -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
     };
+
+    static float GRID_VERTICES[] = {
+        1,  1, 0,
+       -1, -1, 0,
+       -1,  1, 0,
+       -1, -1, 0,
+        1,  1, 0,
+        1, -1, 0
+   };
 } // namespace ENDER

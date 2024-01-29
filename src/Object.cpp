@@ -73,3 +73,9 @@ ENDER::Object *ENDER::Object::createCube(const std::string &name)
   Object *cube = new Object(name, Renderer::getCubeVAO());
   return cube;
 }
+
+ENDER::Object * ENDER::Object::createGrid(const std::string &name) {
+  Object *grid = new Object(name, Renderer::getGridVAO());
+  grid->setShader(Renderer::getGridShader());
+  return grid;
+}

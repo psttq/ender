@@ -12,7 +12,6 @@
 
 
 ENDER::Renderer::Renderer() {
-    createCubeVAO();
 }
 
 void ENDER::Renderer::init() {
@@ -36,6 +35,8 @@ void ENDER::Renderer::init() {
     instance()._textureShader->use();
     instance()._textureShader->setInt("texture1", 0);
 
+    instance()._gridShader = new Shader("../resources/gridShader.vs","../resources/gridShader.fs");
+
     glEnable(GL_DEPTH_TEST);
 
     // Setup Dear ImGui context
@@ -49,6 +50,12 @@ void ENDER::Renderer::init() {
     ImGui_ImplGlfw_InitForOpenGL(Window::instance().getNativeWindow(), true);
     // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable( GL_BLEND );
+
+    instance().createCubeVAO();
+    instance().createGridVAO();
 }
 
 void ENDER::Renderer::framebufferSizeCallback(int width, int height) {
@@ -65,7 +72,9 @@ ENDER::Renderer::~Renderer() {
 
     delete _textureShader;
     delete _simpleShader;
+    delete _gridShader;
     delete cubeVAO;
+    delete gridVAO;
     spdlog::info("Deallocation renderer.");
 }
 
@@ -232,4 +241,21 @@ void ENDER::Renderer::createCubeVAO() {
     cubeVBO->setData(CUBE_VERTICES, sizeof(CUBE_VERTICES));
     cubeVAO = new VertexArray();
     cubeVAO->addVBO(cubeVBO);
+}
+
+void ENDER::Renderer::createGridVAO() {
+    auto gridLayout = new ENDER::BufferLayout({ENDER::LayoutObjectType::Float3});
+    auto gridVBO = new ENDER::VertexBuffer(gridLayout);
+    gridVBO->setData(GRID_VERTICES, sizeof(GRID_VERTICES));
+
+    gridVAO = new ENDER::VertexArray();
+    gridVAO->addVBO(gridVBO);
+
+    _gridShader->use();
+
+    float near = 0.01;
+    float far = 1.5;
+
+    _gridShader->setFloat("near", near);
+    _gridShader->setFloat("far", far);
 }

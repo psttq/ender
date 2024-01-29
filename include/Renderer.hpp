@@ -13,14 +13,19 @@ namespace ENDER
         Shader *_simpleShader;
         Shader *_textureShader;
 
+        Shader *_gridShader;
+
         glm::mat4 _projectMatrix;
 
         VertexArray *cubeVAO;
+        VertexArray *gridVAO;
 
         Renderer();
         ~Renderer();
 
         void createCubeVAO();
+        void createGridVAO();
+
 
         void renderObject(Object *object, Scene *scene);
 
@@ -48,13 +53,22 @@ namespace ENDER
 
         static Shader *shader();
 
+
         static void renderScene(Scene *scene);
 
         static void framebufferSizeCallback(int width, int height);
 
+        static Shader *getGridShader() {
+            return instance()._gridShader;
+        }
+
         static VertexArray *getCubeVAO()
         {
             return instance().cubeVAO;
+        }
+        static VertexArray *getGridVAO()
+        {
+            return instance().gridVAO;
         }
     };
 
