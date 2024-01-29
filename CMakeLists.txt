@@ -25,6 +25,8 @@ add_executable(target ${SRC_FILES} ${GLAD_FILES} ${IMGUI_FILES}
         include/PointLight.hpp
         include/DirectionalLight.hpp
         src/DirectionalLight.cpp
+        include/PickingTexture.hpp
+        src/PickingTexture.cpp
 )
 
 target_include_directories(target PUBLIC ${PROJECT_SOURCE_DIR}/3rd/glad/include ${PROJECT_SOURCE_DIR}/3rd/stb ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/3rd ${PROJECT_SOURCE_DIR}/3rd/imgui)

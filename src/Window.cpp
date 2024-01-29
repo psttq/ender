@@ -8,6 +8,7 @@ void ENDER::Window::_posCursorCallback(GLFWwindow *window, double xpos, double y
     for (auto &func: _mousePosCallbacks) {
         func.second(xpos, ypos);
     }
+    _mousePosition = {(int) xpos, (int) ypos};
 }
 
 void ENDER::Window::_clickCursorCallback(GLFWwindow *window, int button, int action, int mods) {
@@ -66,9 +67,9 @@ void ENDER::Window::init(unsigned int width, unsigned int height) {
     glfwSetMouseButtonCallback(instance()._window, [](GLFWwindow *window, int button, int action, int mods) {
         instance()._clickCursorCallback(window, button, action, mods);
     });
-    glfwSetKeyCallback(instance()._window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-       instance()._inputCallback(window, key, scancode, action, mods);
-   });
+    glfwSetKeyCallback(instance()._window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
+        instance()._inputCallback(window, key, scancode, action, mods);
+    });
 }
 
 int ENDER::Window::addMousePosCallback(mousePosCallback callback) {
@@ -222,4 +223,8 @@ ENDER::Window::EventStatus ENDER::Window::glfwActionToEventStatus(unsigned actio
             _status = EventStatus::None;
     }
     return _status;
+}
+
+glm::ivec2 ENDER::Window::getMousePosition() {
+    return instance()._mousePosition;
 }

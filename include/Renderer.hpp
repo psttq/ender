@@ -53,6 +53,7 @@ namespace ENDER
 
         static Shader *shader();
 
+        void renderObject(Object *object, Scene *scene, Shader *shader);
 
         static void renderScene(Scene *scene);
 

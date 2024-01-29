@@ -2,8 +2,9 @@
 #include <functional>
 #include <unordered_map>
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
+#include "glm/vec2.hpp"
 
 namespace ENDER
 {
@@ -41,13 +42,14 @@ namespace ENDER
         std::unordered_map<int, mousePosCallback> _mousePosCallbacks;
         std::unordered_map<int, mouseClickCallback> _mouseClickCallbacks;
         std::unordered_map<int, inputCallback> _inputCallbacks;
+        glm::ivec2 _mousePosition;
 
 
         Window();
 
         ~Window()
         {
-            spdlog::info("Deallocation window.");
+//            spdlog::info("Deallocation window.");
             glfwTerminate();
         }
 
@@ -100,6 +102,7 @@ namespace ENDER
 
         static void keyReleased(unsigned int key, std::function<void()> callBack);
 
+        static glm::ivec2 getMousePosition();
 
         static bool isMouseButtonPressed(const MouseButton &button);
 

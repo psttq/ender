@@ -35,7 +35,7 @@ void ENDER::Renderer::init() {
     instance()._textureShader->use();
     instance()._textureShader->setInt("texture1", 0);
 
-    instance()._gridShader = new Shader("../resources/gridShader.vs","../resources/gridShader.fs");
+    instance()._gridShader = new Shader("../resources/gridShader.vs", "../resources/gridShader.fs");
 
     glEnable(GL_DEPTH_TEST);
 
@@ -52,7 +52,7 @@ void ENDER::Renderer::init() {
     ImGui_ImplOpenGL3_Init();
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable( GL_BLEND );
+    glEnable(GL_BLEND);
 
     instance().createCubeVAO();
     instance().createGridVAO();
@@ -94,8 +94,7 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
             currentShader->use();
             currentShader->setInt("material.diffuse", 0);
         }
-    }
-    else
+    } else
         currentShader->use();
 
     currentShader->setVec3("viewPos", camera->getPosition());
@@ -162,7 +161,8 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
                 currentShader->setFloat(pointLightLabel + ".quadratic", pointLight->quadratic());
 
                 pointLightsCount++;
-            } break;
+            }
+                break;
             case Light::LightType::DirectionalLight: {
                 auto directionalLight = dynamic_cast<DirectionalLight *>(light);
                 if (directionalLight == nullptr) {
@@ -174,7 +174,8 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
                 currentShader->setVec3("dirLight.ambient", directionalLight->ambient());
                 currentShader->setVec3("dirLight.diffuse", directionalLight->diffuse());
                 currentShader->setVec3("dirLight.specular", directionalLight->specular());
-            } break;
+            }
+                break;
             default:
                 spdlog::error("ENDER::Renderer::renderObject: unknown type of light");
                 continue;
@@ -234,7 +235,9 @@ void ENDER::Renderer::renderScene(Scene *scene) {
 
 void ENDER::Renderer::createCubeVAO() {
     auto *cubeLayout = new BufferLayout(
-        {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}});
+            {{ENDER::LayoutObjectType::Float3},
+             {ENDER::LayoutObjectType::Float3},
+             {ENDER::LayoutObjectType::Float2}});
 
     auto *cubeVBO = new VertexBuffer(cubeLayout);
 
@@ -258,4 +261,27 @@ void ENDER::Renderer::createGridVAO() {
 
     _gridShader->setFloat("near", near);
     _gridShader->setFloat("far", far);
+}
+
+void ENDER::Renderer::renderObject(ENDER::Object *object, ENDER::Scene *scene, ENDER::Shader *shader) {
+    auto camera = scene->getCamera();
+    shader->use();
+    shader->setMat4("view", camera->getView());
+    shader->setMat4("projection", _projectMatrix);
+
+    auto objRotation = object->getRotation();
+
+    auto model = glm::mat4(1.0f);
+
+    model = glm::translate(model, object->getPosition());
+    model = glm::rotate(model, objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, objRotation.z, glm::vec3(1.0f, 0.0f, 1.0f));
+    model = glm::scale(model, object->getScale());
+    shader->setMat4("model", model);
+    object->getVertexArray()->bind();
+
+    //FIXME: count?
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
 }

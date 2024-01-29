@@ -17,6 +17,7 @@
 
 #include "DirectionalLight.hpp"
 #include "PointLight.hpp"
+#include "PickingTexture.hpp"
 
 void processInput(GLFWwindow *window);
 
@@ -26,10 +27,8 @@ const unsigned int SCR_HEIGHT = 800;
 
 int main() {
     glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
     };
-
-
 
 
     ENDER::Window::init(SCR_WIDTH, SCR_HEIGHT);
@@ -42,12 +41,16 @@ int main() {
 
     auto *scene = new ENDER::Scene();
 
+    auto *texture = new ENDER::Texture();
+    texture->loadFromFile("../resources/textures/awesomeface.png", GL_RGBA);
+
     std::vector<ENDER::Object *> cubes;
 
     int i = 0;
     for (auto pos: cubePositions) {
         auto cubeObject = ENDER::Object::createCube(std::string("Cube ") + std::to_string(i));
         cubeObject->setPosition(pos);
+        cubeObject->setTexture(texture);
         scene->addObject(cubeObject);
         cubes.push_back(cubeObject);
         i++;
@@ -76,7 +79,7 @@ int main() {
         }
     });
 
-    glm::vec3 dir = { -0.2f, -1.0f, -0.3f};
+    glm::vec3 dir = {-0.2f, -1.0f, -0.3f};
 
     auto directionalLight = new ENDER::DirectionalLight(dir, {1, 1, 1});
     scene->addLight(directionalLight);
@@ -84,9 +87,34 @@ int main() {
     auto grid = ENDER::Object::createGrid("Grid");
     scene->addObject(grid);
 
+    auto *pickingTexture = new ENDER::PickingTexture();
+    pickingTexture->init(SCR_WIDTH, SCR_HEIGHT);
+    auto *pickingEffect = new ENDER::Shader("../resources/picking.vs", "../resources/picking.fs");
+
     while (!ENDER::Window::windowShouldClose()) {
+        if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
+            pickingTexture->enableWriting();
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            pickingEffect->use();
+
+            i = 0;
+            for (auto object: scene->getObjects()) {
+                // Background is zero, the real objects start at 1
+                pickingEffect->setInt("gObjectIndex", i + 1);
+                ENDER::Renderer::instance().renderObject(object, scene, pickingEffect);
+            }
+
+            pickingTexture->disableWriting();
+
+            auto mousePosition = ENDER::Window::getMousePosition();
+            auto pixel = pickingTexture->readPixel(mousePosition.x, SCR_HEIGHT - mousePosition.y - 1);
+            spdlog::debug("{}, {}, {}",pixel.objectID, pixel.primID, pixel.drawID);
+        }
+
         ENDER::Renderer::begin([&]() {
-            ImGui::Text("FPS: %.2f", 1.0f/ENDER::Window::deltaTime());
+            ImGui::Text("FPS: %.2f", 1.0f / ENDER::Window::deltaTime());
             if (ImGui::SliderFloat3("Direciton", glm::value_ptr(dir), -1, 1)) {
                 directionalLight->setDirection(dir);
             }
