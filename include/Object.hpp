@@ -17,7 +17,13 @@ namespace ENDER {
         glm::vec3 _rotation{};
         glm::vec3 _scale = glm::vec3(1.0f);
 
+        bool _selected = false;
+
     public:
+        bool selected() const;
+
+        void setSelected(bool selected);
+
         Object(const std::string &name, VertexArray *vertexArray);
 
         void setTexture(Texture *texture);

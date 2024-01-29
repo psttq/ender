@@ -26,10 +26,16 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 800;
 
 int main() {
-    glm::vec3 cubePositions[] = {
-            glm::vec3(0.0f, 0.0f, 0.0f),
+    std::vector<glm::vec3> cubePositions = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.0f, 0.0f, 0.0f),
     };
 
+    int cubesCount = 10;
+
+    for(auto i = 1; i < cubesCount; i++) {
+        cubePositions.push_back(glm::vec3(rand()%20, rand()%20, rand()%20));
+    }
 
     ENDER::Window::init(SCR_WIDTH, SCR_HEIGHT);
 
@@ -41,16 +47,12 @@ int main() {
 
     auto *scene = new ENDER::Scene();
 
-    auto *texture = new ENDER::Texture();
-    texture->loadFromFile("../resources/textures/awesomeface.png", GL_RGBA);
-
     std::vector<ENDER::Object *> cubes;
 
     int i = 0;
     for (auto pos: cubePositions) {
         auto cubeObject = ENDER::Object::createCube(std::string("Cube ") + std::to_string(i));
         cubeObject->setPosition(pos);
-        cubeObject->setTexture(texture);
         scene->addObject(cubeObject);
         cubes.push_back(cubeObject);
         i++;
@@ -99,18 +101,26 @@ int main() {
 
             pickingEffect->use();
 
+            pickingEffect->setInt("gDrawIndex", 0);
+
             i = 0;
             for (auto object: scene->getObjects()) {
                 // Background is zero, the real objects start at 1
                 pickingEffect->setInt("gObjectIndex", i + 1);
                 ENDER::Renderer::instance().renderObject(object, scene, pickingEffect);
+                i++;
             }
 
             pickingTexture->disableWriting();
 
             auto mousePosition = ENDER::Window::getMousePosition();
             auto pixel = pickingTexture->readPixel(mousePosition.x, SCR_HEIGHT - mousePosition.y - 1);
-            spdlog::debug("{}, {}, {}",pixel.objectID, pixel.primID, pixel.drawID);
+            spdlog::debug("{}, {}, {}", pixel.objectID, pixel.primID, pixel.drawID);
+            i = 0;
+            for (auto object: scene->getObjects()) {
+                object->setSelected(pixel.objectID - 1 == i);
+                i++;
+            }
         }
 
         ENDER::Renderer::begin([&]() {

@@ -3,9 +3,9 @@
 uniform int gObjectIndex;
 uniform int gDrawIndex;
 
-out vec3 FragColor;
+out uvec3 FragColor;
 
 void main()
 {
-   FragColor = vec3(gObjectIndex, gDrawIndex, gl_PrimitiveID);
+   FragColor = uvec3(gObjectIndex, gDrawIndex, gl_PrimitiveID);
 }

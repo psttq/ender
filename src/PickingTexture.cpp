@@ -21,6 +21,8 @@ namespace ENDER {
         glGenFramebuffers(1, &_fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
+        spdlog::debug("Generated framebuffer: {}", _fbo);
+
         // Create the texture object for the primitive information buffer
         glGenTextures(1, &_pickingTexture);
         glBindTexture(GL_TEXTURE_2D, _pickingTexture);
@@ -67,8 +69,11 @@ namespace ENDER {
         glReadBuffer(GL_COLOR_ATTACHMENT0);
 
         PixelInfo pixel;
+        float  data[4];
         glReadPixels(x, y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &pixel);
+        glReadPixels(x, y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, data);
 
+        spdlog::debug("{}, {}", data[0], data[1]);
         glReadBuffer(GL_NONE);
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);

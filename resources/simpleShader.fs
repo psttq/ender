@@ -58,6 +58,7 @@ uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 uniform Material material;
 uniform int pointLightsCount;
+uniform bool selected;
 
 
 // function prototypes
@@ -88,6 +89,8 @@ void main()
 
     if(spotLight.toggled)
         result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
+    if(selected)
+        result *= vec3(0.3, 0.3, 0);
     FragColor = vec4(result, 1.0);
 }
 

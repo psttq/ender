@@ -162,7 +162,7 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
 
                 pointLightsCount++;
             }
-                break;
+            break;
             case Light::LightType::DirectionalLight: {
                 auto directionalLight = dynamic_cast<DirectionalLight *>(light);
                 if (directionalLight == nullptr) {
@@ -175,15 +175,16 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
                 currentShader->setVec3("dirLight.diffuse", directionalLight->diffuse());
                 currentShader->setVec3("dirLight.specular", directionalLight->specular());
             }
-                break;
+            break;
             default:
                 spdlog::error("ENDER::Renderer::renderObject: unknown type of light");
                 continue;
-
         }
     }
 
     currentShader->setInt("pointLightsCount", pointLightsCount);
+
+    currentShader->setBool("selected", object->selected());
 
     object->getVertexArray()->bind();
 
@@ -235,9 +236,11 @@ void ENDER::Renderer::renderScene(Scene *scene) {
 
 void ENDER::Renderer::createCubeVAO() {
     auto *cubeLayout = new BufferLayout(
-            {{ENDER::LayoutObjectType::Float3},
-             {ENDER::LayoutObjectType::Float3},
-             {ENDER::LayoutObjectType::Float2}});
+        {
+            {ENDER::LayoutObjectType::Float3},
+            {ENDER::LayoutObjectType::Float3},
+            {ENDER::LayoutObjectType::Float2}
+        });
 
     auto *cubeVBO = new VertexBuffer(cubeLayout);
 
@@ -283,5 +286,4 @@ void ENDER::Renderer::renderObject(ENDER::Object *object, ENDER::Scene *scene, E
 
     //FIXME: count?
     glDrawArrays(GL_TRIANGLES, 0, 36);
-
 }
