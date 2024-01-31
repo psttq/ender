@@ -18,6 +18,8 @@ namespace ENDER {
 
         void updateTextureSize(unsigned int width, unsigned int height);
 
+        unsigned int getTextureID();
+
         struct PixelInfo {
             unsigned int objectID = 0;
             unsigned int drawID = 0;

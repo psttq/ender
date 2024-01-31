@@ -1,5 +1,6 @@
 #include "PickingTexture.hpp"
-#include <GL/gl.h>
+
+#include <glad/glad.h>
 
 namespace ENDER {
 PickingTexture::~PickingTexture() {
@@ -15,6 +16,8 @@ PickingTexture::~PickingTexture() {
     glDeleteTextures(1, &_depthTexture);
   }
 }
+
+unsigned int PickingTexture::getTextureID() { return _pickingTexture; }
 
 void PickingTexture::init(unsigned int windowWidth, unsigned int windowHeight) {
   // Create the FBO
@@ -59,12 +62,12 @@ void PickingTexture::updateTextureSize(unsigned int width,
   glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
   glBindTexture(GL_TEXTURE_2D, _pickingTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, width, height, 0,
-               GL_RGB_INTEGER, GL_UNSIGNED_INT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, width, height, 0, GL_RGB_INTEGER,
+               GL_UNSIGNED_INT, NULL);
 
   glBindTexture(GL_TEXTURE_2D, _depthTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height,
-               0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
+               GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
   glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -97,4 +100,4 @@ PickingTexture::PixelInfo PickingTexture::readPixel(unsigned int x,
   return pixel;
 }
 
-} // namespace ENDER
+}  // namespace ENDER

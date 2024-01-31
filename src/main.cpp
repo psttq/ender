@@ -1,15 +1,13 @@
-#include <Ender.hpp>
-
-#include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <stb_image.h>
 
+#include <Ender.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include <imgui.h>
 
 #include "PickingTexture.hpp"
 
@@ -20,6 +18,21 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 800;
 
 int main() {
+  float vertices[] = {
+      // positions          // colors           // texture coords
+      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+      0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+      -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
+      -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // top left
+      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+      -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
+
+  };
+  unsigned int indices[] = {
+      0, 1, 3,  // first triangle
+      1, 2, 3   // second triangle
+  };
+
   std::vector<glm::vec3> cubePositions = {
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(2.0f, 0.0f, 0.0f),
@@ -89,14 +102,33 @@ int main() {
   auto step = 0.0f;
   auto speed = 3.0f;
 
-  while (!ENDER::Window::windowShouldClose()) {
+  auto layout = new ENDER::BufferLayout({{ENDER::LayoutObjectType::Float3},
+                                         {ENDER::LayoutObjectType::Float3},
+                                         {ENDER::LayoutObjectType::Float2}});
+  auto vbo = new ENDER::VertexBuffer(layout);
+  vbo->setData(vertices, sizeof(vertices));
 
+  auto ibo = new ENDER::IndexBuffer(indices, sizeof(indices));
+
+  auto vao = new ENDER::VertexArray();
+  vao->addVBO(vbo);
+  vao->setIndexBuffer(ibo);
+
+  auto square = new ENDER::Object("square", vao);
+
+  auto debugFramebuffer = new ENDER::Shader("../resources/debugFramebuffer.vs",
+                                            "../resources/debugFramebuffer.fs");
+
+  square->setShader(debugFramebuffer);
+
+  while (!ENDER::Window::windowShouldClose()) {
     step += speed * ENDER::Window::deltaTime();
 
     cubes[0]->setPosition({glm::sin(step), glm::cos(step), 0.5f});
 
     if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
       auto mousePosition = ENDER::Window::getMousePosition();
+      spdlog::debug("Mouse pos: x={}, y={}", mousePosition.x, mousePosition.y);
       auto pickedID =
           ENDER::Renderer::pickObjAt(mousePosition.x, mousePosition.y);
       spdlog::debug("pickedID: {}", pickedID);
@@ -118,8 +150,7 @@ int main() {
         if (obj->selected())
           ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
         ImGui::Text("%s", obj->getName().c_str());
-        if (obj->selected())
-          ImGui::PopStyleColor();
+        if (obj->selected()) ImGui::PopStyleColor();
       }
       for (auto light : scene->getLights()) {
         if (light->type == ENDER::Light::LightType::PointLight)
@@ -130,9 +161,18 @@ int main() {
     ENDER::Window::keyPressed(GLFW_KEY_ESCAPE, [] { ENDER::Window::close(); });
 
     ENDER::Renderer::clear();
-    ENDER::Renderer::clearPicking(); // FIXME: maybe unite this with clear()?
+    ENDER::Renderer::clearPicking();  // FIXME: maybe unite this with clear()?
 
     ENDER::Renderer::renderScene(scene);
+
+    debugFramebuffer->use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ENDER::Renderer::getPickingTextureID());
+
+    square->getVertexArray()->bind();
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     ENDER::Renderer::end();
 

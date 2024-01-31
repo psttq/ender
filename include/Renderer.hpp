@@ -31,7 +31,7 @@ class Renderer {
   void renderObject(Object *object, Scene *scene, Shader *shader);
   void renderObjectToPicking(Object *object, Scene *scene);
 
-public:
+ public:
   static Renderer &instance() {
     static Renderer _instance;
     return _instance;
@@ -53,8 +53,10 @@ public:
 
   static glm::mat4 getProjectMatrix();
 
+  static unsigned int getPickingTextureID();
+
   static Shader *shader();
- 
+
   static void renderScene(Scene *scene);
 
   static unsigned int pickObjAt(unsigned int x, unsigned int y);
@@ -67,4 +69,4 @@ public:
   static VertexArray *getGridVAO() { return instance().gridVAO; }
 };
 
-} // namespace ENDER
+}  // namespace ENDER

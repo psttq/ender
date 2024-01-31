@@ -1,11 +1,11 @@
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui/imgui.h>
+
 #include <Renderer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include <imgui/backends/imgui_impl_glfw.h>
-#include <imgui/backends/imgui_impl_opengl3.h>
-#include <imgui/imgui.h>
 
 #include "DirectionalLight.hpp"
 #include "PickingTexture.hpp"
@@ -46,9 +46,9 @@ void ENDER::Renderer::init() {
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+      ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
   io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+      ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(Window::instance().getNativeWindow(), true);
@@ -70,11 +70,16 @@ void ENDER::Renderer::init() {
       new ENDER::Shader("../resources/picking.vs", "../resources/picking.fs");
 }
 
+unsigned int ENDER::Renderer::getPickingTextureID() {
+  return instance()._pickingTexture->getTextureID();
+}
+
 void ENDER::Renderer::framebufferSizeCallback(int width, int height) {
   instance()._projectMatrix = glm::perspective(
       glm::radians(45.0f),
       (float)Window::getWidth() / (float)Window::getHeight(), 0.1f, 100.0f);
   instance()._pickingTexture->updateTextureSize(width, height);
+  spdlog::debug("window size: {}, {}", width, height);
   glViewport(0, 0, width, height);
 }
 
@@ -152,56 +157,58 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
 
   for (auto light : scene->getLights()) {
     switch (light->type) {
-    case Light::LightType::PointLight: {
-      if (pointLightsCount == MAX_POINT_LIGHTS_NUMBER)
+      case Light::LightType::PointLight: {
+        if (pointLightsCount == MAX_POINT_LIGHTS_NUMBER) continue;
+
+        auto pointLight = dynamic_cast<PointLight *>(light);
+        if (pointLight == nullptr) {
+          spdlog::error(
+              "ENDER::Renderer::renderObject: something went wrong "
+              "when casting light");
+          continue;
+        }
+        std::string pointLightLabel = std::string("pointLights[") +
+                                      std::to_string(pointLightsCount) + "]";
+
+        // spdlog::debug("ENDER::Renderer::renderObject: adding {}",
+        // pointLightLabel);
+
+        currentShader->setVec3(pointLightLabel + ".position",
+                               pointLight->position());
+        currentShader->setVec3(pointLightLabel + ".ambient",
+                               pointLight->ambient());
+        currentShader->setVec3(pointLightLabel + ".diffuse",
+                               pointLight->diffuse());
+        currentShader->setVec3(pointLightLabel + ".specular",
+                               pointLight->specular());
+        currentShader->setFloat(pointLightLabel + ".constant",
+                                pointLight->constant());
+        currentShader->setFloat(pointLightLabel + ".linear",
+                                pointLight->linear());
+        currentShader->setFloat(pointLightLabel + ".quadratic",
+                                pointLight->quadratic());
+
+        pointLightsCount++;
+      } break;
+      case Light::LightType::DirectionalLight: {
+        auto directionalLight = dynamic_cast<DirectionalLight *>(light);
+        if (directionalLight == nullptr) {
+          spdlog::error(
+              "ENDER::Renderer::renderObject: something went wrong "
+              "when casting light");
+          continue;
+        }
+        currentShader->setBool("dirLight.enabled", true);
+        currentShader->setVec3("dirLight.direction",
+                               directionalLight->direction());
+        currentShader->setVec3("dirLight.ambient", directionalLight->ambient());
+        currentShader->setVec3("dirLight.diffuse", directionalLight->diffuse());
+        currentShader->setVec3("dirLight.specular",
+                               directionalLight->specular());
+      } break;
+      default:
+        spdlog::error("ENDER::Renderer::renderObject: unknown type of light");
         continue;
-
-      auto pointLight = dynamic_cast<PointLight *>(light);
-      if (pointLight == nullptr) {
-        spdlog::error("ENDER::Renderer::renderObject: something went wrong "
-                      "when casting light");
-        continue;
-      }
-      std::string pointLightLabel =
-          std::string("pointLights[") + std::to_string(pointLightsCount) + "]";
-
-      // spdlog::debug("ENDER::Renderer::renderObject: adding {}",
-      // pointLightLabel);
-
-      currentShader->setVec3(pointLightLabel + ".position",
-                             pointLight->position());
-      currentShader->setVec3(pointLightLabel + ".ambient",
-                             pointLight->ambient());
-      currentShader->setVec3(pointLightLabel + ".diffuse",
-                             pointLight->diffuse());
-      currentShader->setVec3(pointLightLabel + ".specular",
-                             pointLight->specular());
-      currentShader->setFloat(pointLightLabel + ".constant",
-                              pointLight->constant());
-      currentShader->setFloat(pointLightLabel + ".linear",
-                              pointLight->linear());
-      currentShader->setFloat(pointLightLabel + ".quadratic",
-                              pointLight->quadratic());
-
-      pointLightsCount++;
-    } break;
-    case Light::LightType::DirectionalLight: {
-      auto directionalLight = dynamic_cast<DirectionalLight *>(light);
-      if (directionalLight == nullptr) {
-        spdlog::error("ENDER::Renderer::renderObject: something went wrong "
-                      "when casting light");
-        continue;
-      }
-      currentShader->setBool("dirLight.enabled", true);
-      currentShader->setVec3("dirLight.direction",
-                             directionalLight->direction());
-      currentShader->setVec3("dirLight.ambient", directionalLight->ambient());
-      currentShader->setVec3("dirLight.diffuse", directionalLight->diffuse());
-      currentShader->setVec3("dirLight.specular", directionalLight->specular());
-    } break;
-    default:
-      spdlog::error("ENDER::Renderer::renderObject: unknown type of light");
-      continue;
     }
   }
 
@@ -265,7 +272,7 @@ void ENDER::Renderer::renderObjectToPicking(Object *object, Scene *scene) {
   instance()._pickingTexture->enableWriting();
   instance()._pickingEffect->use();
   instance()._pickingEffect->setInt("gObjectIndex", object->getId());
-  instance()._pickingEffect->setInt("gDrawIndex", 0); // TODO: impl
+  instance()._pickingEffect->setInt("gDrawIndex", 0);  // TODO: impl
   instance().renderObject(object, scene, instance()._pickingEffect);
   instance()._pickingTexture->disableWriting();
 }
