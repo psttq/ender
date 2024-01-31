@@ -1,76 +1,70 @@
 #pragma once
 #include <Object.hpp>
+#include <PickingTexture.hpp>
 #include <Scene.hpp>
 #include <Shader.hpp>
 #include <Window.hpp>
 
-namespace ENDER
-{
-#define MAX_POINT_LIGHTS_NUMBER 100
+namespace ENDER {
 
-    class Renderer
-    {
-        Shader *_simpleShader;
-        Shader *_textureShader;
+static const int MAX_POINT_LIGHTS_NUMBER = 100;
 
-        Shader *_gridShader;
+class Renderer {
+  Shader *_simpleShader;
+  Shader *_textureShader;
+  Shader *_gridShader;
+  Shader *_pickingEffect;
 
-        glm::mat4 _projectMatrix;
+  glm::mat4 _projectMatrix;
 
-        VertexArray *cubeVAO;
-        VertexArray *gridVAO;
+  PickingTexture *_pickingTexture;
 
-        Renderer();
-        ~Renderer();
+  VertexArray *cubeVAO;
+  VertexArray *gridVAO;
 
-        void createCubeVAO();
-        void createGridVAO();
+  Renderer();
+  ~Renderer();
 
+  void createCubeVAO();
+  void createGridVAO();
+  void renderObject(Object *object, Scene *scene);
+  void renderObject(Object *object, Scene *scene, Shader *shader);
+  void renderObjectToPicking(Object *object, Scene *scene);
 
-        void renderObject(Object *object, Scene *scene);
+public:
+  static Renderer &instance() {
+    static Renderer _instance;
+    return _instance;
+  }
 
-    public:
-        static Renderer &instance()
-        {
-            static Renderer _instance;
-            return _instance;
-        }
+  static void init();
 
-        static void init();
+  static void setClearColor(const glm::vec4 &color);
+  // static void swapBuffers(const glm::vec4 &color);
 
-        static void setClearColor(const glm::vec4 &color);
-        // static void swapBuffers(const glm::vec4 &color);
+  static void clear();
+  static void clearPicking();
 
-        static void clear();
+  static void swapBuffers();
 
-        static void swapBuffers();
+  static void begin(std::function<void()> imguiDrawCallback);
 
-        static void begin(std::function<void()> imguiDrawCallback);
+  static void end();
 
-        static void end();
+  static glm::mat4 getProjectMatrix();
 
-        static glm::mat4 getProjectMatrix();
+  static Shader *shader();
+ 
+  static void renderScene(Scene *scene);
 
-        static Shader *shader();
+  static unsigned int pickObjAt(unsigned int x, unsigned int y);
 
-        void renderObject(Object *object, Scene *scene, Shader *shader);
+  static void framebufferSizeCallback(int width, int height);
 
-        static void renderScene(Scene *scene);
+  static Shader *getGridShader() { return instance()._gridShader; }
 
-        static void framebufferSizeCallback(int width, int height);
+  static VertexArray *getCubeVAO() { return instance().cubeVAO; }
+  static VertexArray *getGridVAO() { return instance().gridVAO; }
+};
 
-        static Shader *getGridShader() {
-            return instance()._gridShader;
-        }
-
-        static VertexArray *getCubeVAO()
-        {
-            return instance().cubeVAO;
-        }
-        static VertexArray *getGridVAO()
-        {
-            return instance().gridVAO;
-        }
-    };
-
-} // namespace EMDER
+} // namespace ENDER

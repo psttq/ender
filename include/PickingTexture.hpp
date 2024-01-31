@@ -16,6 +16,8 @@ namespace ENDER {
 
         void disableWriting();
 
+        void updateTextureSize(unsigned int width, unsigned int height);
+
         struct PixelInfo {
             unsigned int objectID = 0;
             unsigned int drawID = 0;

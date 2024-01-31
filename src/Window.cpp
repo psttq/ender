@@ -139,11 +139,21 @@ void ENDER::Window::pollEvents() {
 }
 
 int ENDER::Window::getHeight() {
-    return instance()._height;
+    int width, height;
+    glfwGetWindowSize(instance()._window, &width, &height);
+    return height;
 }
 
 int ENDER::Window::getWidth() {
-    return instance()._width;
+    int width, height;
+    glfwGetWindowSize(instance()._window, &width, &height);
+    return width;
+}
+
+glm::ivec2 ENDER::Window::getSize(){
+    int width, height;
+    glfwGetWindowSize(instance()._window, &width, &height);
+    return {width, height};
 }
 
 void ENDER::Window::keyPressed(unsigned int key, std::function<void()> callBack) {

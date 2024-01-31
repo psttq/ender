@@ -7,6 +7,7 @@
 
 namespace ENDER {
     class Object {
+        unsigned int _id;
         std::string _name;
 
         Shader *_shader = nullptr;
@@ -18,7 +19,7 @@ namespace ENDER {
         glm::vec3 _scale = glm::vec3(1.0f);
 
         bool _selected = false;
-
+  
     public:
         bool selected() const;
 
@@ -43,7 +44,8 @@ namespace ENDER {
         glm::vec3 getScale() const;
 
         const std::string &getName();
-
+        
+        unsigned int getId() const;
 
         void setShader(Shader *shader);
 

@@ -9,3 +9,6 @@
 #include <Window.hpp>
 #include <Shader.hpp>
 #include <Scene.hpp>
+#include <PointLight.hpp>
+#include <DirectionalLight.hpp>
+#include <FirstPersonCamera.hpp>

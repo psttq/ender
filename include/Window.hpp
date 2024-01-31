@@ -94,6 +94,8 @@ namespace ENDER
 
         static int getWidth();
 
+        static glm::ivec2 getSize();
+
         static void keyPressed(unsigned int key, std::function<void()> callBack);
 
         static bool isKeyPressed(unsigned int key);

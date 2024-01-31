@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <Renderer.hpp>
 
+
 bool ENDER::Object::selected() const {
   return _selected;
 }
@@ -13,7 +14,15 @@ void ENDER::Object::setSelected(bool selected) {
 
 ENDER::Object::Object(const std::string &name, VertexArray *vertexArray) : _name(name), _vertexArray(vertexArray)
 {
-  spdlog::debug("Created object[name: {}] with VertexArray[index: {}]", name, vertexArray->getIndex());
+  static unsigned int _objCount = 1;
+  _id = _objCount;
+  _objCount++;
+  spdlog::debug("Created object[name: {}, id: {}] with VertexArray[index: {}]", name, _id, vertexArray->getIndex());
+
+}
+
+unsigned int ENDER::Object::getId() const{
+  return _id;
 }
 
 void ENDER::Object::setTexture(Texture *texture)
