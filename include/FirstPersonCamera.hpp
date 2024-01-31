@@ -15,6 +15,7 @@ namespace ENDER {
 
         int _mousePosCallbackKey = -1;
         int _mouseClickCallbackKey = -1;
+        int _inputCallbackKey = -1;
 
 
         bool _firstCamera = true;

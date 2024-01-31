@@ -14,6 +14,12 @@ ENDER::FirstPersonCamera::FirstPersonCamera(const glm::vec3 &position)
           _firstCamera = true;
         }
       });
+
+  _inputCallbackKey =
+      Window::addInputCallback([](int key, Window::EventStatus status) {
+        if (key == GLFW_KEY_E && status == Window::EventStatus::Release)
+          Window::enableCursor();
+      });
 }
 
 ENDER::FirstPersonCamera::~FirstPersonCamera() {
@@ -21,6 +27,8 @@ ENDER::FirstPersonCamera::~FirstPersonCamera() {
     Window::deleteMousePosCallback(_mousePosCallbackKey);
   if (_mouseClickCallbackKey != -1)
     Window::deleteMouseClickCallback(_mouseClickCallbackKey);
+  if(_inputCallbackKey != -1)
+    Window::deleteInputCallback(_inputCallbackKey);
 }
 
 glm::mat4 ENDER::FirstPersonCamera::getView() const {
@@ -55,7 +63,6 @@ void ENDER::FirstPersonCamera::proccessInput() {
   Window::keyPressed(GLFW_KEY_LEFT_SHIFT, [&] { _currentSpeed = _shiftSpeed; });
   Window::keyReleased(GLFW_KEY_LEFT_SHIFT,
                       [&] { _currentSpeed = _defaultSpeed; });
-  Window::keyReleased(GLFW_KEY_E, [] { Window::enableCursor(); });
 }
 
 void ENDER::FirstPersonCamera::proccessMouseInput(double xpos, double ypos) {

@@ -119,7 +119,16 @@ int main() {
   auto debugFramebuffer = new ENDER::Shader("../resources/debugFramebuffer.vs",
                                             "../resources/debugFramebuffer.fs");
 
+  auto texture = new ENDER::Texture();
+  texture->loadFromFile("../resources/textures/container.jpg", GL_RGB);
+
   square->setShader(debugFramebuffer);
+
+  square->setTexture(texture);
+
+  // square->setPosition({-1,0,0});
+
+  scene->addObject(square);
 
   while (!ENDER::Window::windowShouldClose()) {
     step += speed * ENDER::Window::deltaTime();
@@ -164,15 +173,6 @@ int main() {
     ENDER::Renderer::clearPicking();  // FIXME: maybe unite this with clear()?
 
     ENDER::Renderer::renderScene(scene);
-
-    debugFramebuffer->use();
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ENDER::Renderer::getPickingTextureID());
-
-    square->getVertexArray()->bind();
-
-    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     ENDER::Renderer::end();
 
