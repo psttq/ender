@@ -14,6 +14,7 @@ class Renderer {
   Shader *_textureShader;
   Shader *_gridShader;
   Shader *_pickingEffect;
+  Shader *_debugSquareShader;
 
   glm::mat4 _projectMatrix;
 
@@ -21,17 +22,20 @@ class Renderer {
 
   VertexArray *cubeVAO;
   VertexArray *gridVAO;
+  VertexArray *debugSquareVAO;
 
   Renderer();
   ~Renderer();
 
   void createCubeVAO();
   void createGridVAO();
+  void createDebugSquareVAO();
+
   void renderObject(Object *object, Scene *scene);
   void renderObject(Object *object, Scene *scene, Shader *shader);
   void renderObjectToPicking(Object *object, Scene *scene);
 
- public:
+public:
   static Renderer &instance() {
     static Renderer _instance;
     return _instance;
@@ -55,6 +59,9 @@ class Renderer {
 
   static unsigned int getPickingTextureID();
 
+  static void renderDebugTexture(unsigned int textureID);
+  static void renderDebugTexture(Texture *texture);
+
   static Shader *shader();
 
   static void renderScene(Scene *scene);
@@ -69,4 +76,18 @@ class Renderer {
   static VertexArray *getGridVAO() { return instance().gridVAO; }
 };
 
-}  // namespace ENDER
+static float debugSquareVertices[] = {
+    // positions       // texture coords
+    0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
+    0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+    -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
+    0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
+  -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+};
+static unsigned int debugSquareIndices[] = {
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
+};
+
+} // namespace ENDER
