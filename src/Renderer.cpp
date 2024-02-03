@@ -221,11 +221,25 @@ void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
   currentShader->setInt("pointLightsCount", pointLightsCount);
 
   currentShader->setBool("selected", object->selected());
-
   object->getVertexArray()->bind();
 
-  // FIXME: count?
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  auto drawType = GL_TRIANGLES;
+    switch (_drawType) {
+      case DrawType::Triangles: {
+        drawType = GL_TRIANGLES;
+      } break;
+      case DrawType::Lines: {
+        drawType = GL_LINES;
+      } break;
+      default:
+        spdlog::error("Unreachable");
+    }
+
+  if(object->getVertexArray()->isIndexBuffer())
+    glDrawElements(drawType, object->getVertexArray()->indexCount() ,GL_UNSIGNED_INT, 0);
+  else
+    glDrawArrays(drawType, 0, 36);
+
 }
 
 void ENDER::Renderer::setClearColor(const glm::vec4 &color) {
@@ -257,6 +271,10 @@ void ENDER::Renderer::end() {
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   swapBuffers();
   Window::flash();
+}
+
+void ENDER::Renderer::setDrawType(DrawType drawType) {
+  instance()._drawType = drawType;
 }
 
 glm::mat4 ENDER::Renderer::getProjectMatrix() {
@@ -366,6 +384,8 @@ void ENDER::Renderer::renderObject(ENDER::Object *object, ENDER::Scene *scene,
   shader->setMat4("model", model);
   object->getVertexArray()->bind();
 
-  // FIXME: count?
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+ if(object->getVertexArray()->isIndexBuffer())
+    glDrawElements(GL_TRIANGLES, object->getVertexArray()->indexCount() ,GL_UNSIGNED_INT, 0);
+  else
+    glDrawArrays(GL_TRIANGLES, 0, 36); // FIXME: count?
 }

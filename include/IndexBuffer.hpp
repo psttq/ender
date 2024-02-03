@@ -16,6 +16,8 @@ namespace ENDER
 
     void bind();
     void unbind();
+
+    unsigned int getCount();
     unsigned int getIndex()
     {
       return _id;

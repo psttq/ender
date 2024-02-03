@@ -40,6 +40,18 @@ void ENDER::VertexArray::addVBO(ENDER::VertexBuffer *vbo)
   _vbos.push_back(vbo);
 }
 
+bool ENDER::VertexArray::isIndexBuffer() const {
+  return _indexBuffer != nullptr;
+}
+
+unsigned int ENDER::VertexArray::indexCount() {
+  if(!isIndexBuffer()) {
+    spdlog::error("Trying to get index buffer elements count but there is no index buffer in the vertex array[id: {}]", _id);
+    return 0;
+  }
+  return _indexBuffer->getCount();
+}
+
 void ENDER::VertexArray::setIndexBuffer(ENDER::IndexBuffer *indexBuffer)
 {
   bind();

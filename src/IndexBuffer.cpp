@@ -20,3 +20,7 @@ ENDER::IndexBuffer::~IndexBuffer()
 void ENDER::IndexBuffer::bind() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id); }
 
 void ENDER::IndexBuffer::unbind() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
+
+unsigned int ENDER::IndexBuffer::getCount() {
+    return _count;
+}

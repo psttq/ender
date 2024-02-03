@@ -7,11 +7,10 @@
 namespace ENDER
 {
 
-  class VertexArray
-  {
+  class VertexArray {
     unsigned int _id;
     std::vector<VertexBuffer *> _vbos;
-    IndexBuffer *_indexBuffer;
+    IndexBuffer *_indexBuffer = nullptr;
 
     unsigned int _index = 0;
 
@@ -38,6 +37,10 @@ namespace ENDER
     void setIndexBuffer(IndexBuffer *indexBuffer);
 
     void addVBO(VertexBuffer *vbo);
+
+    bool isIndexBuffer() const;
+
+    unsigned int indexCount();
 
     unsigned int getIndex() const
     {

@@ -10,6 +10,16 @@ namespace ENDER {
 static const int MAX_POINT_LIGHTS_NUMBER = 100;
 
 class Renderer {
+public:
+  enum class DrawType {
+    Triangles,
+    Lines
+  };
+
+private:
+
+  DrawType _drawType = DrawType::Triangles;
+
   Shader *_simpleShader;
   Shader *_textureShader;
   Shader *_gridShader;
@@ -54,6 +64,8 @@ public:
   static void begin(std::function<void()> imguiDrawCallback);
 
   static void end();
+
+  static void setDrawType(DrawType drawType);
 
   static glm::mat4 getProjectMatrix();
 
