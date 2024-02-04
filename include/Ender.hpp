@@ -12,3 +12,11 @@
 #include <PointLight.hpp>
 #include <DirectionalLight.hpp>
 #include <FirstPersonCamera.hpp>
+
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <imgui.h>
+#include <spdlog/spdlog.h>
