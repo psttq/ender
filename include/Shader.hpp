@@ -2,6 +2,9 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <memory>
+#include <spdlog/spdlog.h>
+#include <ender_types.hpp>
 
 #include <string>
 #include <fstream>
@@ -73,9 +76,16 @@ namespace ENDER
             spdlog::debug("Shader created successfully!");
         }
 
+      
+
         ~Shader() {
             spdlog::debug("Deallocation Shader");
         }
+
+        static sptr<Shader> create(const char *vertexPath, const char *fragmentPath){
+          return std::make_shared<Shader>(vertexPath, fragmentPath);
+        }
+
         // activate the shader
         // ------------------------------------------------------------------------
         void use() const

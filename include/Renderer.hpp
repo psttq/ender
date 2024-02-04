@@ -1,4 +1,5 @@
 #pragma once
+#include "VertexArray.hpp"
 #include <Object.hpp>
 #include <PickingTexture.hpp>
 #include <Scene.hpp>
@@ -20,19 +21,19 @@ private:
 
   DrawType _drawType = DrawType::Triangles;
 
-  Shader *_simpleShader;
-  Shader *_textureShader;
-  Shader *_gridShader;
-  Shader *_pickingEffect;
-  Shader *_debugSquareShader;
+  sptr<Shader> _simpleShader;
+  sptr<Shader> _textureShader;
+  sptr<Shader> _gridShader;
+  sptr<Shader> _pickingEffect;
+  sptr<Shader> _debugSquareShader;
 
   glm::mat4 _projectMatrix;
 
   PickingTexture *_pickingTexture;
 
-  VertexArray *cubeVAO;
-  VertexArray *gridVAO;
-  VertexArray *debugSquareVAO;
+  sptr<VertexArray> cubeVAO;
+  sptr<VertexArray> gridVAO;
+  sptr<VertexArray> debugSquareVAO;
 
   Renderer();
   ~Renderer();
@@ -41,9 +42,9 @@ private:
   void createGridVAO();
   void createDebugSquareVAO();
 
-  void renderObject(Object *object, Scene *scene);
-  void renderObject(Object *object, Scene *scene, Shader *shader);
-  void renderObjectToPicking(Object *object, Scene *scene);
+  void renderObject(sptr<Object> object, sptr<Scene> scene);
+  void renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Shader> shader);
+  void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene);
 
 public:
   static Renderer &instance() {
@@ -74,18 +75,18 @@ public:
   static void renderDebugTexture(unsigned int textureID);
   static void renderDebugTexture(Texture *texture);
 
-  static Shader *shader();
+  static sptr<Shader> shader();
 
-  static void renderScene(Scene *scene);
+  static void renderScene(sptr<Scene> scene);
 
   static unsigned int pickObjAt(unsigned int x, unsigned int y);
 
   static void framebufferSizeCallback(int width, int height);
 
-  static Shader *getGridShader() { return instance()._gridShader; }
+  static sptr<Shader> getGridShader() { return instance()._gridShader; }
 
-  static VertexArray *getCubeVAO() { return instance().cubeVAO; }
-  static VertexArray *getGridVAO() { return instance().gridVAO; }
+  static sptr<VertexArray> getCubeVAO() { return instance().cubeVAO; }
+  static sptr<VertexArray> getGridVAO() { return instance().gridVAO; }
 };
 
 static float debugSquareVertices[] = {

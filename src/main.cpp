@@ -1,5 +1,6 @@
 #include <Ender.hpp>
 #include <Utilities.hpp>
+#include <memory>
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 800;
@@ -17,12 +18,12 @@ int main() {
 
   ENDER::Renderer::init();
 
-  auto *lightCubeShader = new ENDER::Shader("../resources/lightShader.vs",
+  auto lightCubeShader = ENDER::Shader::create("../resources/lightShader.vs",
                                             "../resources/lightShader.fs");
 
-  auto *scene = new ENDER::Scene();
+  auto scene = ENDER::Scene::create();
 
-  auto *camera = new ENDER::FirstPersonCamera({});
+  auto camera = ENDER::FirstPersonCamera::create({});
 
   scene->setCamera(camera);
 
@@ -110,10 +111,6 @@ int main() {
 
     camera->proccessInput();
   }
-
-  delete scene;
-  delete camera;
-  delete lightCubeShader;
 
   return 0;
 }

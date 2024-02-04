@@ -1,6 +1,7 @@
 #pragma once
 #include <Camera.hpp>
 #include <glm/glm.hpp>
+#include <ender_types.hpp>
 
 namespace ENDER {
     class FirstPersonCamera : public Camera{
@@ -30,6 +31,8 @@ namespace ENDER {
     public:
         FirstPersonCamera(const glm::vec3 &position);
         ~FirstPersonCamera();
+
+        static sptr<FirstPersonCamera> create(const glm::vec3 &position);
 
         glm::mat4 getView() const override;
 

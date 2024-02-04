@@ -20,7 +20,7 @@ void ENDER::VertexArray::unbind() const
   glBindVertexArray(0);
 }
 
-void ENDER::VertexArray::addVBO(ENDER::VertexBuffer *vbo)
+void ENDER::VertexArray::addVBO(uptr<VertexBuffer> vbo)
 {
   bind();
   vbo->bind();
@@ -37,7 +37,7 @@ void ENDER::VertexArray::addVBO(ENDER::VertexBuffer *vbo)
     glEnableVertexAttribArray(_index);
     _index++;
   }
-  _vbos.push_back(vbo);
+  _vbos.push_back(std::move(vbo));
 }
 
 bool ENDER::VertexArray::isIndexBuffer() const {
@@ -52,10 +52,12 @@ unsigned int ENDER::VertexArray::indexCount() {
   return _indexBuffer->getCount();
 }
 
-void ENDER::VertexArray::setIndexBuffer(ENDER::IndexBuffer *indexBuffer)
+void ENDER::VertexArray::setIndexBuffer(uptr<IndexBuffer> indexBuffer)
 {
   bind();
   indexBuffer->bind();
-  _indexBuffer = indexBuffer;
-  spdlog::info("Adding IndexBuffer[Index: {}] to VAO[Index: {}]", indexBuffer->getIndex(), _id);
+
+  _indexBuffer = std::move(indexBuffer);
+  spdlog::info("Adding IndexBuffer[Index: {}] to VAO[Index: {}]", _indexBuffer->getIndex(), _id);
+
 }

@@ -6,10 +6,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <memory>
 
+#include "BufferLayout.hpp"
 #include "DirectionalLight.hpp"
 #include "PickingTexture.hpp"
 #include "PointLight.hpp"
+#include "VertexBuffer.hpp"
 
 ENDER::Renderer::Renderer() {}
 
@@ -27,19 +30,19 @@ void ENDER::Renderer::init() {
   instance()._projectMatrix = glm::perspective(
       glm::radians(45.0f),
       (float)Window::getWidth() / (float)Window::getHeight(), 0.1f, 100.0f);
-  instance()._simpleShader = new Shader("../resources/simpleShader.vs",
+  instance()._simpleShader = Shader::create("../resources/simpleShader.vs",
                                         "../resources/simpleShader.fs");
   instance()._simpleShader->use();
 
-  instance()._textureShader = new Shader("../resources/textureShader.vs",
+  instance()._textureShader = Shader::create("../resources/textureShader.vs",
                                          "../resources/textureShader.fs");
   instance()._textureShader->use();
   instance()._textureShader->setInt("texture1", 0);
 
   instance()._gridShader =
-      new Shader("../resources/gridShader.vs", "../resources/gridShader.fs");
+      std::make_shared<Shader>("../resources/gridShader.vs", "../resources/gridShader.fs");
 
-  instance()._debugSquareShader = new ENDER::Shader(
+  instance()._debugSquareShader = Shader::create(
       "../resources/debugFramebuffer.vs", "../resources/debugFramebuffer.fs");
 
   glEnable(GL_DEPTH_TEST);
@@ -70,8 +73,7 @@ void ENDER::Renderer::init() {
 
   instance()._pickingTexture = new PickingTexture();
   instance()._pickingTexture->init(windowSize.x, windowSize.y);
-  instance()._pickingEffect =
-      new ENDER::Shader("../resources/picking.vs", "../resources/picking.fs");
+  instance()._pickingEffect = Shader::create("../resources/picking.vs", "../resources/picking.fs");
 }
 
 unsigned int ENDER::Renderer::getPickingTextureID() {
@@ -92,25 +94,16 @@ ENDER::Renderer::~Renderer() {
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
-  delete _textureShader;
-  delete _simpleShader;
-  delete _gridShader;
-  delete _debugSquareShader;
-  delete _pickingEffect;
-
   delete _pickingTexture;
 
-  delete cubeVAO;
-  delete gridVAO;
-  delete debugSquareVAO;
 
   spdlog::info("Deallocation renderer.");
 }
 
-void ENDER::Renderer::renderObject(Object *object, Scene *scene) {
+void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
   auto camera = scene->getCamera();
 
-  Shader *currentShader = object->getShader();
+  auto currentShader = object->getShader();
 
   if (currentShader == nullptr) {
     currentShader = instance()._simpleShader;
@@ -281,9 +274,9 @@ glm::mat4 ENDER::Renderer::getProjectMatrix() {
   return instance()._projectMatrix;
 }
 
-ENDER::Shader *ENDER::Renderer::shader() { return instance()._simpleShader; }
+sptr<ENDER::Shader> ENDER::Renderer::shader() { return instance()._simpleShader; }
 
-void ENDER::Renderer::renderScene(Scene *scene) {
+void ENDER::Renderer::renderScene(sptr<Scene> scene) {
   for (const auto &obj : scene->getObjects()) {
     /* RENDERING TO PICKING TEXTURE */
     instance().renderObjectToPicking(obj, scene);
@@ -292,7 +285,7 @@ void ENDER::Renderer::renderScene(Scene *scene) {
   }
 }
 
-void ENDER::Renderer::renderObjectToPicking(Object *object, Scene *scene) {
+void ENDER::Renderer::renderObjectToPicking(sptr<Object> object, sptr<Scene> scene) {
   instance()._pickingTexture->enableWriting();
   instance()._pickingEffect->use();
   instance()._pickingEffect->setInt("gObjectIndex", object->getId());
@@ -307,24 +300,24 @@ unsigned int ENDER::Renderer::pickObjAt(unsigned int x, unsigned int y) {
 }
 
 void ENDER::Renderer::createCubeVAO() {
-  auto *cubeLayout = new BufferLayout({{ENDER::LayoutObjectType::Float3},
+  auto cubeLayout = uptr<BufferLayout>(new BufferLayout({{ENDER::LayoutObjectType::Float3},
                                        {ENDER::LayoutObjectType::Float3},
-                                       {ENDER::LayoutObjectType::Float2}});
+                                       {ENDER::LayoutObjectType::Float2}}));
 
-  auto *cubeVBO = new VertexBuffer(cubeLayout);
+  auto cubeVBO = std::make_unique<VertexBuffer>(std::move(cubeLayout));
 
   cubeVBO->setData(CUBE_VERTICES, sizeof(CUBE_VERTICES));
-  cubeVAO = new VertexArray();
-  cubeVAO->addVBO(cubeVBO);
+  cubeVAO = std::make_shared<VertexArray>();
+  cubeVAO->addVBO(std::move(cubeVBO));
 }
 
 void ENDER::Renderer::createGridVAO() {
-  auto gridLayout = new ENDER::BufferLayout({ENDER::LayoutObjectType::Float3});
-  auto gridVBO = new ENDER::VertexBuffer(gridLayout);
+    auto gridLayout = uptr<BufferLayout>(new ENDER::BufferLayout({ENDER::LayoutObjectType::Float3}));
+  auto gridVBO = std::make_unique<VertexBuffer>(std::move(gridLayout));
   gridVBO->setData(GRID_VERTICES, sizeof(GRID_VERTICES));
 
-  gridVAO = new ENDER::VertexArray();
-  gridVAO->addVBO(gridVBO);
+  gridVAO = std::make_shared<ENDER::VertexArray>();
+  gridVAO->addVBO(std::move(gridVBO));
 
   _gridShader->use();
 
@@ -337,13 +330,13 @@ void ENDER::Renderer::createGridVAO() {
 
 void ENDER::Renderer::createDebugSquareVAO() {
   spdlog::debug("Creating debug VAO");
-  auto layout = new BufferLayout(
-      {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}});
-  auto vbo = new VertexBuffer(layout);
+  auto layout = uptr<BufferLayout>(new BufferLayout(
+      {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}}));
+  auto vbo = std::make_unique<VertexBuffer>(std::move(layout));
   vbo->setData(debugSquareVertices, sizeof(debugSquareVertices));
 
-  debugSquareVAO = new ENDER::VertexArray();
-  debugSquareVAO->addVBO(vbo);
+  debugSquareVAO = std::make_shared<VertexArray>();
+  debugSquareVAO->addVBO(std::move(vbo));
 }
 
 void ENDER::Renderer::renderDebugTexture(unsigned int textureID) {
@@ -365,8 +358,8 @@ void ENDER::Renderer::renderDebugTexture(Texture *texture) {
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void ENDER::Renderer::renderObject(ENDER::Object *object, ENDER::Scene *scene,
-                                   ENDER::Shader *shader) {
+void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
+                                   sptr<Shader> shader) {
   auto camera = scene->getCamera();
   shader->use();
   shader->setMat4("view", camera->getView());

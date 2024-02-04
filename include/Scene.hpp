@@ -1,31 +1,32 @@
 #pragma once
-#include <vector>
-#include <Object.hpp>
-#include <glm/glm.hpp>
 #include <Camera.hpp>
 #include <Light.hpp>
+#include <Object.hpp>
+#include <glm/glm.hpp>
+#include <vector>
 
-namespace ENDER
-{
-    class Scene
-    {
-        std::vector<Object *> _objects;
-        Camera *_camera = nullptr;
-        std::vector<Light *> _lights;
+namespace ENDER {
+class Scene {
+  std::vector<sptr<Object>> _objects;
+  sptr<Camera> _camera = nullptr;
+  std::vector<Light *> _lights;
 
-    public:
-        Scene();
+  Scene();
 
-        glm::mat4 calculateView() const;
-        void addObject(Object *object);
+public:
 
-        void setCamera(Camera *camera);
-        Camera *getCamera();
+  static sptr<Scene> create();
 
-        void addLight(Light *light);
+  glm::mat4 calculateView() const;
+  void addObject(sptr<Object> object);
 
-        const std::vector<Light *> &getLights();
+  void setCamera(sptr<Camera> camera);
+  sptr<Camera> getCamera();
 
-        std::vector<Object *> &getObjects();
-    };
+  void addLight(Light *light);
+
+  const std::vector<Light *> &getLights();
+
+  std::vector<sptr<Object>> &getObjects();
+};
 } // namespace ENDER

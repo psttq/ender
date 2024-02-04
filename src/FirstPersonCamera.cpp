@@ -22,6 +22,11 @@ ENDER::FirstPersonCamera::FirstPersonCamera(const glm::vec3 &position)
       });
 }
 
+sptr<ENDER::FirstPersonCamera> ENDER::FirstPersonCamera::create(const glm::vec3 &position)
+{
+  return std::make_shared<FirstPersonCamera>(position);
+}
+
 ENDER::FirstPersonCamera::~FirstPersonCamera() {
   if (_mousePosCallbackKey != -1)
     Window::deleteMousePosCallback(_mousePosCallbackKey);

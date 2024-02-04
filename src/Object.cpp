@@ -2,6 +2,7 @@
 #include <Object.hpp>
 #include <glm/glm.hpp>
 #include <Renderer.hpp>
+#include <memory>
 
 
 bool ENDER::Object::selected() const {
@@ -12,7 +13,7 @@ void ENDER::Object::setSelected(bool selected) {
   this->_selected = selected;
 }
 
-ENDER::Object::Object(const std::string &name, VertexArray *vertexArray) : _name(name), _vertexArray(vertexArray)
+ENDER::Object::Object(const std::string &name, sptr<VertexArray> vertexArray) : _name(name), _vertexArray(vertexArray)
 {
   static unsigned int _objCount = 1;
   _id = _objCount;
@@ -62,11 +63,11 @@ const std::string & ENDER::Object::getName() {
   return _name;
 }
 
-void ENDER::Object::setShader(Shader *shader) {
+void ENDER::Object::setShader(sptr<Shader> shader) {
   _shader = shader;
 }
 
-ENDER::Shader * ENDER::Object::getShader() {
+sptr<ENDER::Shader> ENDER::Object::getShader() {
   return _shader;
 }
 
@@ -80,19 +81,22 @@ std::string ENDER::Object::getName() const
   return _name;
 }
 
-ENDER::VertexArray *ENDER::Object::getVertexArray() const
+sptr<ENDER::VertexArray> ENDER::Object::getVertexArray() const
 {
   return _vertexArray;
 }
 
-ENDER::Object *ENDER::Object::createCube(const std::string &name)
-{
-  Object *cube = new Object(name, Renderer::getCubeVAO());
-  return cube;
+ sptr<ENDER::Object> ENDER::Object::create(const std::string &name, sptr<VertexArray> vertexArray){
+  return std::make_shared<Object>(name, vertexArray);
 }
 
-ENDER::Object * ENDER::Object::createGrid(const std::string &name) {
-  Object *grid = new Object(name, Renderer::getGridVAO());
+sptr<ENDER::Object> ENDER::Object::createCube(const std::string &name)
+{
+  return create(name, Renderer::getCubeVAO());
+}
+
+sptr<ENDER::Object> ENDER::Object::createGrid(const std::string &name) {
+  auto grid = create(name, Renderer::getGridVAO());
   grid->setShader(Renderer::getGridShader());
   return grid;
 }

@@ -9,8 +9,8 @@ namespace ENDER
 
   class VertexArray {
     unsigned int _id;
-    std::vector<VertexBuffer *> _vbos;
-    IndexBuffer *_indexBuffer = nullptr;
+    std::vector<uptr<VertexBuffer>> _vbos;
+    uptr<IndexBuffer> _indexBuffer = nullptr;
 
     unsigned int _index = 0;
 
@@ -24,19 +24,15 @@ namespace ENDER
         glDeleteVertexArrays(1, &_id);
         spdlog::info("Deallocated VAO. Index: {}.", _id);
       }
-      for (auto vbo : _vbos)
-      {
-        delete vbo;
-      }
     }
 
     void bind() const;
 
     void unbind() const;
 
-    void setIndexBuffer(IndexBuffer *indexBuffer);
+    void setIndexBuffer(uptr<IndexBuffer> indexBuffer);
 
-    void addVBO(VertexBuffer *vbo);
+    void addVBO(uptr<VertexBuffer> vbo);
 
     bool isIndexBuffer() const;
 

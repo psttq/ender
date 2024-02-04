@@ -1,5 +1,7 @@
+#include "BufferLayout.hpp"
 #include <Ender.hpp>
 #include <ender_types.hpp>
+#include <memory>
 
 namespace ENDER {
 namespace Utils {
@@ -25,7 +27,7 @@ inline unsigned int *generateParametricSurfaceGrid(int rows, int cols) {
   return indices;
 }
 
-inline Object *createParametricSurface(ParametricSurfFunc func, float u_max,
+inline sptr<Object> createParametricSurface(ParametricSurfFunc func, float u_max,
                                        float v_max, uint rows, uint cols) {
   auto indices = generateParametricSurfaceGrid(rows, cols);
   float *vertices = new float[rows * cols * 3];
@@ -44,17 +46,17 @@ inline Object *createParametricSurface(ParametricSurfFunc func, float u_max,
     }
   }
 
-  auto layout = new ENDER::BufferLayout({{ENDER::LayoutObjectType::Float3}});
-  auto vbo = new ENDER::VertexBuffer(layout);
+  auto layout = uptr<BufferLayout>(new ENDER::BufferLayout({{ENDER::LayoutObjectType::Float3}}));
+  auto vbo = std::make_unique<VertexBuffer>(std::move(layout));
   vbo->setData(vertices, sizeof(float) * rows * cols * 3);
 
-  auto ibo = new ENDER::IndexBuffer(indices, (rows - 1) * (cols - 1) * 2 * 3);
+  auto ibo = std::make_unique<IndexBuffer>(indices, (rows - 1) * (cols - 1) * 2 * 3);
 
-  auto vao = new ENDER::VertexArray();
-  vao->addVBO(vbo);
-  vao->setIndexBuffer(ibo);
+  auto vao = std::make_shared<VertexArray>();
+  vao->addVBO(std::move(vbo));
+  vao->setIndexBuffer(std::move(ibo));
 
-  auto object = new ENDER::Object("ParametricSurface", vao);
+  auto object = ENDER::Object::create("ParametricSurface", vao);
 
   return object;
 }

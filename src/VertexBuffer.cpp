@@ -2,8 +2,8 @@
 #include <spdlog/spdlog.h>
 #include <glad/glad.h>
 
-ENDER::VertexBuffer::VertexBuffer(ENDER::BufferLayout *layout)
-    : _layout(layout)
+ENDER::VertexBuffer::VertexBuffer(uptr<BufferLayout> layout)
+    : _layout(std::move(layout))
 {
   glGenBuffers(1, &_id);
   spdlog::info("Created VBO. Index: {}", _id);

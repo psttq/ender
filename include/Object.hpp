@@ -10,9 +10,9 @@ namespace ENDER {
         unsigned int _id;
         std::string _name;
 
-        Shader *_shader = nullptr;
+        sptr<Shader> _shader = nullptr;
 
-        VertexArray *_vertexArray;
+        sptr<VertexArray> _vertexArray;
         Texture *_texture = nullptr;
         glm::vec3 _position{};
         glm::vec3 _rotation{};
@@ -25,7 +25,7 @@ namespace ENDER {
 
         void setSelected(bool selected);
 
-        Object(const std::string &name, VertexArray *vertexArray);
+        Object(const std::string &name, sptr<VertexArray> vertexArray);
 
         void setTexture(Texture *texture);
 
@@ -47,18 +47,20 @@ namespace ENDER {
         
         unsigned int getId() const;
 
-        void setShader(Shader *shader);
+        void setShader(sptr<Shader> shader);
 
-        Shader *getShader();
+        sptr<Shader> getShader();
 
 
-        VertexArray *getVertexArray() const;
+        sptr<VertexArray> getVertexArray() const;
 
         std::string getName() const;
 
-        static Object *createCube(const std::string &name);
+        static sptr<Object> create(const std::string &name, sptr<VertexArray> vertexArray);
 
-        static Object *createGrid(const std::string &name);
+        static sptr<Object> createCube(const std::string &name);
+
+        static sptr<Object> createGrid(const std::string &name);
 
     };
 
