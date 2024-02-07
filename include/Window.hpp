@@ -115,6 +115,7 @@ namespace ENDER
         static void flash();
 
         static double deltaTime();
+        static double currentTime();
 
         static void enableCursor();
         static void disableCursor();

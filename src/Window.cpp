@@ -220,6 +220,10 @@ void ENDER::Window::flash() {
 
 double ENDER::Window::deltaTime() { return instance()._deltaTime; }
 
+double ENDER::Window::currentTime() {
+  return glfwGetTime();
+}
+
 void ENDER::Window::enableCursor() {
   glfwSetInputMode(instance()._window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }

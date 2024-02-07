@@ -6,6 +6,8 @@
 #include <Shader.hpp>
 #include <Window.hpp>
 
+#include "Framebuffer.hpp"
+
 namespace ENDER {
 
 static const int MAX_POINT_LIGHTS_NUMBER = 100;
@@ -26,6 +28,7 @@ private:
   sptr<Shader> _gridShader;
   sptr<Shader> _pickingEffect;
   sptr<Shader> _debugSquareShader;
+  sptr<Shader> _debugNormalsShader;
 
   glm::mat4 _projectMatrix;
 
@@ -77,11 +80,13 @@ public:
 
   static sptr<Shader> shader();
 
-  static void renderScene(sptr<Scene> scene);
+  static void renderScene(sptr<Scene> scene, sptr<Framebuffer> framebuffer);
 
   static unsigned int pickObjAt(unsigned int x, unsigned int y);
 
   static void framebufferSizeCallback(int width, int height);
+
+  static void pickingResize(float width, float height);
 
   static sptr<Shader> getGridShader() { return instance()._gridShader; }
 

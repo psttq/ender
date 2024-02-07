@@ -19,7 +19,7 @@ namespace ENDER
         unsigned int ID;
         // constructor generates the shader on the fly
         // ------------------------------------------------------------------------
-        Shader(const char *vertexPath, const char *fragmentPath)
+        Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
         {
             spdlog::info("Creating shader. [vertexShaderPath: {}, fragmentShaderPath: {}]", vertexPath, fragmentPath);
             // 1. retrieve the vertex/fragment source code from filePath
@@ -27,9 +27,14 @@ namespace ENDER
             std::string fragmentCode;
             std::ifstream vShaderFile;
             std::ifstream fShaderFile;
+
+            std::string geometryCode;
+            std::ifstream gShaderFile;
+
             // ensure ifstream objects can throw exceptions:
             vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
             fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+            gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
             try
             {
                 // open files
@@ -45,6 +50,15 @@ namespace ENDER
                 // convert stream into string
                 vertexCode = vShaderStream.str();
                 fragmentCode = fShaderStream.str();
+
+                if(geometryPath != nullptr) {
+                    gShaderFile.open(geometryPath);
+                    std::stringstream gShaderStream;
+                    gShaderStream << gShaderFile.rdbuf();
+
+                    gShaderFile.close();
+                    geometryCode = gShaderStream.str();
+                }
             }
             catch (std::ifstream::failure &e)
             {
@@ -52,8 +66,10 @@ namespace ENDER
             }
             const char *vShaderCode = vertexCode.c_str();
             const char *fShaderCode = fragmentCode.c_str();
+            const char *gShaderCode = geometryCode.c_str();
+
             // 2. compile shaders
-            unsigned int vertex, fragment;
+            unsigned int vertex, fragment, geometry;
             // vertex shader
             vertex = glCreateShader(GL_VERTEX_SHADER);
             glShaderSource(vertex, 1, &vShaderCode, NULL);
@@ -64,12 +80,23 @@ namespace ENDER
             glShaderSource(fragment, 1, &fShaderCode, NULL);
             glCompileShader(fragment);
             checkCompileErrors(fragment, "FRAGMENT");
+
             // shader Program
             ID = glCreateProgram();
             glAttachShader(ID, vertex);
             glAttachShader(ID, fragment);
+
+            if(geometryPath != nullptr) {
+                geometry = glCreateShader(GL_GEOMETRY_SHADER);
+                glShaderSource(geometry, 1, &gShaderCode, NULL);
+                glCompileShader(geometry);
+                checkCompileErrors(geometry, "GEOMETRY");
+                glAttachShader(ID, geometry);
+            }
+
             glLinkProgram(ID);
             checkCompileErrors(ID, "PROGRAM");
+
             // delete the shaders as they're linked into our program now and no longer necessary
             glDeleteShader(vertex);
             glDeleteShader(fragment);
@@ -82,8 +109,8 @@ namespace ENDER
             spdlog::debug("Deallocation Shader");
         }
 
-        static sptr<Shader> create(const char *vertexPath, const char *fragmentPath){
-          return std::make_shared<Shader>(vertexPath, fragmentPath);
+        static sptr<Shader> create(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr){
+          return std::make_shared<Shader>(vertexPath, fragmentPath, geometryPath);
         }
 
         // activate the shader
