@@ -139,7 +139,6 @@ int main() {
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-            ImGui::ShowDemoWindow();
             ImGui::Begin("Debug");
             ImGui::Text("FPS: %.2f", 1.0f / ENDER::Window::deltaTime());
             if (ImGui::SliderFloat3("Direciton", glm::value_ptr(dir), -1, 1)) {
@@ -160,19 +159,21 @@ int main() {
             ImGui::Begin("Viewport");
 
 
-            if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
-                ImVec2 screen_pos = ImGui::GetCursorScreenPos();
-                auto mousePosition = ENDER::Window::getMousePosition();
-                spdlog::debug("{}, {}", mousePosition.x - screen_pos.x, mousePosition.y - screen_pos.y);
-                auto pickedID =
-                        ENDER::Renderer::pickObjAt(mousePosition.x - screen_pos.x, mousePosition.y - screen_pos.y);
 
-                for (auto object: scene->getObjects()) {
-                    object->setSelected(object->getId() == pickedID);
-                }
-            }
             float window_width = ImGui::GetContentRegionAvail().x;
             float window_height = ImGui::GetContentRegionAvail().y;
+
+            if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
+                          ImVec2 screen_pos = ImGui::GetCursorScreenPos();
+                          auto mousePosition = ENDER::Window::getMousePosition();
+                          spdlog::debug("{}, {}, {}", mousePosition.x - screen_pos.x, mousePosition.y - screen_pos.y, window_height - (mousePosition.y-screen_pos.y)-1);
+                          auto pickedID =
+                                  ENDER::Renderer::pickObjAt(mousePosition.x - screen_pos.x, (mousePosition.y-screen_pos.y), window_height);
+
+                          for (auto object: scene->getObjects()) {
+                              object->setSelected(object->getId() == pickedID);
+                          }
+                      }
 
             framebuffer->rescale(window_width, window_height);
             ENDER::Renderer::pickingResize(window_width, window_height);

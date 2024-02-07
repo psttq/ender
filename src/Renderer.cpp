@@ -97,7 +97,7 @@ void ENDER::Renderer::framebufferSizeCallback(int width, int height) {
         (float) width / (float) height, 0.1f, 100.0f);
     // instance()._pickingTexture->updateTextureSize(width, height);
 
-    spdlog::debug("window size: {}, {}", width, height);
+    // spdlog::debug("window size: {}, {}", width, height);
     glViewport(0, 0, width, height);
 }
 
@@ -328,9 +328,8 @@ void ENDER::Renderer::renderObjectToPicking(sptr<Object> object, sptr<Scene> sce
     instance()._pickingTexture->disableWriting();
 }
 
-unsigned int ENDER::Renderer::pickObjAt(unsigned int x, unsigned int y) {
-    auto height = Window::getHeight();
-    return instance()._pickingTexture->readPixel(x, height - y - 1).objectID;
+unsigned int ENDER::Renderer::pickObjAt(unsigned int x, unsigned int y, unsigned int window_height) {
+    return instance()._pickingTexture->readPixel(x, window_height - y - 1).objectID;
 }
 
 void ENDER::Renderer::createCubeVAO() {
