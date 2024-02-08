@@ -1,4 +1,4 @@
-#include <PointLight.hpp>
+#include <../../include/Renderer/PointLight.hpp>
 
 namespace ENDER {
     glm::vec3 PointLight::position() const {

@@ -1,7 +1,7 @@
-#include "VertexArray.hpp"
-#include <Object.hpp>
-#include <glm/glm.hpp>
-#include <Renderer.hpp>
+#include "../../include/Renderer/VertexArray.hpp"
+#include <../../include/Renderer/Object.hpp>
+#include <../../3rd/glm/glm/glm.hpp>
+#include <../../include/Renderer/Renderer.hpp>
 #include <memory>
 
 

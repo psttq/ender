@@ -1,5 +1,5 @@
-#include <Scene.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <../../include/Renderer/Scene.hpp>
+#include <../../3rd/glm/glm/gtc/matrix_transform.hpp>
 
 ENDER::Scene::Scene() { spdlog::debug("Creating scene."); }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Light.hpp>
-#include  <glm/glm.hpp>
+#include <../../3rd/glm/glm/glm.hpp>
 
 namespace ENDER {
 class PointLight : public Light{

@@ -1,6 +1,6 @@
-#include <VertexArray.hpp>
-#include <VertexBuffer.hpp>
-#include <glad/glad.h>
+#include <../../include/Renderer/VertexArray.hpp>
+#include <../../include/Renderer/VertexBuffer.hpp>
+#include <../../3rd/glad/include/glad/glad.h>
 
 ENDER::VertexArray::VertexArray()
 {

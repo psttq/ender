@@ -1,9 +1,9 @@
-#include "spdlog/spdlog.h"
-#include <Texture.hpp>
-#include <glad/glad.h>
+#include "../../3rd/spdlog/include/spdlog/spdlog.h"
+#include <../../include/Renderer/Texture.hpp>
+#include <../../3rd/glad/include/glad/glad.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <../../3rd/stb/stb_image.h>
 
 ENDER::Texture::Texture()
 {

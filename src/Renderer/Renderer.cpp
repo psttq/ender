@@ -1,19 +1,19 @@
-#include <imgui/backends/imgui_impl_glfw.h>
-#include <imgui/backends/imgui_impl_opengl3.h>
-#include <imgui/imgui.h>
+#include <../../3rd/imgui/backends/imgui_impl_glfw.h>
+#include <../../3rd/imgui/backends/imgui_impl_opengl3.h>
+#include <../../3rd/imgui/imgui.h>
 
-#include <Renderer.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <../../include/Renderer/Renderer.hpp>
+#include <../../3rd/glm/glm/glm.hpp>
+#include <../../3rd/glm/glm/gtc/matrix_transform.hpp>
+#include <../../3rd/glm/glm/gtc/type_ptr.hpp>
 #include <memory>
 
-#include "BufferLayout.hpp"
-#include "DirectionalLight.hpp"
-#include "Framebuffer.hpp"
-#include "PickingTexture.hpp"
-#include "PointLight.hpp"
-#include "VertexBuffer.hpp"
+#include "../../include/Renderer/BufferLayout.hpp"
+#include "../../include/Renderer/DirectionalLight.hpp"
+#include "../../include/Renderer/Framebuffer.hpp"
+#include "../../include/Renderer/PickingTexture.hpp"
+#include "../../include/Renderer/PointLight.hpp"
+#include "../../include/Renderer/VertexBuffer.hpp"
 
 ENDER::Renderer::Renderer() {
 }
@@ -155,7 +155,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
     currentShader->setBool("spotLight.toggled", camera->getSpotlightToggled());
 
     currentShader->setMat4("view", camera->getView());
-    currentShader->setMat4("projection", _projectMatrix);
+    currentShader->setMat4("projection", camera->getProjection());
 
     currentShader->setFloat("time", Window::currentTime());
 
@@ -307,10 +307,27 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene, sptr<Framebuffer> framebuff
     /* RENDERING TO FRAMEBUFFER */
     for (const auto &obj: scene->getObjects()) {
         instance().renderObject(obj, scene);
-        instance().renderObject(obj, scene, instance()._debugNormalsShader);
+        if(instance()._renderNormals)
+            instance().renderObject(obj, scene, instance()._debugNormalsShader);
     }
     framebuffer->unbind();
 
+    /* RENDERING TO PICKING TEXTURE */
+    clearPicking();
+    for (const auto &obj: scene->getObjects()) {
+        instance().renderObjectToPicking(obj, scene);
+    }
+
+}
+
+void ENDER::Renderer::renderScene(sptr<Scene> scene) {
+    clear();
+    /* RENDERING TO DEFAULT FRAMEBUFFER */
+    for (const auto &obj: scene->getObjects()) {
+        instance().renderObject(obj, scene);
+        if(instance()._renderNormals)
+            instance().renderObject(obj, scene, instance()._debugNormalsShader);
+    }
     /* RENDERING TO PICKING TEXTURE */
     clearPicking();
     for (const auto &obj: scene->getObjects()) {
@@ -340,8 +357,8 @@ void ENDER::Renderer::createCubeVAO() {
     }));
 
     auto cubeVBO = std::make_unique<VertexBuffer>(std::move(cubeLayout));
-
     cubeVBO->setData(CUBE_VERTICES, sizeof(CUBE_VERTICES));
+
     cubeVAO = std::make_shared<VertexArray>();
     cubeVAO->addVBO(std::move(cubeVBO));
 }
@@ -393,6 +410,14 @@ void ENDER::Renderer::renderDebugTexture(Texture *texture) {
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+void ENDER::Renderer::setRenderNormals(bool value) {
+    instance()._renderNormals = value;
+}
+
+bool ENDER::Renderer::isRenderingNormals() {
+    return instance()._renderNormals;
+}
+
 void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
                                    sptr<Shader> shader) {
     auto camera = scene->getCamera();
@@ -400,7 +425,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
 
     shader->setFloat("time", Window::currentTime());
     shader->setMat4("view", camera->getView());
-    shader->setMat4("projection", _projectMatrix);
+    shader->setMat4("projection", camera->getProjection());
 
     auto objRotation = object->getRotation();
 

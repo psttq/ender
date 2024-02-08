@@ -1,7 +1,7 @@
 #pragma once
 #include "VertexArray.hpp"
 #include <Object.hpp>
-#include <PickingTexture.hpp>
+#include <Renderer/PickingTexture.hpp>
 #include <Scene.hpp>
 #include <Shader.hpp>
 #include <Window.hpp>
@@ -49,6 +49,8 @@ private:
   void renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Shader> shader);
   void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene);
 
+  bool _renderNormals = false;
+
 public:
   static Renderer &instance() {
     static Renderer _instance;
@@ -78,9 +80,15 @@ public:
   static void renderDebugTexture(unsigned int textureID);
   static void renderDebugTexture(Texture *texture);
 
+  static void setRenderNormals(bool value);
+  static bool isRenderingNormals();
+
+
   static sptr<Shader> shader();
 
   static void renderScene(sptr<Scene> scene, sptr<Framebuffer> framebuffer);
+  static void renderScene(sptr<Scene> scene);
+
 
   static unsigned int pickObjAt(uint x, uint y, uint window_height);
 

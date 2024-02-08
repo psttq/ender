@@ -1,9 +1,10 @@
 #include <FirstPersonCamera.hpp>
 #include <Window.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-ENDER::FirstPersonCamera::FirstPersonCamera(const glm::vec3 &position)
-    : _position(position) {
+ENDER::FirstPersonCamera::FirstPersonCamera(const glm::vec3 &position, const glm::vec2 &framebufferSize)
+    : _position(position), _framebufferSize(framebufferSize) {
   _mousePosCallbackKey = Window::addMousePosCallback(
       [&](double xpos, double ypos) { proccessMouseInput(xpos, ypos); });
   _mouseClickCallbackKey = Window::addMouseClickCallback(
@@ -16,15 +17,17 @@ ENDER::FirstPersonCamera::FirstPersonCamera(const glm::vec3 &position)
       });
 
   _inputCallbackKey =
-      Window::addInputCallback([](int key, Window::EventStatus status) {
+      Window::addInputCallback([&](int key, Window::EventStatus status) {
         if (key == GLFW_KEY_E && status == Window::EventStatus::Release)
           Window::enableCursor();
+        _firstCamera = true;
+
       });
 }
 
-sptr<ENDER::FirstPersonCamera> ENDER::FirstPersonCamera::create(const glm::vec3 &position)
+sptr<ENDER::FirstPersonCamera> ENDER::FirstPersonCamera::create(const glm::vec3 &position, const glm::vec2 &framebufferSize)
 {
-  return std::make_shared<FirstPersonCamera>(position);
+  return std::make_shared<FirstPersonCamera>(position, framebufferSize);
 }
 
 ENDER::FirstPersonCamera::~FirstPersonCamera() {
@@ -40,7 +43,25 @@ glm::mat4 ENDER::FirstPersonCamera::getView() const {
   return glm::lookAt(_position, _position + _front, _up);
 }
 
+glm::mat4 ENDER::FirstPersonCamera::getProjection() const {
+  return glm::perspective(
+        glm::radians(45.0f),
+        (float) _framebufferSize.x / (float) _framebufferSize.y, 0.1f, 100.0f);
+}
+
 void ENDER::FirstPersonCamera::setSpeed(float speed) { _defaultSpeed = speed; }
+
+void ENDER::FirstPersonCamera::setFramebufferSize(const glm::vec2 &size) {
+  _framebufferSize = size;
+}
+
+void ENDER::FirstPersonCamera::setActive(bool value) {
+  _isActive = value;
+}
+
+bool ENDER::FirstPersonCamera::isActive() const {
+  return _isActive;
+}
 
 glm::vec3 ENDER::FirstPersonCamera::getPosition() const { return _position; }
 
@@ -51,6 +72,8 @@ bool ENDER::FirstPersonCamera::getSpotlightToggled() const {
 }
 
 void ENDER::FirstPersonCamera::proccessInput() {
+  if(!_isActive)
+    return;
   float __speed = _currentSpeed * static_cast<float>(Window::deltaTime());
   Window::keyPressed(GLFW_KEY_W, [&] { _position += __speed * _front; });
   Window::keyPressed(GLFW_KEY_S, [&] { _position -= __speed * _front; });
@@ -71,6 +94,9 @@ void ENDER::FirstPersonCamera::proccessInput() {
 }
 
 void ENDER::FirstPersonCamera::proccessMouseInput(double xpos, double ypos) {
+  if(!_isActive)
+    return;
+
   if (!Window::isMouseButtonPressed(Window::MouseButton::Right) &&
       !Window::isKeyPressed(GLFW_KEY_E))
     return;

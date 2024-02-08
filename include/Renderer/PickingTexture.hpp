@@ -1,7 +1,7 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
-#include <glad/glad.h>
+#include <../../3rd/spdlog/include/spdlog/spdlog.h>
+#include <../../3rd/glad/include/glad/glad.h>
 
 namespace ENDER {
     class PickingTexture {

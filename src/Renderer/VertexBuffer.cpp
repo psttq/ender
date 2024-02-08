@@ -1,6 +1,6 @@
-#include <VertexBuffer.hpp>
-#include <spdlog/spdlog.h>
-#include <glad/glad.h>
+#include <../../include/Renderer/VertexBuffer.hpp>
+#include <../../3rd/spdlog/include/spdlog/spdlog.h>
+#include <../../3rd/glad/include/glad/glad.h>
 
 ENDER::VertexBuffer::VertexBuffer(uptr<BufferLayout> layout)
     : _layout(std::move(layout))

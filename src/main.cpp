@@ -2,8 +2,11 @@
 #include <Utilities.hpp>
 #include <memory>
 
+#include "OrthographicCamera.hpp"
+
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 800;
+
 
 int main() {
     spdlog::set_level(spdlog::level::debug);
@@ -18,14 +21,22 @@ int main() {
 
     ENDER::Renderer::init();
 
+    ENDER::Utils::applyImguiTheme();
+
     auto framebuffer = ENDER::Framebuffer::create(SCR_WIDTH, SCR_HEIGHT);
+    auto sketchFramebuffer = ENDER::Framebuffer::create(SCR_WIDTH, SCR_HEIGHT);
+
 
     auto lightCubeShader = ENDER::Shader::create("../resources/shaders/lightShader.vs",
                                                  "../resources/shaders/lightShader.fs");
 
     auto scene = ENDER::Scene::create();
 
-    auto camera = ENDER::FirstPersonCamera::create({});
+    auto sketchScene = ENDER::Scene::create();
+
+    auto camera = ENDER::FirstPersonCamera::create({}, {SCR_WIDTH, SCR_HEIGHT});
+
+    auto sketchCamera = ENDER::OrthographicCamera::create({0, 5, 0}, {SCR_WIDTH, SCR_HEIGHT});
 
     scene->setCamera(camera);
 
@@ -48,6 +59,9 @@ int main() {
         if (key == GLFW_KEY_L && status == ENDER::Window::EventStatus::Press) {
             ENDER::Renderer::setDrawType(ENDER::Renderer::DrawType::Lines);
         }
+        if (key == GLFW_KEY_N && status == ENDER::Window::EventStatus::Press) {
+            ENDER::Renderer::setRenderNormals(!ENDER::Renderer::isRenderingNormals());
+        }
         if (key == GLFW_KEY_K && status == ENDER::Window::EventStatus::Press) {
             ENDER::Renderer::setDrawType(ENDER::Renderer::DrawType::Triangles);
         }
@@ -58,8 +72,6 @@ int main() {
     auto directionalLight = new ENDER::DirectionalLight(dir, {1, 1, 1});
     scene->addLight(directionalLight);
 
-    auto grid = ENDER::Object::createGrid("Grid");
-    // scene->addObject(grid);
 
     auto texture = new ENDER::Texture();
     texture->loadFromFile("../resources/textures/container.jpg", GL_RGB);
@@ -74,6 +86,7 @@ int main() {
         u_max, v_max, rows, cols);
     scene->addObject(sphere);
 
+
     // auto sphere = ENDER::Utils::createParametricSurface(
     //   [](float u, float v) {
     //     return glm::vec3{glm::sin(u), glm::cos(v),
@@ -85,6 +98,12 @@ int main() {
     auto cube = ENDER::Object::createCube("cube");
     cube->setPosition({2, 0, 0});
     scene->addObject(cube);
+
+    auto grid = ENDER::Object::createGrid("Grid");
+    scene->addObject(grid);
+
+    sketchScene->setCamera(sketchCamera);
+    sketchScene->addObject(grid);
 
     bool p_open = true;
 
@@ -108,34 +127,13 @@ int main() {
 
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("Options")) {
-                    if (ImGui::MenuItem("Flag: NoDockingOverCentralNode", "",
-                                        (dockspace_flags & ImGuiDockNodeFlags_NoDockingOverCentralNode) != 0)) {
-                        dockspace_flags ^= ImGuiDockNodeFlags_NoDockingOverCentralNode;
-                    }
-                    if (ImGui::MenuItem("Flag: NoDockingSplit", "",
-                                        (dockspace_flags & ImGuiDockNodeFlags_NoDockingSplit) != 0)) {
-                        dockspace_flags ^= ImGuiDockNodeFlags_NoDockingSplit;
-                    }
-                    if (ImGui::MenuItem("Flag: NoUndocking", "",
-                                        (dockspace_flags & ImGuiDockNodeFlags_NoUndocking) != 0)) {
-                        dockspace_flags ^= ImGuiDockNodeFlags_NoUndocking;
-                    }
-                    if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) {
-                        dockspace_flags ^= ImGuiDockNodeFlags_NoResize;
-                    }
-                    if (ImGui::MenuItem("Flag: AutoHideTabBar", "",
-                                        (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) {
-                        dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
-                    }
-                    ImGui::Separator();
-
                     if (ImGui::MenuItem("Close", NULL, false, &p_open != NULL))
                         p_open = false;
                     ImGui::EndMenu();
                 }
-
                 ImGui::EndMenuBar();
             }
+
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
@@ -158,28 +156,28 @@ int main() {
             }
             ImGui::Begin("Viewport");
 
-
+            camera->setActive(ImGui::IsWindowFocused());
 
             float window_width = ImGui::GetContentRegionAvail().x;
             float window_height = ImGui::GetContentRegionAvail().y;
 
-            if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
-                          ImVec2 screen_pos = ImGui::GetCursorScreenPos();
-                          auto mousePosition = ENDER::Window::getMousePosition();
-                          spdlog::debug("{}, {}, {}", mousePosition.x - screen_pos.x, mousePosition.y - screen_pos.y, window_height - (mousePosition.y-screen_pos.y)-1);
-                          auto pickedID =
-                                  ENDER::Renderer::pickObjAt(mousePosition.x - screen_pos.x, (mousePosition.y-screen_pos.y), window_height);
+            camera->setFramebufferSize({window_width, window_height});
 
-                          for (auto object: scene->getObjects()) {
-                              object->setSelected(object->getId() == pickedID);
-                          }
-                      }
+            if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
+                ImVec2 screen_pos = ImGui::GetCursorScreenPos();
+                auto mousePosition = ENDER::Window::getMousePosition();
+                auto pickedID =
+                        ENDER::Renderer::pickObjAt(mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y),
+                                                   window_height);
+
+                for (auto object: scene->getObjects()) {
+                    object->setSelected(object->getId() == pickedID);
+                }
+            }
 
             framebuffer->rescale(window_width, window_height);
             ENDER::Renderer::pickingResize(window_width, window_height);
             ENDER::Renderer::framebufferSizeCallback(window_width, window_height);
-            // glViewport(0, 0, window_width, window_height);
-            spdlog::debug("{}-{} {}-{}", ImGui::GetWindowSize().x, ImGui::GetWindowSize().y, window_width, window_height);
 
             ImGui::Image(
                 (ImTextureID) framebuffer->getTextureId(),
@@ -190,13 +188,34 @@ int main() {
 
             ImGui::End();
 
-            ImGui::Begin("Picking");
+            ImGui::Begin("Sketch Editor");
 
-            // and here we can add our created texture as image to ImGui
-            // unfortunately we need to use the cast to void* or I didn't find another way tbh
+            sketchCamera->setActive(ImGui::IsWindowFocused());
+
+            window_width = ImGui::GetContentRegionAvail().x;
+            window_height = ImGui::GetContentRegionAvail().y;
+
+            sketchCamera->setFramebufferSize({window_width, window_height});
+
+            // if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
+            //     ImVec2 screen_pos = ImGui::GetCursorScreenPos();
+            //     auto mousePosition = ENDER::Window::getMousePosition();
+            //     auto pickedID =
+            //             ENDER::Renderer::pickObjAt(mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y),
+            //                                        window_height);
+            //
+            //     for (auto object: scene->getObjects()) {
+            //         object->setSelected(object->getId() == pickedID);
+            //     }
+            // }
+
+            sketchFramebuffer->rescale(window_width, window_height);
+            ENDER::Renderer::pickingResize(window_width, window_height);
+            ENDER::Renderer::framebufferSizeCallback(window_width, window_height);
+
             ImGui::Image(
-                (ImTextureID) ENDER::Renderer::getPickingTextureID(),
-                ImGui::GetWindowSize(),
+                (ImTextureID) sketchFramebuffer->getTextureId(),
+                ImGui::GetContentRegionAvail(),
                 ImVec2(0, 1),
                 ImVec2(1, 0)
             );
@@ -211,6 +230,8 @@ int main() {
         ENDER::Window::keyPressed(GLFW_KEY_ESCAPE, [] { ENDER::Window::close(); });
 
         ENDER::Renderer::renderScene(scene, framebuffer);
+
+        ENDER::Renderer::renderScene(sketchScene, sketchFramebuffer);
 
         ENDER::Renderer::end();
 

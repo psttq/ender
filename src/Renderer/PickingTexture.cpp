@@ -1,6 +1,6 @@
-#include "PickingTexture.hpp"
+#include "../../include/Renderer/PickingTexture.hpp"
 
-#include <glad/glad.h>
+#include <../../3rd/glad/include/glad/glad.h>
 
 namespace ENDER {
 PickingTexture::~PickingTexture() {

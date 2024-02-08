@@ -1,6 +1,6 @@
-#include <spdlog/spdlog.h>
+#include <../../3rd/spdlog/include/spdlog/spdlog.h>
 
-#include <Window.hpp>
+#include <../../include/Renderer/Window.hpp>
 
 ENDER::Window::Window() {}
 
