@@ -87,13 +87,14 @@ int main() {
     scene->addObject(sphere);
 
 
-    // auto sphere = ENDER::Utils::createParametricSurface(
-    //   [](float u, float v) {
-    //     return glm::vec3{glm::sin(u), glm::cos(v),
-    //                      u};
-    //   },
-    //   u_max, v_max, rows, cols);
-    // scene->addObject(sphere);
+    auto s1 = ENDER::Utils::createParametricSurface(
+      [](float u, float v) {
+        return glm::vec3{glm::cos(u), v,
+                         u};
+      },
+      u_max, v_max, rows, cols);
+    s1->setPosition({0,-3,3});
+    scene->addObject(s1);
 
     auto cube = ENDER::Object::createCube("cube");
     cube->setPosition({2, 0, 0});

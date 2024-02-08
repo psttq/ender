@@ -79,10 +79,10 @@ void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
     _lastY = ypos;
 
     // get as ratio +/- 1
-    float dx = glm::abs((float) offsetX) / _framebufferSize.x;
-    float dy = glm::abs((float) offsetY) / _framebufferSize.y;
+    float dx = (float) offsetX / _framebufferSize.x;
+    float dy = (float) offsetY / _framebufferSize.y;
 
     // now move camera by offset (might need to multiply by 2 here?)
-    _position.x -= offsetX*dx*_speed;
-    _position.z -= offsetY*dy*_speed;
+    _position.x -= _framebufferSize.x *_zoom * dx;
+    _position.z -= _framebufferSize.y *_zoom * dy;
 }
