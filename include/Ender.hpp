@@ -12,6 +12,9 @@
 #include <PointLight.hpp>
 #include <DirectionalLight.hpp>
 #include <FirstPersonCamera.hpp>
+#include <OrthographicCamera.hpp>
+
+#include <Application.hpp>
 
 
 #include <glm/glm.hpp>
