@@ -1,7 +1,7 @@
 #pragma once
 #include <Ender.hpp>
+#include <ImGuizmo.h>
 #include <Utilities.hpp>
-
 
 class MyApplication : public ENDER::Application {
   sptr<ENDER::Framebuffer> viewportFramebuffer;
@@ -14,6 +14,10 @@ class MyApplication : public ENDER::Application {
 
   sptr<ENDER::Scene> viewportScene;
   sptr<ENDER::Scene> sketchScene;
+
+  sptr<ENDER::Object> selectedObjectViewport;
+
+  ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
 
   uint _appWidth;
   uint _appHeight;
@@ -107,11 +111,49 @@ public:
           mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
       for (auto object : viewportScene->getObjects()) {
         object->setSelected(object->getId() == pickedID);
+        if (object->getId() == pickedID)
+          selectedObjectViewport = object;
       }
     }
 
     ImGui::Image((ImTextureID)viewportFramebuffer->getTextureId(),
                  ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
+
+    if (selectedObjectViewport) {
+
+      ImGuizmo::SetOrthographic(false);
+      ImGuizmo::SetDrawlist();
+      ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y,
+                        window_width, window_height);
+
+      auto objRotation = selectedObjectViewport->getRotation();
+
+      glm::mat4 model;
+      ImGuizmo::RecomposeMatrixFromComponents(
+          glm::value_ptr(selectedObjectViewport->getPosition()),
+          glm::value_ptr(selectedObjectViewport->getRotation()),
+          glm::value_ptr(selectedObjectViewport->getScale()),
+          glm::value_ptr(model));
+
+      auto cameraView = viewportCamera->getView();
+      auto cameraProj = viewportCamera->getProjection();
+
+      ImGuizmo::Manipulate(glm::value_ptr(cameraView),
+                           glm::value_ptr(cameraProj),
+                           currentOperation, ImGuizmo::LOCAL,
+                           glm::value_ptr(model));
+
+      glm::vec3 newPosition;
+      glm::vec3 newRotation;
+      glm::vec3 newScale;
+
+      ImGuizmo::DecomposeMatrixToComponents(
+          glm::value_ptr(model), glm::value_ptr(newPosition),
+          glm::value_ptr(newRotation), glm::value_ptr(newScale));
+      selectedObjectViewport->setPosition(newPosition);
+      selectedObjectViewport->setRotation(newRotation);
+      selectedObjectViewport->setScale(newScale);
+    }
 
     ImGui::End();
   }
@@ -258,6 +300,15 @@ public:
     } break;
     case GLFW_KEY_K: {
       ENDER::Renderer::setDrawType(ENDER::Renderer::DrawType::Triangles);
+    } break;
+    case GLFW_KEY_R: {
+      currentOperation = ImGuizmo::OPERATION::ROTATE;
+    } break;
+    case GLFW_KEY_T: {
+      currentOperation = ImGuizmo::OPERATION::TRANSLATE;
+    } break;
+    case GLFW_KEY_Y: {
+      currentOperation = ImGuizmo::OPERATION::SCALE;
     } break;
     }
   }
