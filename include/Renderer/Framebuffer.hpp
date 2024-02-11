@@ -26,6 +26,8 @@ namespace ENDER {
 
         sptr<PickingTexture> getPickingTexture();
 
+        void clear();
+
         uint pickObjAt(uint x, uint y); 
         // here we bind our framebuffer
         void bind();

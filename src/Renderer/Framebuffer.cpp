@@ -81,6 +81,16 @@ void ENDER::Framebuffer::rescale(float width, float height) {
   glViewport(0, 0, width, height);
 }
 
+void ENDER::Framebuffer::clear() {
+  bind();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  unbind();
+
+  _pickingTexture->enableWriting();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  _pickingTexture->disableWriting();
+}
+
 sptr<ENDER::PickingTexture> ENDER::Framebuffer::getPickingTexture() {
   return _pickingTexture;
 }

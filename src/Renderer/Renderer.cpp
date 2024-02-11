@@ -108,7 +108,6 @@ ENDER::Renderer::~Renderer() {
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
-
   spdlog::info("Deallocation renderer.");
 }
 
@@ -309,8 +308,9 @@ sptr<ENDER::Shader> ENDER::Renderer::shader() {
 
 void ENDER::Renderer::renderScene(sptr<Scene> scene,
                                   sptr<Framebuffer> framebuffer) {
+  framebuffer->clear();
+
   framebuffer->bind();
-  clear();
   /* RENDERING TO FRAMEBUFFER */
   for (const auto &obj : scene->getObjects()) {
     instance().renderObject(obj, scene);
@@ -320,9 +320,9 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene,
   framebuffer->unbind();
 
   /* RENDERING TO PICKING TEXTURE */
-  clearPicking();
   for (const auto &obj : scene->getObjects()) {
-    instance().renderObjectToPicking(obj, scene,framebuffer->getPickingTexture());
+    instance().renderObjectToPicking(obj, scene,
+                                     framebuffer->getPickingTexture());
   }
 }
 
@@ -341,8 +341,9 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene) {
   }
 }
 
-void ENDER::Renderer::renderObjectToPicking(sptr<Object> object,
-                                            sptr<Scene> scene, sptr<PickingTexture> pickingTexture) {
+void ENDER::Renderer::renderObjectToPicking(
+    sptr<Object> object, sptr<Scene> scene,
+    sptr<PickingTexture> pickingTexture) {
   pickingTexture->enableWriting();
   instance()._pickingEffect->use();
   instance()._pickingEffect->setInt("gObjectIndex", object->getId());
