@@ -2,6 +2,7 @@
 
 #include <../../3rd/spdlog/include/spdlog/spdlog.h>
 #include <../../3rd/glad/include/glad/glad.h>
+#include <ender_types.hpp>
 
 namespace ENDER {
     class PickingTexture {
@@ -9,6 +10,8 @@ namespace ENDER {
         PickingTexture() {}
 
         ~PickingTexture();
+
+        static sptr<PickingTexture> create();
 
         void init(unsigned int windowWidth, unsigned int windowHeight);
 

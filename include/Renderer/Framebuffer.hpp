@@ -1,4 +1,5 @@
 #pragma once
+#include "PickingTexture.hpp"
 #include <ender_types.hpp>
 
 namespace ENDER {
@@ -10,9 +11,9 @@ namespace ENDER {
         float _width;
         float _height;
 
+        sptr<PickingTexture> _pickingTexture;
+
         Framebuffer(float width, float height);
-
-
 
     public:
         ~Framebuffer();
@@ -23,6 +24,9 @@ namespace ENDER {
 
         uint getTextureId();
 
+        sptr<PickingTexture> getPickingTexture();
+
+        uint pickObjAt(uint x, uint y); 
         // here we bind our framebuffer
         void bind();
 

@@ -163,22 +163,21 @@ int main() {
             float window_height = ImGui::GetContentRegionAvail().y;
 
             camera->setFramebufferSize({window_width, window_height});
+            
+            framebuffer->rescale(window_width, window_height);
 
             if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
                 ImVec2 screen_pos = ImGui::GetCursorScreenPos();
                 auto mousePosition = ENDER::Window::getMousePosition();
                 auto pickedID =
-                        ENDER::Renderer::pickObjAt(mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y),
-                                                   window_height);
+                        framebuffer->pickObjAt(mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
+                spdlog::debug("{}", pickedID);
 
                 for (auto object: scene->getObjects()) {
                     object->setSelected(object->getId() == pickedID);
                 }
             }
 
-            framebuffer->rescale(window_width, window_height);
-            ENDER::Renderer::pickingResize(window_width, window_height);
-            ENDER::Renderer::framebufferSizeCallback(window_width, window_height);
 
             ImGui::Image(
                 (ImTextureID) framebuffer->getTextureId(),
@@ -211,11 +210,8 @@ int main() {
             // }
 
             sketchFramebuffer->rescale(window_width, window_height);
-            ENDER::Renderer::pickingResize(window_width, window_height);
-            ENDER::Renderer::framebufferSizeCallback(window_width, window_height);
-
             ImGui::Image(
-                (ImTextureID) sketchFramebuffer->getTextureId(),
+                (ImTextureID) framebuffer->getPickingTexture()->getTextureID(),
                 ImGui::GetContentRegionAvail(),
                 ImVec2(0, 1),
                 ImVec2(1, 0)

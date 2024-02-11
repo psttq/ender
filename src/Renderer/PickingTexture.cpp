@@ -1,6 +1,7 @@
 #include "../../include/Renderer/PickingTexture.hpp"
 
 #include <../../3rd/glad/include/glad/glad.h>
+#include <memory>
 
 namespace ENDER {
 PickingTexture::~PickingTexture() {
@@ -18,6 +19,10 @@ PickingTexture::~PickingTexture() {
 }
 
 unsigned int PickingTexture::getTextureID() { return _pickingTexture; }
+
+sptr<PickingTexture> PickingTexture::create(){
+    return std::make_shared<PickingTexture>();
+}
 
 void PickingTexture::init(unsigned int windowWidth, unsigned int windowHeight) {
   // Create the FBO

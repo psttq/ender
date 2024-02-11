@@ -1,4 +1,6 @@
 #pragma once
+#include "DirectionalLight.hpp"
+#include "PointLight.hpp"
 #include "VertexArray.hpp"
 #include <Object.hpp>
 #include <Renderer/PickingTexture.hpp>
@@ -32,7 +34,7 @@ private:
 
   glm::mat4 _projectMatrix;
 
-  PickingTexture *_pickingTexture;
+  sptr<PickingTexture> _pickingTexture;
 
   sptr<VertexArray> cubeVAO;
   sptr<VertexArray> gridVAO;
@@ -47,7 +49,14 @@ private:
 
   void renderObject(sptr<Object> object, sptr<Scene> scene);
   void renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Shader> shader);
-  void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene);
+  void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene, sptr<PickingTexture> pickingTexture);
+
+  void _configureSpotLight(sptr<Shader> shader, sptr<Camera> camera);
+  void _configurePointLight(sptr<Shader> shader, const std::string &pointLightLabel, PointLight *pointLight);
+  void _configureDirectionLight(sptr<Shader> shader, DirectionalLight *directionalLight);
+
+  void _configureLight(sptr<Shader> shader, sptr<Scene> scene);
+
 
   bool _renderNormals = false;
 
