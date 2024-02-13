@@ -91,6 +91,9 @@ public:
     sketchScene->addObject(grid);
   }
 
+  static float degreeToRadians(float angle){return angle*glm::pi<float>()/180.0f;}
+  static float radiansToDegree(float angle){return angle/glm::pi<float>()*180.0f;}
+
   void handleViewportGUI() {
     ImGui::Begin("Viewport");
 
@@ -104,7 +107,7 @@ public:
     viewportFramebuffer->rescale(window_width, window_height);
 
     if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
-        ImGui::IsWindowFocused()) {
+        ImGui::IsWindowFocused() && !ImGuizmo::IsUsing()) {
       ImVec2 screen_pos = ImGui::GetCursorScreenPos();
       auto mousePosition = ENDER::Window::getMousePosition();
       auto pickedID = viewportFramebuffer->pickObjAt(
@@ -129,9 +132,11 @@ public:
       auto objRotation = selectedObjectViewport->getRotation();
 
       glm::mat4 model;
+      auto rotation = selectedObjectViewport->getRotation();
+      rotation = {radiansToDegree(rotation.x), radiansToDegree(rotation.y), radiansToDegree(rotation.z)};
       ImGuizmo::RecomposeMatrixFromComponents(
           glm::value_ptr(selectedObjectViewport->getPosition()),
-          glm::value_ptr(selectedObjectViewport->getRotation()),
+          glm::value_ptr(rotation),
           glm::value_ptr(selectedObjectViewport->getScale()),
           glm::value_ptr(model));
 
@@ -143,16 +148,22 @@ public:
                            currentOperation, ImGuizmo::LOCAL,
                            glm::value_ptr(model));
 
-      glm::vec3 newPosition;
-      glm::vec3 newRotation;
-      glm::vec3 newScale;
+      if(ImGuizmo::IsUsing()) {
 
-      ImGuizmo::DecomposeMatrixToComponents(
-          glm::value_ptr(model), glm::value_ptr(newPosition),
-          glm::value_ptr(newRotation), glm::value_ptr(newScale));
-      selectedObjectViewport->setPosition(newPosition);
-      selectedObjectViewport->setRotation(newRotation);
-      selectedObjectViewport->setScale(newScale);
+        glm::vec3 newPosition;
+        glm::vec3 newRotation;
+        glm::vec3 newScale;
+
+        ImGuizmo::DecomposeMatrixToComponents(
+            glm::value_ptr(model), glm::value_ptr(newPosition),
+            glm::value_ptr(newRotation), glm::value_ptr(newScale));
+        spdlog::debug("rot: {}, {}, {}", newRotation.x, newRotation.y, newRotation.z);
+        spdlog::debug("rot deg: {}, {}, {}", degreeToRadians(newRotation.x), degreeToRadians(newRotation.y), degreeToRadians(newRotation.z));
+
+        selectedObjectViewport->setPosition(newPosition);
+        selectedObjectViewport->setRotation({degreeToRadians(newRotation.x), degreeToRadians(newRotation.y), degreeToRadians(newRotation.z)});
+        selectedObjectViewport->setScale(newScale);
+      }
     }
 
     ImGui::End();

@@ -43,7 +43,7 @@ Application::~Application(){
 void Application::start(){
   _isRunning = true;
   onStart();
-  while(_isRunning){
+  while(_isRunning && !Window::windowShouldClose()){
     update(Window::deltaTime());
     _render();
   }
