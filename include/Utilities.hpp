@@ -29,20 +29,20 @@ namespace ENDER {
             return indices;
         }
 
-        inline sptr<Object> createParametricSurface(ParametricSurfFunc func, float u_max,
+        inline sptr<Object> createParametricSurface(ParametricSurfFunc func,float u_min, float v_min, float u_max,
                                                     float v_max, uint rows, uint cols) {
             auto indices = generateParametricSurfaceGrid(rows, cols);
 
 
             float *vertices = new float[rows * cols * 3];
 
-            float h_u = u_max / (cols - 1);
-            float h_v = v_max / (rows - 1);
+            float h_u = (u_max - u_min) / (cols - 1);
+            float h_v = (v_max - v_min) / (rows - 1);
 
             for (auto i = 0; i < rows; i++) {
                 for (auto j = 0; j < cols; j++) {
-                    float u = h_u * j;
-                    float v = h_v * i;
+                    float u = u_min + h_u * j;
+                    float v = v_min + h_v * i;
                     auto vertice = func(u, v);
                     vertices[(j + i * cols) * 3] = vertice.x; // x
                     vertices[(j + i * cols) * 3 + 1] = vertice.y; // x

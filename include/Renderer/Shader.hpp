@@ -87,6 +87,7 @@ namespace ENDER
             glAttachShader(ID, fragment);
 
             if(geometryPath != nullptr) {
+                spdlog::debug("\t\t\t \\\\+geometryShader: {}", geometryPath);
                 geometry = glCreateShader(GL_GEOMETRY_SHADER);
                 glShaderSource(geometry, 1, &gShaderCode, NULL);
                 glCompileShader(geometry);

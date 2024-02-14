@@ -33,7 +33,7 @@ void ENDER::Renderer::init() {
       (float)Window::getWidth() / (float)Window::getHeight(), 0.1f, 100.0f);
   instance()._simpleShader =
       Shader::create("../resources/shaders/simpleShader.vs",
-                     "../resources/shaders/simpleShader.fs");
+                     "../resources/shaders/simpleShader.fs", "../resources/shaders/normalsShader.gs");
   instance()._simpleShader->use();
 
   instance()._textureShader =

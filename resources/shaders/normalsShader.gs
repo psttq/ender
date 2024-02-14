@@ -5,6 +5,9 @@ layout(triangle_strip, max_vertices=3) out;
 
 out vec3 Normal;
 
+in vec3 fragPos[];
+out vec3 FragPos;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -33,8 +36,9 @@ void main( void )
 
     for(int i=0; i < gl_in.length(); ++i)
     {
-        gl_Position = gl_in[i].gl_Position;
-        Normal = N;
+        gl_Position = projection * view * vec4(fragPos[i], 1.0);
+        FragPos = fragPos[i];
+        Normal =mat3(transpose(inverse(model)))*N;
         EmitVertex();
     }
 

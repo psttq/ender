@@ -59,25 +59,28 @@ public:
         new ENDER::DirectionalLight(directionalLightDirection, {1, 1, 1});
     viewportScene->addLight(directionalLight);
 
-    float u_max = 2 * glm::pi<float>();
-    float v_max = 2 * glm::pi<float>();
+    float u_min = 0;
+    float v_min = -glm::pi<float>();
 
-    int rows = 20;
-    int cols = 20;
+    float u_max = glm::pi<float>();
+    float v_max = glm::pi<float>();
+
+    int rows = 50;
+    int cols = 50;
 
     auto sphere = ENDER::Utils::createParametricSurface(
         [](float u, float v) {
           return glm::vec3{glm::sin(u) * glm::cos(v), glm::sin(u) * glm::sin(v),
                            glm::cos(u)};
         },
-        u_max, v_max, rows, cols);
+        u_min, v_min, u_max, v_max, rows, cols);
     viewportScene->addObject(sphere);
 
     auto s1 = ENDER::Utils::createParametricSurface(
         [](float u, float v) {
-          return glm::vec3{glm::cos(u), v, u};
+          return glm::vec3{glm::cos(u), glm::sin(u), v};
         },
-        u_max, v_max, rows, cols);
+        u_min, v_min, u_max, v_max, rows, cols);
     s1->setPosition({0, -3, 3});
     viewportScene->addObject(s1);
 
