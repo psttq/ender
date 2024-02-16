@@ -14,6 +14,9 @@ namespace ENDER {
 
 static const int MAX_POINT_LIGHTS_NUMBER = 100;
 
+#define CIRCLE_VERTICES_COUNT 20
+#define CIRCLE_RADIUS 0.05f
+
 class Renderer {
 public:
   enum class DrawType {
@@ -39,6 +42,7 @@ private:
   sptr<VertexArray> cubeVAO;
   sptr<VertexArray> gridVAO;
   sptr<VertexArray> debugSquareVAO;
+  sptr<VertexArray> circleVAO;
 
   Renderer();
   ~Renderer();
@@ -46,6 +50,7 @@ private:
   void createCubeVAO();
   void createGridVAO();
   void createDebugSquareVAO();
+  void createCircleVAO();
 
   void renderObject(sptr<Object> object, sptr<Scene> scene);
   void renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Shader> shader);
@@ -109,6 +114,7 @@ public:
 
   static sptr<VertexArray> getCubeVAO() { return instance().cubeVAO; }
   static sptr<VertexArray> getGridVAO() { return instance().gridVAO; }
+  static sptr<VertexArray> getCircleVAO() {return instance().circleVAO; }
 };
 
 static float debugSquareVertices[] = {

@@ -12,6 +12,7 @@ namespace ENDER{
         int _mousePosCallbackKey = -1;
         int _mouseClickCallbackKey = -1;
         int _inputCallbackKey = -1;
+        int _scrollCallbackKey = -1;
 
         bool _isActive = false;
         bool _firstCamera = true;
@@ -20,6 +21,9 @@ namespace ENDER{
         double _lastY;
 
         float _zoom = 1.f/130.f;
+        
+        float _zoomSpeed = 1.f/100.f;
+
         float _speed = 0.3f;
 
         glm::vec2 _framebufferSize;
@@ -40,10 +44,17 @@ namespace ENDER{
         glm::vec3 getPosition() const override;
         glm::vec3 getFront() const override;
 
+        glm::vec2 mousePositionToWorldPosition(const glm::vec2 &mousePosition);
+
+        float getZoom() const {
+          return _zoom;
+        }
+
         bool getSpotlightToggled() const override;
 
 
         void proccessMouseInput(double xpos, double ypos);
+        void processScroll(double offsetX, double offsetY);
 
 
     };

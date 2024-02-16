@@ -1,7 +1,9 @@
 #pragma once
+#include "Point.hpp"
 #include <Ender.hpp>
 #include <ImGuizmo.h>
 #include <Utilities.hpp>
+#include <memory>
 
 class MyApplication : public ENDER::Application {
   sptr<ENDER::Framebuffer> viewportFramebuffer;
@@ -15,12 +17,16 @@ class MyApplication : public ENDER::Application {
   sptr<ENDER::Scene> viewportScene;
   sptr<ENDER::Scene> sketchScene;
 
+  std::vector<sptr<EGEOM::Point>> points;
+
   sptr<ENDER::Object> selectedObjectViewport;
 
   ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
 
   uint _appWidth;
   uint _appHeight;
+
+  ImVec2 sketchWindowPos; 
 
   glm::vec3 directionalLightDirection;
 
@@ -76,14 +82,14 @@ public:
         u_min, v_min, u_max, v_max, rows, cols);
     viewportScene->addObject(sphere);
 
-    auto s1 = ENDER::Utils::createParametricSurface(
-        [](float u, float v) {
-          return glm::vec3{glm::cos(u), glm::sin(u), v};
-        },
-        u_min, v_min, u_max, v_max, rows, cols);
-    s1->setPosition({0, -3, 3});
-    viewportScene->addObject(s1);
-
+    // auto s1 = ENDER::Utils::createParametricSurface(
+    //     [](float u, float v) {
+    //       return glm::vec3{glm::cos(u), glm::sin(u), v};
+    //     },
+    //     u_min, v_min, u_max, v_max, rows, cols);
+    // s1->setPosition({0, -3, 3});
+    // viewportScene->addObject(s1);
+    //
     auto cube = ENDER::Object::createCube("cube");
     cube->setPosition({2, 0, 0});
     viewportScene->addObject(cube);
@@ -94,8 +100,12 @@ public:
     sketchScene->addObject(grid);
   }
 
-  static float degreeToRadians(float angle){return angle*glm::pi<float>()/180.0f;}
-  static float radiansToDegree(float angle){return angle/glm::pi<float>()*180.0f;}
+  static float degreeToRadians(float angle) {
+    return angle * glm::pi<float>() / 180.0f;
+  }
+  static float radiansToDegree(float angle) {
+    return angle / glm::pi<float>() * 180.0f;
+  }
 
   void handleViewportGUI() {
     ImGui::Begin("Viewport");
@@ -136,7 +146,8 @@ public:
 
       glm::mat4 model;
       auto rotation = selectedObjectViewport->getRotation();
-      rotation = {radiansToDegree(rotation.x), radiansToDegree(rotation.y), radiansToDegree(rotation.z)};
+      rotation = {radiansToDegree(rotation.x), radiansToDegree(rotation.y),
+                  radiansToDegree(rotation.z)};
       ImGuizmo::RecomposeMatrixFromComponents(
           glm::value_ptr(selectedObjectViewport->getPosition()),
           glm::value_ptr(rotation),
@@ -147,11 +158,10 @@ public:
       auto cameraProj = viewportCamera->getProjection();
 
       ImGuizmo::Manipulate(glm::value_ptr(cameraView),
-                           glm::value_ptr(cameraProj),
-                           currentOperation, ImGuizmo::LOCAL,
-                           glm::value_ptr(model));
+                           glm::value_ptr(cameraProj), currentOperation,
+                           ImGuizmo::LOCAL, glm::value_ptr(model));
 
-      if(ImGuizmo::IsUsing()) {
+      if (ImGuizmo::IsUsing()) {
 
         glm::vec3 newPosition;
         glm::vec3 newRotation;
@@ -160,11 +170,16 @@ public:
         ImGuizmo::DecomposeMatrixToComponents(
             glm::value_ptr(model), glm::value_ptr(newPosition),
             glm::value_ptr(newRotation), glm::value_ptr(newScale));
-        spdlog::debug("rot: {}, {}, {}", newRotation.x, newRotation.y, newRotation.z);
-        spdlog::debug("rot deg: {}, {}, {}", degreeToRadians(newRotation.x), degreeToRadians(newRotation.y), degreeToRadians(newRotation.z));
+        spdlog::debug("rot: {}, {}, {}", newRotation.x, newRotation.y,
+                      newRotation.z);
+        spdlog::debug("rot deg: {}, {}, {}", degreeToRadians(newRotation.x),
+                      degreeToRadians(newRotation.y),
+                      degreeToRadians(newRotation.z));
 
         selectedObjectViewport->setPosition(newPosition);
-        selectedObjectViewport->setRotation({degreeToRadians(newRotation.x), degreeToRadians(newRotation.y), degreeToRadians(newRotation.z)});
+        selectedObjectViewport->setRotation({degreeToRadians(newRotation.x),
+                                             degreeToRadians(newRotation.y),
+                                             degreeToRadians(newRotation.z)});
         selectedObjectViewport->setScale(newScale);
       }
     }
@@ -205,20 +220,25 @@ public:
     sketchCamera->setFramebufferSize({window_width, window_height});
 
     sketchFramebuffer->rescale(window_width, window_height);
+    
+    sketchWindowPos = ImGui::GetCursorScreenPos();
 
     if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
         ImGui::IsWindowFocused()) {
-      ImVec2 screen_pos = ImGui::GetCursorScreenPos();
       auto mousePosition = ENDER::Window::getMousePosition();
-      auto pickedID = sketchFramebuffer->pickObjAt(
-          mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
 
-      for (auto object : sketchScene->getObjects()) {
-        object->setSelected(object->getId() == pickedID);
-      }
+      auto mouseScreenPosX = mousePosition.x - sketchWindowPos.x;
+      auto mouseScreenPosY = mousePosition.y - sketchWindowPos.y;
+
+      auto pickedID =
+          sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY);
+
+      // for (auto object : sketchScene->getObjects()) {
+        // object->setSelected(object->getId() == pickedID);
+      // }
     }
 
-    ImGui::Image((ImTextureID)sketchFramebuffer->getTextureId(),
+    ImGui::Image(reinterpret_cast<ImTextureID>(sketchFramebuffer->getTextureId()),
                  ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
 
     ImGui::End();
@@ -286,7 +306,23 @@ public:
   void onKeyRelease(int key) override {}
 
   void onMouseClick(ENDER::Window::MouseButton button,
-                    ENDER::Window::EventStatus status) override {}
+                    ENDER::Window::EventStatus status) override {
+    if (button == ENDER::Window::MouseButton::Left &&
+        status == ENDER::Window::EventStatus::Press) {
+      if (sketchCamera->isActive()) {
+        auto mousePosition = ENDER::Window::getMousePosition();
+
+        auto mouseScreenPosX = mousePosition.x - sketchWindowPos.x;
+        auto mouseScreenPosY = mousePosition.y - sketchWindowPos.y;
+
+        auto worldPos = sketchCamera->mousePositionToWorldPosition(
+            {mouseScreenPosX, mouseScreenPosY});
+        auto point = EGEOM::Point::create({worldPos.x, 0, worldPos.y});
+        sketchScene->addObject(point);
+        points.push_back(point);
+      }
+    }
+  }
 
   void onClose() {}
 

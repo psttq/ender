@@ -4,7 +4,7 @@
 
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
-#include "glm/vec2.hpp"
+#include <glm/glm.hpp>
 
 namespace ENDER
 {
@@ -28,6 +28,7 @@ namespace ENDER
         typedef std::function<void(int, int)> mousePosCallback;
         typedef std::function<void(MouseButton, EventStatus)> mouseClickCallback;
         typedef std::function<void(int, EventStatus)> inputCallback;
+        typedef std::function<void(double, double)> mouseScrollCallback;
 
 
         GLFWwindow *_window = nullptr;
@@ -42,6 +43,8 @@ namespace ENDER
         std::unordered_map<int, mousePosCallback> _mousePosCallbacks;
         std::unordered_map<int, mouseClickCallback> _mouseClickCallbacks;
         std::unordered_map<int, inputCallback> _inputCallbacks;
+        std::unordered_map<int, mouseScrollCallback> _scrollCallbacks;    
+    
         glm::ivec2 _mousePosition;
 
 
@@ -56,6 +59,7 @@ namespace ENDER
         void _posCursorCallback(GLFWwindow *window, double xpos, double ypos);
         void _clickCursorCallback(GLFWwindow* window, int button, int action, int mods);
         void _inputCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        void _scrollCallback(GLFWwindow *window, double offsetX, double offsetY);
 
     public:
 
@@ -77,6 +81,10 @@ namespace ENDER
         static int addInputCallback(inputCallback callback);
 
         static  void deleteInputCallback(int key);
+
+        static int addMouseScrollCallback(mouseScrollCallback callback);
+
+        static void deleteMouseScrollCallback(int key);
 
         static void setFramebufferSizeCallback(std::function<void(int, int)> framebufferSizeCallback);
 

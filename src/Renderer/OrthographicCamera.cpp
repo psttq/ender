@@ -21,6 +21,9 @@ ENDER::OrthographicCamera::OrthographicCamera(const glm::vec3 &position,
           _firstCamera = true;
         }
       });
+
+  _scrollCallbackKey = Window::addMouseScrollCallback(
+      [&](double offsetX, double offsetY) { processScroll(offsetX, offsetY); });
 }
 
 ENDER::OrthographicCamera::~OrthographicCamera() {
@@ -58,6 +61,22 @@ glm::vec3 ENDER::OrthographicCamera::getFront() const { return _front; }
 
 bool ENDER::OrthographicCamera::getSpotlightToggled() const { return false; }
 
+glm::vec2 ENDER::OrthographicCamera::mousePositionToWorldPosition(
+    const glm::vec2 &mousePosition) {
+  float mouseWorldX = mousePosition.x;
+  float mouseWorldY = mousePosition.y;
+
+  mouseWorldX *= _zoom;
+  mouseWorldY *= _zoom;
+
+  mouseWorldY -= _framebufferSize.y * _zoom;
+
+  mouseWorldX += _position.x;
+  mouseWorldY += _position.z;
+
+  return {mouseWorldX, mouseWorldY};
+}
+
 void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
   if (!_isActive)
     return;
@@ -78,11 +97,13 @@ void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
   _lastX = xpos;
   _lastY = ypos;
 
-  // get as ratio +/- 1
   float dx = (float)offsetX / _framebufferSize.x;
   float dy = (float)offsetY / _framebufferSize.y;
 
-  // now move camera by offset (might need to multiply by 2 here?)
   _position.x -= _framebufferSize.x * _zoom * dx;
   _position.z -= _framebufferSize.y * _zoom * dy;
+}
+
+void ENDER::OrthographicCamera::processScroll(double offsetX, double offsetY) {
+  _zoom -= offsetY * _zoomSpeed * Window::deltaTime();
 }

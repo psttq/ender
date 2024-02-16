@@ -9,6 +9,7 @@ namespace ENDER
   {
     unsigned int _id = 0;
     uptr<BufferLayout> _layout;
+    uint _count = 0;
 
   public:
     VertexBuffer(uptr<BufferLayout> layout);
@@ -29,5 +30,7 @@ namespace ENDER
     BufferLayout &getLayout() const;
 
     void setData(float *data, unsigned int size);
+
+    uint count() const { return _count; }
   };
 } // namespace ENDER

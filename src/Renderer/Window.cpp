@@ -1,3 +1,4 @@
+#include "GLFW/glfw3.h"
 #include <../../3rd/spdlog/include/spdlog/spdlog.h>
 
 #include <../../include/Renderer/Window.hpp>
@@ -12,18 +13,25 @@ void ENDER::Window::_posCursorCallback(GLFWwindow *window, double xpos,
   _mousePosition = {(int)xpos, (int)ypos};
 }
 
+void ENDER::Window::_scrollCallback(GLFWwindow *window, double offsetX,
+                                    double offsetY) {
+  for (auto &func : _scrollCallbacks) {
+    func.second(offsetX, offsetY);
+  }
+}
+
 void ENDER::Window::_clickCursorCallback(GLFWwindow *window, int button,
                                          int action, int mods) {
   MouseButton _button;
   switch (button) {
-    case GLFW_MOUSE_BUTTON_RIGHT:
-      _button = MouseButton::Right;
-      break;
-    case GLFW_MOUSE_BUTTON_LEFT:
-      _button = MouseButton::Left;
-      break;
-    default:
-      _button = MouseButton::None;
+  case GLFW_MOUSE_BUTTON_RIGHT:
+    _button = MouseButton::Right;
+    break;
+  case GLFW_MOUSE_BUTTON_LEFT:
+    _button = MouseButton::Left;
+    break;
+  default:
+    _button = MouseButton::None;
   }
 
   EventStatus _status = glfwActionToEventStatus(action);
@@ -78,6 +86,10 @@ void ENDER::Window::init(unsigned int width, unsigned int height) {
       [](GLFWwindow *window, int key, int scancode, int action, int mods) {
         instance()._inputCallback(window, key, scancode, action, mods);
       });
+  glfwSetScrollCallback(instance()._window,
+                        [](GLFWwindow *window, double offsetX, double offsetY) {
+                          instance()._scrollCallback(window, offsetX, offsetY);
+                        });
 }
 
 int ENDER::Window::addMousePosCallback(mousePosCallback callback) {
@@ -108,6 +120,16 @@ int ENDER::Window::addInputCallback(inputCallback callback) {
 
 void ENDER::Window::deleteInputCallback(int key) {
   instance()._inputCallbacks.erase(key);
+}
+
+int ENDER::Window::addMouseScrollCallback(mouseScrollCallback callback) {
+  int key = instance()._inputCallbacks.size();
+  instance()._scrollCallbacks.insert({key, callback});
+  return key;
+}
+
+void ENDER::Window::deleteMouseScrollCallback(int key) {
+  instance()._scrollCallbacks.erase(key);
 }
 
 void ENDER::Window::setFramebufferSizeCallback(
@@ -189,22 +211,22 @@ void ENDER::Window::keyReleased(unsigned key, std::function<void()> callBack) {
 
 bool ENDER::Window::isMouseButtonPressed(const MouseButton &button) {
   switch (button) {
-    case MouseButton::Left:
-      return glfwGetMouseButton(instance()._window, GLFW_MOUSE_BUTTON_LEFT) ==
-             GLFW_PRESS;
-    case MouseButton::Right:
-      return glfwGetMouseButton(instance()._window, GLFW_MOUSE_BUTTON_RIGHT) ==
-             GLFW_PRESS;
-    default:
-      spdlog::error(
-          "ENDER::Window::isMouseButtonPressed: Unknown mouse button");
+  case MouseButton::Left:
+    return glfwGetMouseButton(instance()._window, GLFW_MOUSE_BUTTON_LEFT) ==
+           GLFW_PRESS;
+  case MouseButton::Right:
+    return glfwGetMouseButton(instance()._window, GLFW_MOUSE_BUTTON_RIGHT) ==
+           GLFW_PRESS;
+  default:
+    spdlog::error("ENDER::Window::isMouseButtonPressed: Unknown mouse button");
   }
   return false;
 }
 
 void ENDER::Window::mouseButtonPressed(const MouseButton &button,
                                        std::function<void()> callBack) {
-  if (isMouseButtonPressed(button)) callBack();
+  if (isMouseButtonPressed(button))
+    callBack();
 }
 
 void ENDER::Window::close() {
@@ -220,9 +242,7 @@ void ENDER::Window::flash() {
 
 double ENDER::Window::deltaTime() { return instance()._deltaTime; }
 
-double ENDER::Window::currentTime() {
-  return glfwGetTime();
-}
+double ENDER::Window::currentTime() { return glfwGetTime(); }
 
 void ENDER::Window::enableCursor() {
   glfwSetInputMode(instance()._window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -234,18 +254,18 @@ void ENDER::Window::disableCursor() {
 
 GLFWwindow *ENDER::Window::getNativeWindow() { return _window; }
 
-ENDER::Window::EventStatus ENDER::Window::glfwActionToEventStatus(
-    unsigned action) {
+ENDER::Window::EventStatus
+ENDER::Window::glfwActionToEventStatus(unsigned action) {
   EventStatus _status;
   switch (action) {
-    case GLFW_PRESS:
-      _status = EventStatus::Press;
-      break;
-    case GLFW_RELEASE:
-      _status = EventStatus::Release;
-      break;
-    default:
-      _status = EventStatus::None;
+  case GLFW_PRESS:
+    _status = EventStatus::Press;
+    break;
+  case GLFW_RELEASE:
+    _status = EventStatus::Release;
+    break;
+  default:
+    _status = EventStatus::None;
   }
   return _status;
 }

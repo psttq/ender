@@ -44,6 +44,14 @@ bool ENDER::VertexArray::isIndexBuffer() const {
   return _indexBuffer != nullptr;
 }
 
+uint ENDER::VertexArray::verticesCount(){
+  uint res = 0;
+  for(auto &vbo : _vbos){
+    res += vbo->count();
+  }
+  return res;
+}
+
 unsigned int ENDER::VertexArray::indexCount() {
   if(!isIndexBuffer()) {
     spdlog::error("Trying to get index buffer elements count but there is no index buffer in the vertex array[id: {}]", _id);

@@ -37,6 +37,7 @@ namespace ENDER
     bool isIndexBuffer() const;
 
     unsigned int indexCount();
+    uint verticesCount();
 
     unsigned int getIndex() const
     {

@@ -33,7 +33,8 @@ void ENDER::Renderer::init() {
       (float)Window::getWidth() / (float)Window::getHeight(), 0.1f, 100.0f);
   instance()._simpleShader =
       Shader::create("../resources/shaders/simpleShader.vs",
-                     "../resources/shaders/simpleShader.fs", "../resources/shaders/normalsShader.gs");
+                     "../resources/shaders/simpleShader.fs",
+                     "../resources/shaders/normalsShader.gs");
   instance()._simpleShader->use();
 
   instance()._textureShader =
@@ -82,6 +83,7 @@ void ENDER::Renderer::init() {
   instance().createCubeVAO();
   instance().createGridVAO();
   instance().createDebugSquareVAO();
+  instance().createCircleVAO();
 
   auto windowSize = Window::getSize();
 
@@ -256,7 +258,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
     glDrawElements(drawType, object->getVertexArray()->indexCount(),
                    GL_UNSIGNED_INT, 0);
   else
-    glDrawArrays(drawType, 0, 36);
+    glDrawArrays(drawType, 0, object->getVertexArray()->verticesCount());
 }
 
 void ENDER::Renderer::setClearColor(const glm::vec4 &color) {
@@ -359,6 +361,33 @@ unsigned int ENDER::Renderer::pickObjAt(unsigned int x, unsigned int y,
       .objectID;
 }
 
+void ENDER::Renderer::createCircleVAO() {
+  std::vector<float> vertices;
+  float dangle = 2 * glm::pi<float>() / (CIRCLE_VERTICES_COUNT - 1);
+  for (auto i = 0; i < CIRCLE_VERTICES_COUNT - 1; i++) {
+    float angle = dangle * i;
+    vertices.insert(vertices.end(), {glm::sin(angle) * CIRCLE_RADIUS, 0.01,
+                                     glm::cos(angle) * CIRCLE_RADIUS});
+    vertices.insert(vertices.end(), {0, 0.01, 0});
+    angle = dangle * (i + 1);
+    vertices.insert(vertices.end(), {glm::sin(angle) * CIRCLE_RADIUS, 0.01,
+                                     glm::cos(angle) * CIRCLE_RADIUS});
+  }
+  for (auto i = 0; i < vertices.size(); i += 3) {
+    spdlog::debug("{}, {}, {}", vertices[i], vertices[i + 1], vertices[i + 2]);
+  }
+  spdlog::debug(vertices.size());
+
+  float *vert_fl = new float[vertices.size()];
+  std::copy(vertices.begin(), vertices.end(), vert_fl);
+  auto layout =
+      uptr<BufferLayout>(new BufferLayout({{LayoutObjectType::Float3}}));
+  auto vbo = std::make_unique<VertexBuffer>(std::move(layout));
+  vbo->setData(vert_fl, vertices.size() * sizeof(float));
+  circleVAO = std::make_shared<VertexArray>();
+  circleVAO->addVBO(std::move(vbo));
+}
+
 void ENDER::Renderer::createCubeVAO() {
   auto cubeLayout =
       uptr<BufferLayout>(new BufferLayout({{ENDER::LayoutObjectType::Float3},
@@ -451,5 +480,5 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
     glDrawElements(GL_TRIANGLES, object->getVertexArray()->indexCount(),
                    GL_UNSIGNED_INT, 0);
   else
-    glDrawArrays(GL_TRIANGLES, 0, 36); // FIXME: count?
+    glDrawArrays(GL_TRIANGLES, 0, object->getVertexArray()->verticesCount());
 }
