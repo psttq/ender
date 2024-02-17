@@ -22,6 +22,14 @@ ENDER::Object::Object(const std::string &name, sptr<VertexArray> vertexArray) : 
 
 }
 
+ENDER::Object::Object(const std::string &name) : _name(name)
+{
+  static unsigned int _objCount = 1;
+  _id = _objCount;
+  _objCount++;
+  spdlog::debug("Created object[name: {}, id: {}] without VertexArray", name, _id);
+
+}
 unsigned int ENDER::Object::getId() const{
   return _id;
 }
@@ -84,6 +92,10 @@ std::string ENDER::Object::getName() const
 sptr<ENDER::VertexArray> ENDER::Object::getVertexArray() const
 {
   return _vertexArray;
+}
+
+void ENDER::Object::setVertexArrat(sptr<VertexArray> vertexArray){
+  _vertexArray = vertexArray;
 }
 
  sptr<ENDER::Object> ENDER::Object::create(const std::string &name, sptr<VertexArray> vertexArray){

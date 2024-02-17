@@ -8,14 +8,18 @@
 
 namespace ENDER {
 class Object {
+public:
+  enum class ObjectType{
+    Surface,
+    Line
+  };
 protected:
   unsigned int _id;
   std::string _name;
 
   sptr<Shader> _shader = nullptr;
 
-
-  sptr<VertexArray> _vertexArray;
+  sptr<VertexArray> _vertexArray = nullptr;
   Texture *_texture = nullptr;
   glm::vec3 _position{};
   glm::vec3 _rotation{};
@@ -27,11 +31,14 @@ public:
 
   Material material;
 
+  ObjectType type = ObjectType::Surface;
+
   bool selected() const;
 
   void setSelected(bool selected);
 
   Object(const std::string &name, sptr<VertexArray> vertexArray);
+  Object(const std::string &name);
 
   void setTexture(Texture *texture);
 
@@ -58,6 +65,8 @@ public:
   sptr<Shader> getShader();
 
   sptr<VertexArray> getVertexArray() const;
+
+  void setVertexArrat(sptr<VertexArray> vertexArray);
 
   std::string getName() const;
 

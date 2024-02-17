@@ -32,6 +32,8 @@ namespace ENDER
 
     void setIndexBuffer(uptr<IndexBuffer> indexBuffer);
 
+    void setVBOdata(uint vboIndex, float *data, uint size);
+
     void addVBO(uptr<VertexBuffer> vbo);
 
     bool isIndexBuffer() const;

@@ -35,7 +35,10 @@ void ENDER::Renderer::init() {
       Shader::create("../resources/shaders/simpleShader.vs",
                      "../resources/shaders/simpleShader.fs",
                      "../resources/shaders/normalsShader.gs");
-  instance()._simpleShader->use();
+
+  instance()._simpleShaderLine =
+      Shader::create("../resources/shaders/simpleShaderLine.vs",
+                     "../resources/shaders/simpleShaderLine.fs");
 
   instance()._textureShader =
       Shader::create("../resources/shaders/textureShader.vs",
@@ -91,6 +94,7 @@ void ENDER::Renderer::init() {
   instance()._pickingTexture->init(windowSize.x, windowSize.y);
   instance()._pickingEffect = Shader::create("../resources/shaders/picking.vs",
                                              "../resources/shaders/picking.fs");
+  glLineWidth(LINE_WIDTH);
 }
 
 unsigned int ENDER::Renderer::getPickingTextureID() {
@@ -198,15 +202,22 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
   auto currentShader = object->getShader();
 
   if (currentShader == nullptr) {
-    currentShader = instance()._simpleShader;
-    currentShader->use();
-    currentShader->setVec3("material.diffuse", object->material.diffuse);
-    currentShader->setVec3("material.ambient", object->material.ambient);
-    if (object->getTexture() != nullptr) {
-      currentShader = instance()._textureShader;
-      object->getTexture()->setAsCurrent();
+    if (object->type == Object::ObjectType::Surface) {
+      currentShader = instance()._simpleShader;
       currentShader->use();
-      currentShader->setInt("material.diffuse", 0);
+      currentShader->setVec3("material.diffuse", object->material.diffuse);
+      currentShader->setVec3("material.ambient", object->material.ambient);
+      if (object->getTexture() != nullptr) {
+        currentShader = instance()._textureShader;
+        object->getTexture()->setAsCurrent();
+        currentShader->use();
+        currentShader->setInt("material.diffuse", 0);
+      }
+    } else if (object->type == Object::ObjectType::Line) {
+      currentShader = instance()._simpleShaderLine;
+      currentShader->use();
+      currentShader->setVec3("material.diffuse", object->material.diffuse);
+      currentShader->setVec3("material.ambient", object->material.ambient);
     }
   } else
     currentShader->use();
@@ -248,17 +259,21 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
     drawType = GL_TRIANGLES;
   } break;
   case DrawType::Lines: {
-    drawType = GL_LINE_STRIP;
+    drawType = GL_LINES;
   } break;
   default:
     spdlog::error("Unreachable");
   }
 
+  if (object->type == Object::ObjectType::Line)
+    drawType = GL_LINE_STRIP;
+
   if (object->getVertexArray()->isIndexBuffer())
     glDrawElements(drawType, object->getVertexArray()->indexCount(),
                    GL_UNSIGNED_INT, 0);
-  else
+  else{
     glDrawArrays(drawType, 0, object->getVertexArray()->verticesCount());
+  }
 }
 
 void ENDER::Renderer::setClearColor(const glm::vec4 &color) {
@@ -373,17 +388,11 @@ void ENDER::Renderer::createCircleVAO() {
     vertices.insert(vertices.end(), {glm::sin(angle) * CIRCLE_RADIUS, 0.01,
                                      glm::cos(angle) * CIRCLE_RADIUS});
   }
-  for (auto i = 0; i < vertices.size(); i += 3) {
-    spdlog::debug("{}, {}, {}", vertices[i], vertices[i + 1], vertices[i + 2]);
-  }
-  spdlog::debug(vertices.size());
 
-  float *vert_fl = new float[vertices.size()];
-  std::copy(vertices.begin(), vertices.end(), vert_fl);
   auto layout =
       uptr<BufferLayout>(new BufferLayout({{LayoutObjectType::Float3}}));
   auto vbo = std::make_unique<VertexBuffer>(std::move(layout));
-  vbo->setData(vert_fl, vertices.size() * sizeof(float));
+  vbo->setData(&vertices[0], vertices.size() * sizeof(float));
   circleVAO = std::make_shared<VertexArray>();
   circleVAO->addVBO(std::move(vbo));
 }

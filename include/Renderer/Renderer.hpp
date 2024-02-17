@@ -17,6 +17,8 @@ static const int MAX_POINT_LIGHTS_NUMBER = 100;
 #define CIRCLE_VERTICES_COUNT 20
 #define CIRCLE_RADIUS 0.05f
 
+#define LINE_WIDTH 1
+
 class Renderer {
 public:
   enum class DrawType {
@@ -34,6 +36,7 @@ private:
   sptr<Shader> _pickingEffect;
   sptr<Shader> _debugSquareShader;
   sptr<Shader> _debugNormalsShader;
+  sptr<Shader> _simpleShaderLine;
 
   glm::mat4 _projectMatrix;
 

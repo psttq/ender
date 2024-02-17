@@ -11,10 +11,12 @@ ENDER::VertexBuffer::VertexBuffer(uptr<BufferLayout> layout)
 
 void ENDER::VertexBuffer::setData(float *data, unsigned int size)
 {
-  _count = size/sizeof(float);
-  spdlog::info("Setting data to VBO. Index: {}. Size of data: {}", _id, size);
+  _count = size/_layout->getStride();
+
+  spdlog::debug("Setting data to VBO. Index: {}. Size of data: {} -> Count of elements: {}", _id, size, _count);
   bind();
-  glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+
+  glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
   // unbind();
 }
 

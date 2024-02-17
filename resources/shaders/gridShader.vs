@@ -18,5 +18,5 @@ void main() {
     vec3 p = aPos.xyz;
     nearPoint = UnprojectPoint(p.x, p.y, 0.0).xyz; // unprojecting on the near plane
     farPoint = UnprojectPoint(p.x, p.y, 1.0).xyz; // unprojecting on the far plane
-    gl_Position = vec4(p, 1.0); // using directly the clipped coordinates
+    gl_Position = vec4(p.x, p.y-0.01, p.z, 1.0); // using directly the clipped coordinates
 }

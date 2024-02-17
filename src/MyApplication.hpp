@@ -1,4 +1,6 @@
 #pragma once
+#include "Line.hpp"
+#include "Object.hpp"
 #include "Point.hpp"
 #include "imgui.h"
 #include <Ender.hpp>
@@ -20,6 +22,8 @@ class MyApplication : public ENDER::Application {
 
   std::vector<sptr<EGEOM::Point>> points;
 
+  sptr<EGEOM::Line> line;
+
   sptr<ENDER::Object> selectedObjectViewport;
 
   ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
@@ -27,7 +31,7 @@ class MyApplication : public ENDER::Application {
   uint _appWidth;
   uint _appHeight;
 
-  ImVec2 sketchWindowPos; 
+  ImVec2 sketchWindowPos;
 
   sptr<ENDER::Object> sphere;
 
@@ -83,6 +87,8 @@ public:
                            glm::cos(u)};
         },
         u_min, v_min, u_max, v_max, rows, cols);
+
+    sphere->type = ENDER::Object::ObjectType::Line;
     viewportScene->addObject(sphere);
 
     // auto s1 = ENDER::Utils::createParametricSurface(
@@ -101,6 +107,9 @@ public:
 
     viewportScene->addObject(grid);
     sketchScene->addObject(grid);
+
+    line = std::make_shared<EGEOM::Line>(points);
+    sketchScene->addObject(line);
   }
 
   static float degreeToRadians(float angle) {
@@ -224,7 +233,7 @@ public:
     sketchCamera->setFramebufferSize({window_width, window_height});
 
     sketchFramebuffer->rescale(window_width, window_height);
-    
+
     sketchWindowPos = ImGui::GetCursorScreenPos();
 
     if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
@@ -238,12 +247,13 @@ public:
           sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY);
 
       // for (auto object : sketchScene->getObjects()) {
-        // object->setSelected(object->getId() == pickedID);
+      // object->setSelected(object->getId() == pickedID);
       // }
     }
 
-    ImGui::Image(reinterpret_cast<ImTextureID>(sketchFramebuffer->getTextureId()),
-                 ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::Image(
+        reinterpret_cast<ImTextureID>(sketchFramebuffer->getTextureId()),
+        ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
 
     ImGui::End();
   }
@@ -282,13 +292,11 @@ public:
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     ImGui::ShowDemoWindow();
-
   }
 
   void endDockspace() { ImGui::End(); }
 
-  void handleToolbarGUI(){
-  }
+  void handleToolbarGUI() {}
 
   void onGUI() override {
     beginDockspace();
@@ -330,6 +338,7 @@ public:
         auto point = EGEOM::Point::create({worldPos.x, 0, worldPos.y});
         sketchScene->addObject(point);
         points.push_back(point);
+        line->addPoint(point);
       }
     }
   }
