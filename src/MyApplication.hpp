@@ -1,5 +1,6 @@
 #pragma once
 #include "Point.hpp"
+#include "imgui.h"
 #include <Ender.hpp>
 #include <ImGuizmo.h>
 #include <Utilities.hpp>
@@ -27,6 +28,8 @@ class MyApplication : public ENDER::Application {
   uint _appHeight;
 
   ImVec2 sketchWindowPos; 
+
+  sptr<ENDER::Object> sphere;
 
   glm::vec3 directionalLightDirection;
 
@@ -74,7 +77,7 @@ public:
     int rows = 50;
     int cols = 50;
 
-    auto sphere = ENDER::Utils::createParametricSurface(
+    sphere = ENDER::Utils::createParametricSurface(
         [](float u, float v) {
           return glm::vec3{glm::sin(u) * glm::cos(v), glm::sin(u) * glm::sin(v),
                            glm::cos(u)};
@@ -190,6 +193,7 @@ public:
   void handleDebugGUI() {
     ImGui::Begin("Debug");
     ImGui::Text("FPS: %.2f", 1.0f / ENDER::Window::deltaTime());
+    sphere->material.drawImguiEdit();
     if (ImGui::SliderFloat3("Direciton",
                             glm::value_ptr(directionalLightDirection), -1, 1)) {
       directionalLight->setDirection(directionalLightDirection);
@@ -277,13 +281,19 @@ public:
 
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+    ImGui::ShowDemoWindow();
+
   }
 
   void endDockspace() { ImGui::End(); }
 
+  void handleToolbarGUI(){
+  }
+
   void onGUI() override {
     beginDockspace();
 
+    handleToolbarGUI();
     handleMenuBarGUI();
     handleDebugGUI();
     handleViewportGUI();

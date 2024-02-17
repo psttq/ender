@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Material.hpp"
 #include "Texture.hpp"
 #include "VertexArray.hpp"
 #include <Shader.hpp>
@@ -13,6 +14,7 @@ protected:
 
   sptr<Shader> _shader = nullptr;
 
+
   sptr<VertexArray> _vertexArray;
   Texture *_texture = nullptr;
   glm::vec3 _position{};
@@ -22,6 +24,9 @@ protected:
   bool _selected = false;
 
 public:
+
+  Material material;
+
   bool selected() const;
 
   void setSelected(bool selected);

@@ -200,8 +200,8 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
   if (currentShader == nullptr) {
     currentShader = instance()._simpleShader;
     currentShader->use();
-    currentShader->setVec3("material.diffuse", {1.0f, 0.5f, 0.31f});
-    currentShader->setVec3("material.ambient", {1.0f, 0.5f, 0.31f});
+    currentShader->setVec3("material.diffuse", object->material.diffuse);
+    currentShader->setVec3("material.ambient", object->material.ambient);
     if (object->getTexture() != nullptr) {
       currentShader = instance()._textureShader;
       object->getTexture()->setAsCurrent();
@@ -213,8 +213,8 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
 
   currentShader->setVec3("viewPos", camera->getPosition());
 
-  currentShader->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-  currentShader->setFloat("material.shininess", 64.0f);
+  currentShader->setVec3("material.specular", object->material.specular);
+  currentShader->setFloat("material.shininess", object->material.shininess);
 
   _configureSpotLight(currentShader, camera);
 
