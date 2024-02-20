@@ -19,6 +19,7 @@ public:
 
   glm::mat4 calculateView() const;
   void addObject(sptr<Object> object);
+  void deleteObject(const sptr<Object>& object);
 
   void setCamera(sptr<Camera> camera);
   sptr<Camera> getCamera();

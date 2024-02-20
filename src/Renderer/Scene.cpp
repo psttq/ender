@@ -25,3 +25,8 @@ sptr<ENDER::Camera> ENDER::Scene::getCamera() { return _camera; }
 void ENDER::Scene::addLight(Light *light) { _lights.push_back(light); }
 
 const std::vector<ENDER::Light *> &ENDER::Scene::getLights() { return _lights; }
+
+void ENDER::Scene::deleteObject(const sptr<ENDER::Object>& object) {
+    auto it = std::find(_objects.begin(),_objects.end(),object);
+    _objects.erase(it);
+}

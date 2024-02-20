@@ -17,7 +17,9 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/3rd/spdlog)
 
 add_executable(target ${SRC_FILES} ${GLAD_FILES} ${IMGUI_FILES} ${IMGUIZMO_FILES}
         include/Renderer/OrthographicCamera.hpp
-        src/Renderer/OrthographicCamera.cpp)
+        src/Renderer/OrthographicCamera.cpp
+        src/Geometry/Spline1.cpp
+        include/Geometry/Spline1.hpp)
 
 target_include_directories(target PUBLIC ${PROJECT_SOURCE_DIR}/include/Renderer ${PROJECT_SOURCE_DIR}/3rd/glad/include ${PROJECT_SOURCE_DIR}/3rd/stb ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/3rd ${PROJECT_SOURCE_DIR}/3rd/imgui ${PROJECT_SOURCE_DIR}/3rd/ImGuizmo ${PROJECT_SOURCE_DIR}/include/Geometry)
 
