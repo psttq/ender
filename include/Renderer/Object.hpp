@@ -7,115 +7,119 @@
 #include <glm/glm.hpp>
 
 namespace ENDER {
-class Object {
-public:
-  enum class ObjectType{
-    Surface,
-    Line
-  };
-protected:
-  unsigned int _id;
-  std::string _name;
+    class Object {
+    public:
+        enum class ObjectType {
+            Surface,
+            Line
+        };
 
-  sptr<Shader> _shader = nullptr;
+        bool isSelectable = false;
 
-  sptr<VertexArray> _vertexArray = nullptr;
-  Texture *_texture = nullptr;
-  glm::vec3 _position{};
-  glm::vec3 _rotation{};
-  glm::vec3 _scale = glm::vec3(1.0f);
+    protected:
+        unsigned int _id;
+        std::string _name;
 
-  bool _selected = false;
+        sptr<Shader> _shader = nullptr;
 
-public:
+        sptr<VertexArray> _vertexArray = nullptr;
+        Texture *_texture = nullptr;
+        glm::vec3 _position{};
+        glm::vec3 _rotation{};
+        glm::vec3 _scale = glm::vec3(1.0f);
 
-  Material material;
+        bool _selected = false;
 
-  ObjectType type = ObjectType::Surface;
+    public:
 
-  bool selected() const;
+        Material material;
 
-  void setSelected(bool selected);
+        ObjectType type = ObjectType::Surface;
 
-  Object(const std::string &name, sptr<VertexArray> vertexArray);
-  Object(const std::string &name);
+        bool selected() const;
 
-  void setTexture(Texture *texture);
+        void setSelected(bool selected);
 
-  Texture *getTexture() const;
+        Object(const std::string &name, sptr<VertexArray> vertexArray);
 
-  void setPosition(const glm::vec3 &position);
+        Object(const std::string &name);
 
-  void setRotation(const glm::vec3 &rotation);
+        void setTexture(Texture *texture);
 
-  void setScale(const glm::vec3 &scale);
+        Texture *getTexture() const;
 
-  glm::vec3 getPosition() const;
+        void setPosition(const glm::vec3 &position);
 
-  glm::vec3 getRotation() const;
+        void setRotation(const glm::vec3 &rotation);
 
-  glm::vec3 getScale() const;
+        void setScale(const glm::vec3 &scale);
 
-  const std::string &getName();
+        glm::vec3 getPosition() const;
 
-  unsigned int getId() const;
+        glm::vec3 getRotation() const;
 
-  void setShader(sptr<Shader> shader);
+        glm::vec3 getScale() const;
 
-  sptr<Shader> getShader();
+        const std::string &getName();
 
-  sptr<VertexArray> getVertexArray() const;
+        unsigned int getId() const;
 
-  void setVertexArrat(sptr<VertexArray> vertexArray);
+        void setShader(sptr<Shader> shader);
 
-  std::string getName() const;
+        sptr<Shader> getShader();
 
-  static sptr<Object> create(const std::string &name,
-                             sptr<VertexArray> vertexArray);
+        sptr<VertexArray> getVertexArray() const;
 
-  static sptr<Object> createCube(const std::string &name);
+        void setVertexArrat(sptr<VertexArray> vertexArray);
 
-  static sptr<Object> createGrid(const std::string &name);
-};
+        std::string getName() const;
 
-static float CUBE_VERTICES[] = {
-    // positions          // normals           // texture coords
-    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.5f,  -0.5f,
-    -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 0.0f,
-    0.0f,  -1.0f, 1.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
-    1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,
+        static sptr<Object> create(const std::string &name,
+                                   sptr<VertexArray> vertexArray);
 
-    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.5f,  -0.5f,
-    0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,
-    0.0f,  1.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-    1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+        static sptr<Object> createCube(const std::string &name);
 
-    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,
-    -0.5f, -1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f,
-    0.0f,  0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
-    0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+        static sptr<Object> createGrid(const std::string &name);
+    };
 
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,
-    -0.5f, 1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,
-    0.0f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
-    0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    static float CUBE_VERTICES[] = {
+            // positions          // normals           // texture coords
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.5f, -0.5f,
+            -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.5f, 0.5f, -0.5f, 0.0f,
+            0.0f, -1.0f, 1.0f, 1.0f, 0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            1.0f, 1.0f, -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.5f,  -0.5f,
-    -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,
-    -1.0f, 0.0f,  1.0f,  0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
-    1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, -0.5f,
+            0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f,
+            0.0f, 1.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 
-    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,
-    -0.5f, 0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,
-    1.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
+            -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -0.5f, 0.5f,
+            -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, -0.5f, -0.5f, -0.5f, -1.0f,
+            0.0f, 0.0f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-static float GRID_VERTICES[] = {1,  1,  0, -1, -1, 0, -1, 1,  0,
-                                -1, -1, 0, 1,  1,  0, 1,  -1, 0};
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f,
+            -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f,
+            0.0f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f,
+            -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.5f, -0.5f, 0.5f, 0.0f,
+            -1.0f, 0.0f, 1.0f, 0.0f, 0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+            1.0f, 0.0f, -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f,
+            -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f,
+            1.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            1.0f, 0.0f, -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
+
+    static float GRID_VERTICES[] = {1, 1, 0, -1, -1, 0, -1, 1, 0,
+                                    -1, -1, 0, 1, 1, 0, 1, -1, 0};
 } // namespace ENDER

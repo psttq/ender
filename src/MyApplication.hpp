@@ -93,8 +93,8 @@ public:
                 },
                 u_min, v_min, u_max, v_max, rows, cols);
 
-        sphere->type = ENDER::Object::ObjectType::Line;
         viewportScene->addObject(sphere);
+        sphere->isSelectable = true;
 
         // auto s1 = ENDER::Utils::createParametricSurface(
         //     [](float u, float v) {
@@ -106,6 +106,7 @@ public:
         //
         auto cube = ENDER::Object::createCube("cube");
         cube->setPosition({2, 0, 0});
+        cube->isSelectable = true;
         viewportScene->addObject(cube);
 
         auto grid = ENDER::Object::createGrid("Grid");
