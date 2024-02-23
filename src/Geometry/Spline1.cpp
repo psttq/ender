@@ -42,7 +42,6 @@ namespace EGEOM
         _t.clear();
         for (auto i = 0; i < _points.size(); i++)
         {
-            spdlog::debug("A: {}", static_cast<float>(i) / (static_cast<float>(_points.size()) - 1.0f));
             _t.push_back(static_cast<float>(i) / (static_cast<float>(_points.size()) - 1.0f));
         }
     }
@@ -62,13 +61,10 @@ namespace EGEOM
             float h = _t[j + 1] - _t[j];
             float omega = (t - _t[j]) / h;
 
-            spdlog::debug("t={},j={}, t[j]={}, h={}, omega={}", t, j, _t[j], h, omega);
-            spdlog::debug("b: {} {} {}", _points[j]->getPosition().x, _points[j]->getPosition().y,_points[j]->getPosition().z);
             glm::vec3 pointPosition;
             pointPosition.x = _points[j]->getPosition().x * (1.0f - omega) + _points[j+1]->getPosition().x * omega;
             pointPosition.y = _points[j]->getPosition().y * (1.0f - omega) + _points[j+1]->getPosition().y * omega;
             pointPosition.z = _points[j]->getPosition().z * (1.0f - omega) + _points[j+1]->getPosition().z * omega;
-            spdlog::debug("{} {} {}", pointPosition.x, pointPosition.y,pointPosition.z);
 
             _interpolatedPoints.push_back(Point::create(pointPosition));
         }

@@ -19,9 +19,11 @@ add_executable(target ${SRC_FILES} ${GLAD_FILES} ${IMGUI_FILES} ${IMGUIZMO_FILES
         include/Renderer/OrthographicCamera.hpp
         src/Renderer/OrthographicCamera.cpp
         src/Geometry/Spline1.cpp
-        include/Geometry/Spline1.hpp)
+        include/Geometry/Spline1.hpp
+        src/MyApplication.cpp
+        3rd/font/IconsFontAwesome5.h)
 
-target_include_directories(target PUBLIC ${PROJECT_SOURCE_DIR}/include/Renderer ${PROJECT_SOURCE_DIR}/3rd/glad/include ${PROJECT_SOURCE_DIR}/3rd/stb ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/3rd ${PROJECT_SOURCE_DIR}/3rd/imgui ${PROJECT_SOURCE_DIR}/3rd/ImGuizmo ${PROJECT_SOURCE_DIR}/include/Geometry)
+target_include_directories(target PUBLIC ${PROJECT_SOURCE_DIR}/include/Renderer ${PROJECT_SOURCE_DIR}/3rd/font ${PROJECT_SOURCE_DIR}/3rd/glad/include ${PROJECT_SOURCE_DIR}/3rd/stb ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/3rd ${PROJECT_SOURCE_DIR}/3rd/imgui ${PROJECT_SOURCE_DIR}/3rd/ImGuizmo ${PROJECT_SOURCE_DIR}/include/Geometry)
 
 target_link_libraries(target PUBLIC glfw glm spdlog)
 

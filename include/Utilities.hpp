@@ -1,3 +1,5 @@
+#pragma once
+
 #include "BufferLayout.hpp"
 #include <Ender.hpp>
 #include <ender_types.hpp>
