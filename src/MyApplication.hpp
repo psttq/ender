@@ -18,6 +18,7 @@ class MyApplication : public ENDER::Application {
     };
 
     Tools currentTool = Tools::Cursor;
+    bool mouseMove = false;
 
     sptr<ENDER::Framebuffer> viewportFramebuffer;
     sptr<ENDER::Framebuffer> sketchFramebuffer;
@@ -36,6 +37,7 @@ class MyApplication : public ENDER::Application {
     sptr<EGEOM::Spline1> spline1;
 
     sptr<ENDER::Object> selectedObjectViewport;
+    sptr<ENDER::Object> selectedObjectSketch;
 
     ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
 
