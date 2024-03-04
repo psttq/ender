@@ -97,4 +97,19 @@ namespace EGEOM
         _calculateDrawPoints();
     }
 
+    void Spline1::addPoint(sptr<Point> point) {
+        _points.push_back(point);
+        _calculateParameter();
+        _calculateDrawPoints();
+    }
+
+    std::vector<sptr<Point>> Spline1::getPoints() {
+        return _points;
+    }
+
+    sptr<Spline1> Spline1::create(const std::vector<sptr<Point>> &points, Spline1::ParamMethod paramMethod,
+                                  uint interpolatedPointsCount) {
+        return sptr<Spline1>(new Spline1(points, paramMethod, interpolatedPointsCount));
+    }
+
 } // namespace EGEOM

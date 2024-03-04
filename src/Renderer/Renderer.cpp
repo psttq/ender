@@ -498,3 +498,12 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
     else
         glDrawArrays(GL_TRIANGLES, 0, object->getVertexArray()->verticesCount());
 }
+
+void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Framebuffer> framebuffer) {
+    framebuffer->bind();
+    /* RENDERING TO FRAMEBUFFER */
+    instance().renderObject(object, scene);
+    framebuffer->unbind();
+    if (object->isSelectable)
+        instance().renderObjectToPicking(object, scene, framebuffer->getPickingTexture());
+}

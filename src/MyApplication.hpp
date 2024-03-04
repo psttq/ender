@@ -8,6 +8,7 @@
 #include <ImGuizmo.h>
 #include <memory>
 #include <Spline1.hpp>
+#include <Sketch.hpp>
 #include <font/IconsFontAwesome5.h>
 
 class MyApplication : public ENDER::Application {
@@ -20,6 +21,8 @@ class MyApplication : public ENDER::Application {
     Tools currentTool = Tools::Cursor;
     bool mouseMove = false;
 
+    bool renderDebugSplinePoints = false;
+
     sptr<ENDER::Framebuffer> viewportFramebuffer;
     sptr<ENDER::Framebuffer> sketchFramebuffer;
 
@@ -31,10 +34,10 @@ class MyApplication : public ENDER::Application {
     sptr<ENDER::Scene> viewportScene;
     sptr<ENDER::Scene> sketchScene;
 
-    std::vector<sptr<EGEOM::Point>> points;
+    std::vector<sptr<EGEOM::Sketch>> sketches;
+    int currentSketchId = -1;
 
     sptr<EGEOM::Line> line;
-    sptr<EGEOM::Spline1> spline1;
 
     sptr<ENDER::Object> selectedObjectViewport;
     sptr<ENDER::Object> selectedObjectSketch;
@@ -68,20 +71,17 @@ public:
     }
 
     void handleViewportGUI();
-
     void handleDebugGUI();
-
     void handleSketchGUI();
-
     void handleMenuBarGUI();
-
     void handleSketchSideGUI();
+    void handleToolbarGUI();
+    void handleObjectsGUI();
 
     void beginDockspace();
 
     void endDockspace();
 
-    void handleToolbarGUI();
 
     void onGUI() override;
 

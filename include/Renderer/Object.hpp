@@ -43,6 +43,9 @@ namespace ENDER {
         Object(const std::string &name, sptr<VertexArray> vertexArray);
 
         Object(const std::string &name);
+        ~Object(){
+            spdlog::debug("deleted obj: {}", _id);
+        }
 
         void setTexture(Texture *texture);
 

@@ -105,5 +105,6 @@ void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
 }
 
 void ENDER::OrthographicCamera::processScroll(double offsetX, double offsetY) {
-  _zoom -= offsetY * _zoomSpeed * Window::deltaTime();
+    if(!_isActive) return;
+    _zoom -= offsetY * _zoomSpeed * Window::deltaTime();
 }

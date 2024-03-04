@@ -105,6 +105,7 @@ public:
 
   static void renderScene(sptr<Scene> scene, sptr<Framebuffer> framebuffer);
   static void renderScene(sptr<Scene> scene);
+  static void renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Framebuffer> framebuffer);
 
 
   static unsigned int pickObjAt(uint x, uint y, uint window_height);

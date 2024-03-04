@@ -27,11 +27,16 @@ namespace EGEOM
 
         void _calculateDrawPoints();
 
-    public:
         Spline1(const std::vector<sptr<Point>> &points, ParamMethod paramMethod, uint interpolatedPointsCount);
 
+    public:
+
+        static sptr<Spline1> create(const std::vector<sptr<Point>> &points, ParamMethod paramMethod, uint interpolatedPointsCount);
+
+        void addPoint(sptr<Point> point);
         void setPoints(const std::vector<sptr<Point>> &points);
         std::vector<sptr<Point>> getInterpolatedPoints();
+        std::vector<sptr<Point>> getPoints();
 
         void setInterpolationPointsCount(uint count);
 
