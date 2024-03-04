@@ -5,7 +5,7 @@
 
 namespace ENDER{
     class OrthographicCamera : public Camera{
-        glm::vec3 _position{0, 4, 0};
+        glm::vec3 _position{-2, 4, -2};
         glm::vec3 _front{0.f, -100.f, -1.f};
         glm::vec3 _up{0.f, 1.f, 0.f};
 
@@ -20,7 +20,7 @@ namespace ENDER{
         double _lastX;
         double _lastY;
 
-        float _zoom = 1.f/130.f;
+        float _zoom = 1.f/260.f;
         
         float _zoomSpeed = 1.f/100.f;
 
