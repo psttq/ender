@@ -66,6 +66,7 @@ void ENDER::VertexArray::setIndexBuffer(uptr<IndexBuffer> indexBuffer) {
   indexBuffer->bind();
 
   _indexBuffer = std::move(indexBuffer);
+  unbind();
   spdlog::info("Adding IndexBuffer[Index: {}] to VAO[Index: {}]",
                _indexBuffer->getIndex(), _id);
 }

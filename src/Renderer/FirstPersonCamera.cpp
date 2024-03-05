@@ -21,7 +21,6 @@ ENDER::FirstPersonCamera::FirstPersonCamera(const glm::vec3 &position, const glm
         if (key == GLFW_KEY_E && status == Window::EventStatus::Release)
           Window::enableCursor();
         _firstCamera = true;
-
       });
 }
 

@@ -8,6 +8,7 @@ ENDER::IndexBuffer::IndexBuffer(unsigned int *indices, unsigned int count)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(unsigned int), indices,
                GL_STATIC_DRAW);
+  unbind();
   spdlog::debug("Created IndexBuffer. Index: {}", _id);
 }
 
