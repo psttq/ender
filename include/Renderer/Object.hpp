@@ -81,6 +81,8 @@ namespace ENDER {
 
         void setVertexArrat(sptr<VertexArray> vertexArray);
 
+        virtual void drawProperties();
+
         std::string getName() const;
 
         static sptr<Object> create(const std::string &name,

@@ -87,20 +87,10 @@ void MyApplication::onStart() {
     sketches.push_back(newSketch);
     currentSketchId = sketches.size() - 1;
 
-    pivotPlane = EGEOM::PivotPlane::create("PivotPlane 1");
-    pivotPlane->isSelectable = true;
-
-    pivotPlane->setSketch(sketches[0]);
-
-
-    viewportScene->addObject(pivotPlane);
-
     auto grid = ENDER::Object::createGrid("Grid");
 
     viewportScene->addObject(grid);
     sketchScene->addObject(grid);
-
-
 }
 
 void MyApplication::handleViewportGUI() {
@@ -130,6 +120,16 @@ void MyApplication::handleViewportGUI() {
 
     ImGui::Image((ImTextureID) viewportFramebuffer->getTextureId(),
                  ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
+//    if (ImGui::BeginPopupContextItem("popup")) // <-- use last item id as popup id
+//    {
+//        if (ImGui::Button("Create Pivot Plane")) {
+//
+//        }
+//        if (ImGui::Button("Close"))
+//            ImGui::CloseCurrentPopup();
+//        ImGui::EndPopup();
+//    }
+
 
     if (selectedObjectViewport) {
 
@@ -183,6 +183,7 @@ void MyApplication::handleViewportGUI() {
 void MyApplication::handleDebugGUI() {
     ImGui::Begin("Debug");
     ImGui::Text("FPS: %.2f", 1.0f / ENDER::Window::deltaTime());
+
     if (ImGui::SliderInt("Interpolation Points Count", &interpolationPointsCount,
                          2, 300)) {
         sketches[currentSketchId]->getSpline()->setInterpolationPointsCount(
@@ -200,9 +201,9 @@ void MyApplication::handleDebugGUI() {
         rot = selectedObjectViewport->getRotation();
     else
         rot = {};
-    if(ImGui::SliderFloat3("Rotation",
-                        glm::value_ptr(rot), -4, 4)){
-        if(selectedObjectViewport)
+    if (ImGui::SliderFloat3("Rotation",
+                            glm::value_ptr(rot), -4, 4)) {
+        if (selectedObjectViewport)
             selectedObjectViewport->setRotation(rot);
     }
 
@@ -312,10 +313,18 @@ void MyApplication::handleToolbarGUI() {
     if (ImGui::Button(ICON_FA_PENCIL_ALT)) {
         currentTool = Tools::Pencil;
     }
+    ImGui::SetItemTooltip("Sketch Edit Tool");
+
     if (setStyle) {
         ImGui::PopStyleColor(3);
         setStyle = false;
     }
+
+    if (ImGui::Button(ICON_FA_VECTOR_SQUARE)) {
+        createPivotPlane();
+    }
+    ImGui::SetItemTooltip("Create Pivot Plane");
+
     ImGui::End();
 }
 
@@ -329,6 +338,7 @@ void MyApplication::onGUI() {
     handleToolbarGUI();
     handleSketchSideGUI();
     handleObjectsGUI();
+    handlePropertiesGUI();
 
     endDockspace();
 }
@@ -515,5 +525,23 @@ void MyApplication::handleObjectsGUI() {
     static int currentObject = 0;
     ImGui::ListBox("Objects List", &currentObject, &objectsNameList[0],
                    objectsNameList.size(), 4);
+    ImGui::End();
+}
+
+void MyApplication::createPivotPlane() {
+    auto pivotPlane = EGEOM::PivotPlane::create("PivotPlane 1");
+    pivotPlane->isSelectable = true;
+
+    pivotPlane->setPosition(viewportCamera->getPosition());
+
+    viewportScene->addObject(pivotPlane);
+}
+
+void MyApplication::handlePropertiesGUI() {
+    ImGui::Begin("Properties");
+    if(selectedObjectViewport)
+        selectedObjectViewport->drawProperties();
+    else
+        ImGui::Text("Select object to edit properties...");
     ImGui::End();
 }

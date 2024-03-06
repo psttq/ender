@@ -30,3 +30,12 @@ void EGEOM::PivotPlane::setSketch(sptr<EGEOM::Sketch> sketch) {
     newObj->type = ObjectType::Line;
     setChildObject(newObj);
 }
+
+void EGEOM::PivotPlane::drawProperties() {
+    Object::drawProperties();
+    if (ImGui::TreeNode("Pivot Plane"))
+    {
+
+        ImGui::TreePop();
+    }
+}

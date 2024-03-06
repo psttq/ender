@@ -1,8 +1,11 @@
 #include "../../include/Renderer/VertexArray.hpp"
+#include "imgui.h"
 #include <../../include/Renderer/Object.hpp>
 #include <../../3rd/glm/glm/glm.hpp>
 #include <../../include/Renderer/Renderer.hpp>
 #include <memory>
+#include <glm/gtc/type_ptr.hpp>
+
 
 
 bool ENDER::Object::selected() const {
@@ -112,4 +115,21 @@ sptr<ENDER::Object> ENDER::Object::getChildObject() {
     _childObject->setPosition({_position.x, _position.y+.001f,_position.z});
     _childObject->setRotation(_rotation);
     return _childObject;
+}
+
+void ENDER::Object::drawProperties() {
+    if (ImGui::TreeNode("Transform"))
+    {
+        ImGui::InputFloat3("Position", glm::value_ptr(_position));
+        ImGui::InputFloat3("Rotation", glm::value_ptr(_rotation));
+        ImGui::InputFloat3("Scale", glm::value_ptr(_scale));
+        ImGui::TreePop();
+
+    }
+    if (ImGui::TreeNode("Material"))
+    {
+        material.drawImguiEdit();
+        ImGui::TreePop();
+
+    }
 }

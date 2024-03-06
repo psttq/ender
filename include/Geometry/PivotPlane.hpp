@@ -13,6 +13,8 @@ namespace EGEOM {
 
         static sptr<ENDER::VertexArray> planeVAO;
         static sptr<ENDER::Shader> planeShader;
+
+        void drawProperties() override;
     };
 
     static float planeVertices[] = {
