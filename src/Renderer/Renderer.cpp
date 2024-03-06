@@ -5,6 +5,8 @@
 #include <../../3rd/glm/glm/glm.hpp>
 #include <../../3rd/glm/glm/gtc/matrix_transform.hpp>
 #include <../../3rd/glm/glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
+
 #include <../../include/Renderer/Renderer.hpp>
 #include <memory>
 
@@ -14,6 +16,7 @@
 #include "../../include/Renderer/PickingTexture.hpp"
 #include "../../include/Renderer/PointLight.hpp"
 #include "../../include/Renderer/VertexBuffer.hpp"
+
 
 ENDER::Renderer::Renderer() {}
 
@@ -241,9 +244,9 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
     glm::mat4 model = glm::mat4(1.0f);
 
     model = glm::translate(model, object->getPosition());
-    model = glm::rotate(model, objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-    model = glm::rotate(model, objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::rotate(model, objRotation.z, glm::vec3(1.0f, 0.0f, 1.0f));
+    model *= glm::rotate(objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    model *= glm::rotate(objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    model *= glm::rotate(objRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
     model = glm::scale(model, object->getScale());
 
@@ -337,6 +340,9 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene,
         instance().renderObject(obj, scene);
         if (instance()._renderNormals)
             instance().renderObject(obj, scene, instance()._debugNormalsShader);
+        if(obj->type == Object::ObjectType::Multi)
+            instance().renderObject(obj->getChildObject(), scene);
+
     }
     framebuffer->unbind();
 
@@ -355,6 +361,8 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene) {
         instance().renderObject(obj, scene);
         if (instance()._renderNormals)
             instance().renderObject(obj, scene, instance()._debugNormalsShader);
+        if(obj->type == Object::ObjectType::Multi)
+            instance().renderObject(obj->getChildObject(), scene);
     }
     /* RENDERING TO PICKING TEXTURE */
     clearPicking();
@@ -485,9 +493,9 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
     auto model = glm::mat4(1.0f);
 
     model = glm::translate(model, object->getPosition());
-    model = glm::rotate(model, objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-    model = glm::rotate(model, objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::rotate(model, objRotation.z, glm::vec3(1.0f, 0.0f, 1.0f));
+    model *= glm::rotate(objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    model *= glm::rotate(objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    model *= glm::rotate(objRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, object->getScale());
     shader->setMat4("model", model);
     object->getVertexArray()->bind();

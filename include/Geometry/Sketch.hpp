@@ -13,6 +13,8 @@ namespace EGEOM{
         static sptr<Sketch> create(const std::string &name, sptr<Spline1> spline);
 
         sptr<Spline1> getSpline();
+        sptr<ENDER::VertexArray> getVAO();
+
         void setSpline(sptr<Spline1> spline);
     };
 }

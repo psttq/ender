@@ -23,7 +23,9 @@ add_executable(target ${SRC_FILES} ${GLAD_FILES} ${IMGUI_FILES} ${IMGUIZMO_FILES
         src/MyApplication.cpp
         3rd/font/IconsFontAwesome5.h
         src/Geometry/Sketch.cpp
-        include/Geometry/Sketch.hpp)
+        include/Geometry/Sketch.hpp
+        include/Geometry/PivotPlane.hpp
+        src/Geometry/PivotPlane.cpp)
 
 target_include_directories(target PUBLIC ${PROJECT_SOURCE_DIR}/include/Renderer ${PROJECT_SOURCE_DIR}/3rd/font ${PROJECT_SOURCE_DIR}/3rd/glad/include ${PROJECT_SOURCE_DIR}/3rd/stb ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/3rd ${PROJECT_SOURCE_DIR}/3rd/imgui ${PROJECT_SOURCE_DIR}/3rd/ImGuizmo ${PROJECT_SOURCE_DIR}/include/Geometry)
 

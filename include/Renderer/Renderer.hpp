@@ -17,7 +17,7 @@ static const int MAX_POINT_LIGHTS_NUMBER = 100;
 #define CIRCLE_VERTICES_COUNT 20
 #define CIRCLE_RADIUS 0.020f
 
-#define LINE_WIDTH 1
+#define LINE_WIDTH 2
 
 class Renderer {
 public:

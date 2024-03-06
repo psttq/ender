@@ -11,7 +11,8 @@ namespace ENDER {
     public:
         enum class ObjectType {
             Surface,
-            Line
+            Line,
+            Multi
         };
 
         bool isSelectable = false;
@@ -27,6 +28,8 @@ namespace ENDER {
         glm::vec3 _position{};
         glm::vec3 _rotation{};
         glm::vec3 _scale = glm::vec3(1.0f);
+
+        sptr<Object> _childObject;
 
         bool _selected = false;
 
@@ -70,6 +73,9 @@ namespace ENDER {
         void setShader(sptr<Shader> shader);
 
         sptr<Shader> getShader();
+
+        void setChildObject(sptr<Object> childObject);
+        sptr<Object> getChildObject();
 
         sptr<VertexArray> getVertexArray() const;
 

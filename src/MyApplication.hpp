@@ -10,6 +10,7 @@
 #include <Spline1.hpp>
 #include <Sketch.hpp>
 #include <font/IconsFontAwesome5.h>
+#include <PivotPlane.hpp>
 
 class MyApplication : public ENDER::Application {
 
@@ -33,6 +34,8 @@ class MyApplication : public ENDER::Application {
 
     sptr<ENDER::Scene> viewportScene;
     sptr<ENDER::Scene> sketchScene;
+
+    sptr<EGEOM::PivotPlane> pivotPlane;
 
     std::vector<sptr<EGEOM::Sketch>> sketches;
     int currentSketchId = -1;
