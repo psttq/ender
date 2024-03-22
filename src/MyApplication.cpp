@@ -54,8 +54,8 @@ void MyApplication::onStart() {
     float u_max = glm::pi<float>();
     float v_max = glm::pi<float>();
 
-    int rows = 50;
-    int cols = 50;
+    int rows = 300;
+    int cols = 300;
 
     sphere = ENDER::Utils::createParametricSurface(
             [](float u, float v) {
@@ -157,6 +157,7 @@ void MyApplication::handleViewportGUI() {
                              currentOperation, ImGuizmo::LOCAL,
                              glm::value_ptr(model));
 
+
         if (ImGuizmo::IsUsing()) {
 
             glm::vec3 newPosition;
@@ -167,9 +168,11 @@ void MyApplication::handleViewportGUI() {
                     glm::value_ptr(model), glm::value_ptr(newPosition),
                     glm::value_ptr(newRotation), glm::value_ptr(newScale));
 
-            spdlog::debug("{} {} {}", newRotation.x, newRotation.y, newRotation.z);
+
+            spdlog::info("{} {} {}", newRotation.x, newRotation.y, newRotation.z);
 
             selectedObjectViewport->setPosition(newPosition);
+
             selectedObjectViewport->setRotation({degreeToRadians(newRotation.x),
                                                  degreeToRadians(newRotation.y),
                                                  degreeToRadians(newRotation.z)});

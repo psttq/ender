@@ -66,6 +66,8 @@ namespace ENDER {
 
         glm::vec3 getScale() const;
 
+        glm::mat4 getTransform() const;
+
         const std::string &getName();
 
         unsigned int getId() const;

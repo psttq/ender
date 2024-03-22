@@ -5,6 +5,8 @@
 #include <../../include/Renderer/Renderer.hpp>
 #include <memory>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
 
 
 
@@ -132,4 +134,24 @@ void ENDER::Object::drawProperties() {
         ImGui::TreePop();
 
     }
+}
+
+glm::mat4 ENDER::Object::getTransform() const {
+    glm::mat4 model = glm::mat4(1.0f);
+
+    model = glm::translate(model, _position);
+
+    glm::vec3 xNorm(1.0, 0.0f, 0.0);
+    glm::vec3 yNorm(0.0, 1.0f, 0.0);
+    glm::vec3 zNorm(0.0, 0.0f, 1.0);
+
+    model = glm::rotate(model, _rotation.x, xNorm); // Rotate on X axis
+    yNorm = glm::rotate(yNorm, -_rotation.x, xNorm);
+    zNorm = glm::rotate(zNorm, -_rotation.x, xNorm);
+    model = glm::rotate(model, _rotation.y, yNorm); // Rotate on Y axis
+    zNorm = glm::rotate(zNorm, -_rotation.y, yNorm);
+    model = glm::rotate(model, _rotation.z, zNorm); // Rotate
+
+    model = glm::scale(model, _scale);
+    return model;
 }

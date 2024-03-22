@@ -239,16 +239,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
 
     currentShader->setFloat("time", Window::currentTime());
 
-    auto objRotation = object->getRotation();
-
-    glm::mat4 model = glm::mat4(1.0f);
-
-    model = glm::translate(model, object->getPosition());
-    model *= glm::rotate(objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-    model *= glm::rotate(objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-    model *= glm::rotate(objRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-    model = glm::scale(model, object->getScale());
+    auto model = object->getTransform();
 
     currentShader->setMat4("model", model);
 
@@ -490,13 +481,8 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
 
     auto objRotation = object->getRotation();
 
-    auto model = glm::mat4(1.0f);
+    auto model = object->getTransform();
 
-    model = glm::translate(model, object->getPosition());
-    model *= glm::rotate(objRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-    model *= glm::rotate(objRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-    model *= glm::rotate(objRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::scale(model, object->getScale());
     shader->setMat4("model", model);
     object->getVertexArray()->bind();
 
