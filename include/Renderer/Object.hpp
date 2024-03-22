@@ -39,6 +39,8 @@ namespace ENDER {
 
         ObjectType type = ObjectType::Surface;
 
+        std::string label = "Object";
+
         bool selected() const;
 
         void setSelected(bool selected);
@@ -77,6 +79,9 @@ namespace ENDER {
         sptr<Shader> getShader();
 
         void setChildObject(sptr<Object> childObject);
+
+        void resetChildObject();
+
         sptr<Object> getChildObject();
 
         sptr<VertexArray> getVertexArray() const;

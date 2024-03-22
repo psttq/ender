@@ -542,8 +542,13 @@ void MyApplication::createPivotPlane() {
 
 void MyApplication::handlePropertiesGUI() {
     ImGui::Begin("Properties");
-    if(selectedObjectViewport)
-        selectedObjectViewport->drawProperties();
+    if(selectedObjectViewport) {
+        auto pivot = std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
+        if(pivot)
+            pivot->drawProperties(sketches);
+        else
+            selectedObjectViewport->drawProperties();
+    }
     else
         ImGui::Text("Select object to edit properties...");
     ImGui::End();

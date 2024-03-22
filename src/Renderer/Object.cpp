@@ -113,6 +113,11 @@ void ENDER::Object::setChildObject(sptr<ENDER::Object> childObject) {
     type = ObjectType::Multi;
 }
 
+void ENDER::Object::resetChildObject() {
+    _childObject = nullptr;
+    type = ObjectType::Surface;
+}
+
 sptr<ENDER::Object> ENDER::Object::getChildObject() {
     _childObject->setPosition({_position.x, _position.y+.001f,_position.z});
     _childObject->setRotation(_rotation);

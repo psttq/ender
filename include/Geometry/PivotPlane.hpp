@@ -6,6 +6,9 @@ namespace EGEOM {
     class PivotPlane : public ENDER::Object {
 
         PivotPlane(const std::string &name, sptr<ENDER::VertexArray> vertexArray);
+
+        sptr<Sketch> _currentSketch;
+
     public:
         static sptr<PivotPlane> create(const std::string &name);
 
@@ -14,7 +17,7 @@ namespace EGEOM {
         static sptr<ENDER::VertexArray> planeVAO;
         static sptr<ENDER::Shader> planeShader;
 
-        void drawProperties() override;
+        void drawProperties(const std::vector<sptr<Sketch>>& sketches);
     };
 
     static float planeVertices[] = {
