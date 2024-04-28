@@ -160,3 +160,15 @@ glm::mat4 ENDER::Object::getTransform() const {
     model = glm::scale(model, _scale);
     return model;
 }
+
+glm::vec3 ENDER::Object::getPosition() const {
+    return _position;
+}
+
+glm::vec3 ENDER::Object::getRotation() const {
+    return _rotation;
+}
+
+glm::vec3 ENDER::Object::getScale() const {
+    return _scale;
+}

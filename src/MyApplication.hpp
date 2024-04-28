@@ -22,6 +22,7 @@ class MyApplication : public ENDER::Application {
   Windows activeWindow = Windows::Viewport;
   
   bool mouseMove = false;
+  bool justSelected = false;
 
   bool renderDebugSplinePoints = false;
 

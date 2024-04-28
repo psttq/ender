@@ -426,6 +426,7 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
       } else if (currentTool == Tools::Cursor) {
         if (currentSelected) {
           selectedObjectSketch = currentSelected;
+          justSelected = true;
           for (auto object :
                sketches[currentSketchId]->getSpline()->getPoints())
             object->setSelected(false);
@@ -553,8 +554,8 @@ void MyApplication::handlePropertiesGUI() {
   }
   if (activeWindow == Windows::SketchEditor) {
     if (currentSketchId >= 0) {
-      sketches[currentSketchId]->getSpline()->getPropertiesGUI();
-      ImGui::Text("%s", std::to_string(currentSketchId).c_str());
+      sketches[currentSketchId]->getSpline()->getPropertiesGUI( justSelected);
+      justSelected = false;
     } else
       ImGui::Text("Select object to edit properties...");
   }

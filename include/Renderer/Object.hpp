@@ -68,6 +68,12 @@ namespace ENDER {
 
         glm::vec3 &getScale();
 
+        glm::vec3 getPosition() const;
+
+        glm::vec3 getRotation() const;
+
+        glm::vec3 getScale() const;
+
         glm::mat4 getTransform() const;
 
         const std::string &getName();
