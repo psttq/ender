@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(target)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/Renderer/*.cpp ${PROJECT_SOURCE_DIR}/src/Geometry/*.cpp)
 file(GLOB GLAD_FILES ${PROJECT_SOURCE_DIR}/3rd/glad/src/glad.c)

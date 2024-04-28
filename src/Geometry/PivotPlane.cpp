@@ -1,12 +1,11 @@
 #include <PivotPlane.hpp>
 
 sptr<ENDER::VertexArray> EGEOM::PivotPlane::planeVAO = nullptr;
-sptr<ENDER::Shader> EGEOM::PivotPlane::planeShader = nullptr;
+sptr<ENDER::Shader> EGEOM::PivotPlane::planeShader = nullptr; //FIXME: destroyed after spdlog so cause error when exit
 
 EGEOM::PivotPlane::PivotPlane(const std::string &name, sptr<ENDER::VertexArray> vertexArray) : Object(name,
                                                                                                       vertexArray) {
     setShader(planeShader);
-
 }
 
 sptr<EGEOM::PivotPlane> EGEOM::PivotPlane::create(const std::string &name) {

@@ -124,7 +124,7 @@ void MyApplication::handleViewportGUI() {
     }
   }
 
-  ImGui::Image((ImTextureID)viewportFramebuffer->getTextureId(),
+  ImGui::Image(reinterpret_cast<ImTextureID>(viewportFramebuffer->getTextureId()),
                ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
   //    if (ImGui::BeginPopupContextItem("popup")) // <-- use last item id as
   //    popup id

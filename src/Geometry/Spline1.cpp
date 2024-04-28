@@ -76,27 +76,39 @@ namespace EGEOM {
         _splineBuilder = std::move(splineBuilder);
     }
 
-    void Spline1::getPropertiesGUI( bool scrollToPoint) {
+    void Spline1::getPropertiesGUI(bool scrollToPoint) {
         std::vector<const char *> items = {
                 "Linear Interpolation",
                 "Bezier",
+                "Rational Bezier"
         };
         int currentItem = static_cast<int>(_splineType);
 
-        if(ImGui::Combo("Spline Type", &currentItem,&items[0],items.size())){
+        if (ImGui::Combo("Spline Type", &currentItem, &items[0], items.size())) {
             auto splineType = static_cast<SplineType>(currentItem);
-            if(_splineType != splineType) {
+            if (_splineType != splineType) {
                 _splineType = splineType;
-                switch(_splineType){
-                    case SplineType::Bezier:{
-                        auto bezierBuilder = std::make_unique<BezierBuilder>(_splineBuilder->points, _splineBuilder->points.size()-1);
+                switch (_splineType) {
+                    case SplineType::Bezier: {
+                        auto bezierBuilder = std::make_unique<BezierBuilder>(_splineBuilder->points,
+                                                                             _splineBuilder->points.size() - 1);
                         setSplineBuilder(std::move(bezierBuilder));
-                    }break;
-                    case SplineType::LinearInterpolation:{
+                    }
+                        break;
+                    case SplineType::LinearInterpolation: {
                         auto linearBuilder = std::make_unique<LinearInterpolationBuilder>(
                                 _splineBuilder->points, LinearInterpolationBuilder::ParamMethod::Uniform);
                         setSplineBuilder(std::move(linearBuilder));
-                    }break;
+                    }
+                        break;
+                    case SplineType::RationalBezier: {
+                        std::vector<float> weighs = {};
+                        auto rationalBezierBuilder = std::make_unique<RationalBezierBuilder>(_splineBuilder->points,
+                                                                                             _splineBuilder->points.size() -
+                                                                                             1, weighs);
+                        setSplineBuilder(std::move(rationalBezierBuilder));
+                    }
+                        break;
                 }
                 update();
             }
@@ -114,8 +126,8 @@ namespace EGEOM {
                         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
                         ImGui::InputFloat3(point_name.c_str(), glm::value_ptr(point->getPosition()));
                         ImGui::PopStyleColor();
-                        if(scrollToPoint)
-                            ImGui::SetScrollHereY( 0.25f);
+                        if (scrollToPoint)
+                            ImGui::SetScrollHereY(0.25f);
                     } else
                         ImGui::InputFloat3(point_name.c_str(), glm::value_ptr(point->getPosition()));
                     i++;
@@ -135,7 +147,8 @@ namespace EGEOM {
                 auto i = 0;
                 for (auto point: _interpolatedPoints) {
                     auto point_name = std::string("Point_") + std::to_string(i);
-                    ImGui::InputFloat3(point_name.c_str(), glm::value_ptr(point->getPosition()),"%.3f", ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputFloat3(point_name.c_str(), glm::value_ptr(point->getPosition()), "%.3f",
+                                       ImGuiInputTextFlags_ReadOnly);
                     i++;
                 }
             }
@@ -150,7 +163,8 @@ namespace EGEOM {
         }
 
         if (ImGui::TreeNode(items[currentItem])) {
-            _splineBuilder->drawPropertiesGui();
+            if (_splineBuilder->drawPropertiesGui())
+                update();
             ImGui::TreePop();
         }
 
