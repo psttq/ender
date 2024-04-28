@@ -46,7 +46,7 @@ void ENDER::Object::setPosition(const glm::vec3 &position) {
     _position = position;
 }
 
-glm::vec3 ENDER::Object::getPosition() const {
+glm::vec3 &ENDER::Object::getPosition() {
     return _position;
 }
 
@@ -58,11 +58,11 @@ void ENDER::Object::setScale(const glm::vec3 &scale) {
     _scale = scale;
 }
 
-glm::vec3 ENDER::Object::getRotation() const {
+glm::vec3 &ENDER::Object::getRotation() {
     return _rotation;
 }
 
-glm::vec3 ENDER::Object::getScale() const {
+glm::vec3 &ENDER::Object::getScale() {
     return _scale;
 }
 

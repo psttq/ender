@@ -6,103 +6,103 @@
 #include "imgui.h"
 #include <Ender.hpp>
 #include <ImGuizmo.h>
-#include <memory>
-#include <Spline1.hpp>
-#include <Sketch.hpp>
-#include <font/IconsFontAwesome5.h>
 #include <PivotPlane.hpp>
+#include <Sketch.hpp>
+#include <Spline1.hpp>
+#include <font/IconsFontAwesome5.h>
+#include <memory>
 
 class MyApplication : public ENDER::Application {
 
-    enum class Tools{
-        Cursor,
-        Pencil
-    };
+  enum class Tools { Cursor, Pencil };
 
-    Tools currentTool = Tools::Cursor;
-    bool mouseMove = false;
+  enum class Windows { SketchEditor, Viewport };
 
-    bool renderDebugSplinePoints = false;
+  Tools currentTool = Tools::Cursor;
+  Windows activeWindow = Windows::Viewport;
+  
+  bool mouseMove = false;
 
-    sptr<ENDER::Framebuffer> viewportFramebuffer;
-    sptr<ENDER::Framebuffer> sketchFramebuffer;
+  bool renderDebugSplinePoints = false;
 
-    sptr<ENDER::FirstPersonCamera> viewportCamera;
-    sptr<ENDER::OrthographicCamera> sketchCamera;
+  sptr<ENDER::Framebuffer> viewportFramebuffer;
+  sptr<ENDER::Framebuffer> sketchFramebuffer;
 
-    sptr<ENDER::Shader> lightCubeShader;
+  sptr<ENDER::FirstPersonCamera> viewportCamera;
+  sptr<ENDER::OrthographicCamera> sketchCamera;
 
-    sptr<ENDER::Scene> viewportScene;
-    sptr<ENDER::Scene> sketchScene;
+  sptr<ENDER::Shader> lightCubeShader;
 
-    std::vector<sptr<EGEOM::Sketch>> sketches;
-    int currentSketchId = -1;
+  sptr<ENDER::Scene> viewportScene;
+  sptr<ENDER::Scene> sketchScene;
 
-    sptr<EGEOM::Line> line;
+  std::vector<sptr<EGEOM::Sketch>> sketches;
+  int currentSketchId = -1;
 
-    sptr<ENDER::Object> selectedObjectViewport;
-    sptr<ENDER::Object> selectedObjectSketch;
+  sptr<EGEOM::Line> line;
 
-    ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
+  sptr<ENDER::Object> selectedObjectViewport;
+  sptr<ENDER::Object> selectedObjectSketch;
 
-    uint _appWidth;
-    uint _appHeight;
+  ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
 
-    int interpolationPointsCount = 30;
+  uint _appWidth;
+  uint _appHeight;
 
-    ImVec2 sketchWindowPos;
+  int interpolationPointsCount = 30;
 
-    sptr<ENDER::Object> sphere;
+  ImVec2 sketchWindowPos;
 
-    glm::vec3 directionalLightDirection;
+  sptr<ENDER::Object> sphere;
 
-    ENDER::DirectionalLight *directionalLight;
+  glm::vec3 directionalLightDirection;
+
+  ENDER::DirectionalLight *directionalLight;
 
 public:
-    MyApplication(uint appWidth, uint appHeight);
+  MyApplication(uint appWidth, uint appHeight);
 
-    void onStart() override;
+  void onStart() override;
 
-    static float degreeToRadians(float angle) {
-        return angle * glm::pi<float>() / 180.0f;
-    }
+  static float degreeToRadians(float angle) {
+    return angle * glm::pi<float>() / 180.0f;
+  }
 
-    static float radiansToDegree(float angle) {
-        return angle / glm::pi<float>() * 180.0f;
-    }
+  static float radiansToDegree(float angle) {
+    return angle / glm::pi<float>() * 180.0f;
+  }
 
-    void handleViewportGUI();
-    void handleDebugGUI();
-    void handleSketchGUI();
-    void handleMenuBarGUI();
-    void handleSketchSideGUI();
-    void handleToolbarGUI();
-    void handleObjectsGUI();
-    void handlePropertiesGUI();
+  void handleViewportGUI();
+  void handleDebugGUI();
+  void handleSketchGUI();
+  void handleMenuBarGUI();
+  void handleSketchSideGUI();
+  void handleToolbarGUI();
+  void handleObjectsGUI();
+  void handlePropertiesGUI();
 
-    void createPivotPlane();
+  void createPivotPlane();
 
-    void beginDockspace();
+  void beginDockspace();
 
-    void endDockspace();
+  void endDockspace();
 
+  void onGUI() override;
 
-    void onGUI() override;
+  void update(float deltaTime) override;
 
-    void update(float deltaTime) override;
+  void render() override;
 
-    void render() override;
+  void onKey(int key, ENDER::Window::EventStatus status) override;
 
-    void onKey(int key, ENDER::Window::EventStatus status) override;
+  void onKeyRelease(int key) override;
 
-    void onKeyRelease(int key) override;
+  void onMouseClick(ENDER::Window::MouseButton button,
+                    ENDER::Window::EventStatus status) override;
 
-    void onMouseClick(ENDER::Window::MouseButton button,
-                      ENDER::Window::EventStatus status) override;
+  void onClose();
 
-    void onClose();
+  void onMouseMove(uint x, uint y);
 
-    void onMouseMove(uint x, uint y);
-
-    void onKeyPress(int key) override;
+  void onKeyPress(int key) override;
 };

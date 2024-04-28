@@ -1,7 +1,10 @@
 #include "MyApplication.hpp"
 #include "BufferLayout.hpp"
 #include "Renderer.hpp"
+#include "Sketch.hpp"
+#include "Spline1.hpp"
 #include "VertexArray.hpp"
+#include "imgui.h"
 #include <PivotPlane.hpp>
 #include <Utilities.hpp>
 #include <memory>
@@ -80,8 +83,8 @@ void MyApplication::onStart() {
   cube->isSelectable = true;
   viewportScene->addObject(cube);
 
-  auto spline = EGEOM::Spline1::create({}, EGEOM::Spline1::ParamMethod::Uniform,
-                                       interpolationPointsCount);
+  auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+
   auto newSketch = EGEOM::Sketch::create(
       "Sketch " + std::to_string(sketches.size()), spline);
   sketches.push_back(newSketch);
@@ -104,6 +107,9 @@ void MyApplication::handleViewportGUI() {
   viewportCamera->setFramebufferSize({window_width, window_height});
 
   viewportFramebuffer->rescale(window_width, window_height);
+  if (ImGui::IsWindowFocused()) {
+    activeWindow = Windows::Viewport;
+  }
 
   if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
       ImGui::IsWindowFocused() && !ImGuizmo::IsUsing()) {
@@ -225,6 +231,10 @@ void MyApplication::handleSketchGUI() {
   ImGui::Begin("Sketch Editor");
 
   sketchCamera->setActive(ImGui::IsWindowFocused());
+
+  if (ImGui::IsWindowFocused()) {
+    activeWindow = Windows::SketchEditor;
+  }
 
   auto window_width = ImGui::GetContentRegionAvail().x;
   auto window_height = ImGui::GetContentRegionAvail().y;
@@ -487,8 +497,8 @@ void MyApplication::onMouseMove(uint x, uint y) {
 void MyApplication::handleSketchSideGUI() {
   ImGui::Begin("Sketches");
   if (ImGui::Button("Add sketch")) {
-    auto spline = EGEOM::Spline1::create(
-        {}, EGEOM::Spline1::ParamMethod::Uniform, interpolationPointsCount);
+    auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+
     auto newSketch = EGEOM::Sketch::create(
         "Sketch " + std::to_string(sketches.size()), spline);
     sketches.push_back(newSketch);
@@ -530,7 +540,7 @@ void MyApplication::createPivotPlane() {
 
 void MyApplication::handlePropertiesGUI() {
   ImGui::Begin("Properties");
-  if (viewportCamera->isActive()) {
+  if (activeWindow == Windows::Viewport) {
     if (selectedObjectViewport) {
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
@@ -541,9 +551,10 @@ void MyApplication::handlePropertiesGUI() {
     } else
       ImGui::Text("Select object to edit properties...");
   }
-  if (sketchCamera->isActive()) {
+  if (activeWindow == Windows::SketchEditor) {
     if (currentSketchId >= 0) {
-            ImGui::Text("%s", std::to_string(currentSketchId).c_str());
+      sketches[currentSketchId]->getSpline()->getPropertiesGUI();
+      ImGui::Text("%s", std::to_string(currentSketchId).c_str());
     } else
       ImGui::Text("Select object to edit properties...");
   }
