@@ -469,6 +469,21 @@ void MyApplication::onKeyPress(int key) {
   case GLFW_KEY_Y: {
     currentOperation = ImGuizmo::OPERATION::SCALE;
   } break;
+  case GLFW_KEY_U:{
+      if(sketches.size() == 0)
+          return;
+      auto obj = ENDER::Utils::createParametricSurface(
+              [&](float u, float v) {
+                  glm::vec3 dir = {0, 1, 0};
+                  float h = 2;
+                  auto point = sketches[0]->getSpline()->getSplinePoint(u) + v*h*dir;
+                  return point;
+              },
+              0, 0, 1, 1, 200, 200);
+
+      viewportScene->addObject(obj);
+      obj->isSelectable = true;
+  }break;
   }
 }
 

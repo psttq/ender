@@ -80,7 +80,9 @@ namespace EGEOM {
         std::vector<const char *> items = {
                 "Linear Interpolation",
                 "Bezier",
-                "Rational Bezier"
+                "Rational Bezier",
+                "BSpline",
+                "NURBS"
         };
         int currentItem = static_cast<int>(_splineType);
 
@@ -109,6 +111,17 @@ namespace EGEOM {
                         setSplineBuilder(std::move(rationalBezierBuilder));
                     }
                         break;
+                    case SplineType::BSpline:{
+                        std::vector<float> knotVector = {};
+                        auto bsplineBuilder = std::make_unique<BSplineBuilder>(_splineBuilder->points, 1, knotVector);
+                        setSplineBuilder(std::move(bsplineBuilder));
+                    } break;
+                    case SplineType::NURBS:{
+                        std::vector<float> knotVector = {};
+                        std::vector<float> weights = {};
+                        auto nurbsBuilder = std::make_unique<RationalBSplineBuilder>(_splineBuilder->points, 1, knotVector,weights);
+                        setSplineBuilder(std::move(nurbsBuilder));
+                    } break;
                 }
                 update();
             }
@@ -139,6 +152,11 @@ namespace EGEOM {
 
             ImGui::TreePop();
         }
+        if (ImGui::TreeNode(items[currentItem])) {
+            if (_splineBuilder->drawPropertiesGui())
+                update();
+            ImGui::TreePop();
+        }
         if (ImGui::TreeNode("Draw Points")) {
             ImGui::BeginGroup();
             const bool child_is_visible = ImGui::BeginChild("pefe", {0, 200});
@@ -162,12 +180,13 @@ namespace EGEOM {
             ImGui::TreePop();
         }
 
-        if (ImGui::TreeNode(items[currentItem])) {
-            if (_splineBuilder->drawPropertiesGui())
-                update();
-            ImGui::TreePop();
-        }
 
+
+    }
+
+    glm::vec3 Spline1::getSplinePoint(float u) {
+        auto point = _splineBuilder->getSplinePoint(u);
+        return point->getPosition();
     }
 
 } // namespace EGEOM
