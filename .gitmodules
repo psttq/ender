@@ -12,7 +12,10 @@
 	url = https://github.com/ocornut/imgui
 [submodule "3rd/-f"]
 	path = 3rd/-f
-	url = https://github.com/CedricGuillemet/ImGuizmo
+	url = https://github.com/psttq/ImGuizmo
+[submodule "3rd/--force"]
+	path = 3rd/--force
+	url = https://github.com/psttq/ImGuizmo
 [submodule "3rd/ImGuizmo"]
 	path = 3rd/ImGuizmo
-	url = https://github.com/CedricGuillemet/ImGuizmo
+	url = https://github.com/psttq/ImGuizmo
