@@ -1,5 +1,7 @@
 #include "MyApplication.hpp"
 #include "BufferLayout.hpp"
+#include "IconsFontAwesome5.h"
+#include "ImGuizmo.h"
 #include "Renderer.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
@@ -7,8 +9,8 @@
 #include "imgui.h"
 #include <PivotPlane.hpp>
 #include <Utilities.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <memory>
-
 MyApplication::MyApplication(uint appWidth, uint appHeight)
     : ENDER::Application(appWidth, appHeight), _appWidth(appWidth),
       _appHeight(appHeight) {}
@@ -96,6 +98,20 @@ void MyApplication::onStart() {
   sketchScene->addObject(grid);
 }
 
+void MyApplication::handleOperationPropertiesGUI() {
+  if (currentTool == Tools::Extrude) {
+    ImGui::Begin("Extrude");
+
+    if (ImGui::DragFloat3("Extrude Direction", glm::value_ptr(extrudeDirection),
+                          0.1f, 0, 1)) {
+    }
+
+    ImGui::DragFloat("Extrude Height", &extrudeHeight, 0.1);
+
+    ImGui::End();
+  }
+}
+
 void MyApplication::handleViewportGUI() {
   ImGui::Begin("Viewport");
 
@@ -124,8 +140,9 @@ void MyApplication::handleViewportGUI() {
     }
   }
 
-  ImGui::Image(reinterpret_cast<ImTextureID>(viewportFramebuffer->getTextureId()),
-               ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
+  ImGui::Image(
+      reinterpret_cast<ImTextureID>(viewportFramebuffer->getTextureId()),
+      ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
   //    if (ImGui::BeginPopupContextItem("popup")) // <-- use last item id as
   //    popup id
   //    {
@@ -162,6 +179,31 @@ void MyApplication::handleViewportGUI() {
     ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProj),
                          currentOperation, ImGuizmo::LOCAL,
                          glm::value_ptr(model));
+
+    if (currentTool == Tools::Extrude &&
+        selectedObjectViewport->label == "PivotPlane") {
+      glm::vec3 p1 = selectedObjectViewport->getPosition();
+      auto p2 = p1 + extrudeDirection * extrudeHeight;
+
+      auto diff = p2 - p1;
+      glm::vec3 xNorm(1.0, 0.0f, 0.0);
+      glm::vec3 yNorm(0.0, 1.0f, 0.0);
+      glm::vec3 zNorm(0.0, 0.0f, 1.0);
+
+      auto _rotation = selectedObjectViewport->getRotation();
+
+      diff = glm::rotate(diff, _rotation.x, xNorm); // Rotate on X axis
+      // yNorm = glm::rotate(yNorm, -_rotation.x, xNorm);
+      // zNorm = glm::rotate(zNorm, -_rotation.x, xNorm);
+      diff = glm::rotate(diff, _rotation.y, yNorm); // Rotate on Y axis
+      // zNorm = glm::rotate(zNorm, -_rotation.y, yNorm);
+      diff = glm::rotate(diff, _rotation.z, zNorm); // Rotate
+
+      p2 = p1 + diff;
+
+      ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
+                          0xFF110055);
+    }
 
     if (ImGuizmo::IsUsing()) {
 
@@ -333,6 +375,25 @@ void MyApplication::handleToolbarGUI() {
     createPivotPlane();
   }
   ImGui::SetItemTooltip("Create Pivot Plane");
+  ImGui::SameLine();
+  if (currentTool == Tools::Extrude) {
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          (ImVec4)ImColor::HSV(7.0f, 0.7f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
+    setStyle = true;
+  }
+  if (ImGui::Button(ICON_FA_ARROWS_ALT_V)) {
+    currentTool = Tools::Extrude;
+  }
+  ImGui::SetItemTooltip("Sketch Edit Tool");
+
+  if (setStyle) {
+    ImGui::PopStyleColor(3);
+    setStyle = false;
+  }
 
   ImGui::End();
 }
@@ -348,6 +409,7 @@ void MyApplication::onGUI() {
   handleSketchSideGUI();
   handleObjectsGUI();
   handlePropertiesGUI();
+  handleOperationPropertiesGUI();
 
   endDockspace();
 }
@@ -469,21 +531,23 @@ void MyApplication::onKeyPress(int key) {
   case GLFW_KEY_Y: {
     currentOperation = ImGuizmo::OPERATION::SCALE;
   } break;
-  case GLFW_KEY_U:{
-      if(sketches.size() == 0)
-          return;
-      auto obj = ENDER::Utils::createParametricSurface(
-              [&](float u, float v) {
-                  glm::vec3 dir = {0, 1, 0};
-                  float h = 2;
-                  auto point = sketches[0]->getSpline()->getSplinePoint(u) + v*h*dir;
-                  return point;
-              },
-              0, 0, 1, 1, 200, 200);
+  case GLFW_KEY_U: {
+    if (sketches.size() == 0)
+      return;
+    auto obj = ENDER::Utils::createParametricSurface(
+        [&](float u, float v) {
+          auto point = sketches[0]->getSpline()->getSplinePoint(u) +
+                       v * extrudeHeight * extrudeDirection;
+          return point;
+        },
+        0, 0, 1, 1, 200, 200);
 
-      viewportScene->addObject(obj);
-      obj->isSelectable = true;
-  }break;
+    obj->setPosition(selectedObjectViewport->getPosition());
+    obj->setRotation(selectedObjectViewport->getRotation());
+
+    viewportScene->addObject(obj);
+    obj->isSelectable = true;
+  } break;
   }
 }
 
@@ -569,7 +633,7 @@ void MyApplication::handlePropertiesGUI() {
   }
   if (activeWindow == Windows::SketchEditor) {
     if (currentSketchId >= 0) {
-      sketches[currentSketchId]->getSpline()->getPropertiesGUI( justSelected);
+      sketches[currentSketchId]->getSpline()->getPropertiesGUI(justSelected);
       justSelected = false;
     } else
       ImGui::Text("Select object to edit properties...");

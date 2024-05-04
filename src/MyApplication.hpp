@@ -14,7 +14,7 @@
 
 class MyApplication : public ENDER::Application {
 
-  enum class Tools { Cursor, Pencil };
+  enum class Tools { Cursor, Pencil, Extrude };
 
   enum class Windows { SketchEditor, Viewport };
 
@@ -46,6 +46,9 @@ class MyApplication : public ENDER::Application {
   sptr<ENDER::Object> selectedObjectSketch;
 
   ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
+
+  glm::vec3 extrudeDirection = {0,1,0};
+  float extrudeHeight = 2;
 
   uint _appWidth;
   uint _appHeight;
@@ -81,6 +84,7 @@ public:
   void handleToolbarGUI();
   void handleObjectsGUI();
   void handlePropertiesGUI();
+  void handleOperationPropertiesGUI();
 
   void createPivotPlane();
 

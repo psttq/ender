@@ -1,5 +1,5 @@
 #include "MyApplication.hpp"
-
+#define GLM_ENABLE_EXPERIMENTAL
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 800;
 

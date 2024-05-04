@@ -5,6 +5,7 @@ sptr<ENDER::Shader> EGEOM::PivotPlane::planeShader = nullptr; //FIXME: destroyed
 
 EGEOM::PivotPlane::PivotPlane(const std::string &name, sptr<ENDER::VertexArray> vertexArray) : Object(name,
                                                                                                       vertexArray) {
+    label = "PivotPlane";
     setShader(planeShader);
 }
 
