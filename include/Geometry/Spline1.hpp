@@ -11,6 +11,8 @@ namespace EGEOM {
         SplineBuilder(const std::vector<sptr<Point>> &points) : points(points) {};
         std::vector<sptr<Point>> points;
 
+        virtual ~SplineBuilder() = default;
+
         virtual sptr<Point> getSplinePoint(float t) = 0;
 
         virtual void rebuild() = 0;
