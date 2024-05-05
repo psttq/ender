@@ -19,3 +19,9 @@
 [submodule "3rd/ImGuizmo"]
 	path = 3rd/ImGuizmo
 	url = https://github.com/psttq/ImGuizmo
+[submodule "3rd/tomlplusplus"]
+	path = 3rd/tomlplusplus
+	url = https://github.com/marzer/tomlplusplus.git
+[submodule "3rd/ImGuiFileDialog"]
+	path = 3rd/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog

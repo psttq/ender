@@ -2,15 +2,20 @@
 #include "BufferLayout.hpp"
 #include "IconsFontAwesome5.h"
 #include "ImGuizmo.h"
+#include "Point.hpp"
 #include "Renderer.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
-#include "VertexArray.hpp"
 #include "imgui.h"
+#include "spdlog/spdlog.h"
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <PivotPlane.hpp>
 #include <Utilities.hpp>
+#include <fstream>
 #include <glm/gtx/rotate_vector.hpp>
+#include <iterator>
 #include <memory>
+#include <toml.hpp>
 MyApplication::MyApplication(uint appWidth, uint appHeight)
     : ENDER::Application(appWidth, appHeight), _appWidth(appWidth),
       _appHeight(appHeight) {}
@@ -96,6 +101,7 @@ void MyApplication::onStart() {
 
   viewportScene->addObject(grid);
   sketchScene->addObject(grid);
+
 }
 
 void MyApplication::handleOperationPropertiesGUI() {
@@ -263,6 +269,7 @@ void MyApplication::handleDebugGUI() {
       ImGui::PopStyleColor();
   }
   for (auto light : viewportScene->getLights()) {
+#include <memory>
     if (light->type == ENDER::Light::LightType::PointLight)
       ImGui::Text("PointLight");
   }
@@ -536,7 +543,7 @@ void MyApplication::onKeyPress(int key) {
       return;
     auto obj = ENDER::Utils::createParametricSurface(
         [&](float u, float v) {
-          auto point = sketches[0]->getSpline()->getSplinePoint(u) +
+          auto point = sketches[currentSketchId]->getSpline()->getSplinePoint(u) +
                        v * extrudeHeight * extrudeDirection;
           return point;
         },
@@ -584,6 +591,160 @@ void MyApplication::handleSketchSideGUI() {
     sketches.push_back(newSketch);
     currentSketchId = sketches.size() - 1;
   }
+
+  if (ImGui::Button("Save sketch")) {
+    IGFD::FileDialogConfig config;
+    config.path = ".";
+    ImGuiFileDialog::Instance()->OpenDialog("CSF", "Choose File", ".toml");
+  }
+
+  if (ImGuiFileDialog::Instance()->Display("CSF")) {
+    if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+      toml::table tbl;
+
+      auto currentSketch = sketches[currentSketchId];
+      auto spline = currentSketch->getSpline();
+      toml::array points;
+      for (auto &p : spline->getPoints()) {
+        auto position = p->getPosition();
+        auto pointTable = toml::table{
+            {"x", position.x}, {"y", position.y}, {"z", position.z}};
+
+        points.push_back(pointTable);
+      }
+
+      switch (spline->getSplineType()) {
+      case EGEOM::Spline1::SplineType::LinearInterpolation: {
+
+        tbl = toml::table{{"type", static_cast<int>(spline->getSplineType())},
+                          {"points", points}};
+      } break;
+      case EGEOM::Spline1::SplineType::NURBS: {
+        auto splineBuilder =
+            spline->getSplineBuilder<EGEOM::RationalBSplineBuilder>();
+        auto knotVector = splineBuilder.knotVector;
+        auto weights = splineBuilder.weights;
+        auto power = splineBuilder.bSplinePower;
+
+        auto knotVectorToml = toml::array{};
+        for (auto &e : knotVector) {
+          knotVectorToml.push_back(e);
+        }
+
+        auto weigtsToml = toml::array{};
+        for (auto &e : weights) {
+          weigtsToml.push_back(e);
+        }
+
+        tbl = toml::table{{"type", static_cast<int>(spline->getSplineType())},
+                          {"power", power},
+                          {"knotVector", knotVectorToml},
+                          {"weights", weigtsToml},
+                          {"points", points}};
+
+      } break;
+      default: {
+        spdlog::error("Can't write sketch of this type!");
+      }
+      }
+
+      if (!tbl.empty()) {
+        std::ofstream fs(filePathName);
+        fs << tbl;
+        spdlog::info("Sketch successefully written to {}", filePathName);
+      }
+      // action
+    }
+
+    // close
+    ImGuiFileDialog::Instance()->Close();
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button("Load sketch")) {
+    IGFD::FileDialogConfig config;
+    config.path = ".";
+    ImGuiFileDialog::Instance()->OpenDialog("CLF", "Choose File", ".toml");
+  }
+
+  if (ImGuiFileDialog::Instance()->Display("CLF")) {
+    if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+      auto tbl = toml::parse_file(filePathName);
+
+      auto splineTypeId = *tbl["type"].value<int>();
+
+      auto splineType = static_cast<EGEOM::Spline1::SplineType>(splineTypeId);
+      auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+
+      spline->setSplineType(splineType);
+
+      std::vector<sptr<EGEOM::Point>> points;
+
+      auto pointsTbl = tbl["points"].as_array();
+
+      pointsTbl->for_each([&points](auto &&el) {
+        if constexpr (toml::is_table<decltype(el)>) {
+          auto x = *el["x"].template value<float>();
+          auto y = *el["y"].template value<float>();
+          auto z = *el["z"].template value<float>();
+          points.push_back(EGEOM::Point::create({x, y, z}));
+        }
+      });
+
+      switch (splineType) {
+      case EGEOM::Spline1::SplineType::LinearInterpolation: {
+        auto linearBuilder =
+            std::make_unique<EGEOM::LinearInterpolationBuilder>(
+                points,
+                EGEOM::LinearInterpolationBuilder::ParamMethod::Uniform);
+        spline->setSplineBuilder(std::move(linearBuilder));
+        spline->update();
+      } break;
+      case EGEOM::Spline1::SplineType::NURBS: {
+        std::vector<float> knotVector;
+        std::vector<float> weights;
+        int power = *tbl["power"].value<int>();
+        tbl["knotVector"].as_array()->for_each([&knotVector](auto &&el) {
+          if constexpr (toml::is_floating_point<decltype(el)>) {
+            knotVector.push_back(*el);
+          }
+        });
+        tbl["weights"].as_array()->for_each([&weights](auto &&el) {
+          if constexpr (toml::is_floating_point<decltype(el)>) {
+            weights.push_back(*el);
+          }
+        });
+
+        auto nurbsBuilder = std::make_unique<EGEOM::RationalBSplineBuilder>(
+            points, power, knotVector, weights);
+        spline->setSplineBuilder(std::move(nurbsBuilder));
+        spline->update();
+      } break;
+      default: {
+        spdlog::error("Error while loading spline from file");
+        throw;
+      }
+      }
+
+      auto newSketch = EGEOM::Sketch::create(
+          "Sketch " + std::to_string(sketches.size()), spline);
+      sketches.push_back(newSketch);
+      currentSketchId = sketches.size() - 1;
+
+      // action
+    }
+
+    // close
+    ImGuiFileDialog::Instance()->Close();
+  }
+
   std::vector<const char *> sketchesNameList;
   std::for_each(sketches.begin(), sketches.end(),
                 [&sketchesNameList](auto sketch) {
