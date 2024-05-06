@@ -14,7 +14,7 @@
 
 class MyApplication : public ENDER::Application {
 
-  enum class Tools { Cursor, Pencil, Extrude };
+  enum class Tools { Cursor, Pencil, Extrude, Rotate};
 
   enum class Windows { SketchEditor, Viewport };
 
@@ -49,6 +49,8 @@ class MyApplication : public ENDER::Application {
 
   glm::vec3 extrudeDirection = {0,1,0};
   float extrudeHeight = 2;
+  float rotateRadius = 1;
+  float rotateAngle = glm::pi<float>()*2;
 
   uint _appWidth;
   uint _appHeight;

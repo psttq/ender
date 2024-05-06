@@ -116,6 +116,12 @@ void MyApplication::handleOperationPropertiesGUI() {
 
     ImGui::End();
   }
+  else if (currentTool == Tools::Rotate) {
+      ImGui::Begin("Rotate");
+      ImGui::DragFloat("Rotate radius", &rotateRadius, 0.1);
+      ImGui::DragFloat("Rotate angle", &rotateAngle, 0.1, 0, glm::pi<float>()*2);
+      ImGui::End();
+  }
 }
 
 void MyApplication::handleViewportGUI() {
@@ -209,6 +215,31 @@ void MyApplication::handleViewportGUI() {
 
       ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
                           0xFF110055);
+    }
+    else if (currentTool == Tools::Rotate &&
+              selectedObjectViewport->label == "PivotPlane") {
+        glm::vec3 p1 = selectedObjectViewport->getPosition();
+        p1+=glm::vec3{1,0,0}* rotateRadius;
+        auto p2 = p1 + glm::vec3{0, 0, 1};
+
+        auto diff = p2 - p1;
+        glm::vec3 xNorm(1.0, 0.0f, 0.0);
+        glm::vec3 yNorm(0.0, 1.0f, 0.0);
+        glm::vec3 zNorm(0.0, 0.0f, 1.0);
+
+        auto _rotation = selectedObjectViewport->getRotation();
+
+        diff = glm::rotate(diff, _rotation.x, xNorm); // Rotate on X axis
+        // yNorm = glm::rotate(yNorm, -_rotation.x, xNorm);
+        // zNorm = glm::rotate(zNorm, -_rotation.x, xNorm);
+        diff = glm::rotate(diff, _rotation.y, yNorm); // Rotate on Y axis
+        // zNorm = glm::rotate(zNorm, -_rotation.y, yNorm);
+        diff = glm::rotate(diff, _rotation.z, zNorm); // Rotate
+
+        p2 = p1 + diff;
+
+        ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
+                            0xFF110055);
     }
 
     if (ImGuizmo::IsUsing()) {
@@ -395,12 +426,31 @@ void MyApplication::handleToolbarGUI() {
   if (ImGui::Button(ICON_FA_ARROWS_ALT_V)) {
     currentTool = Tools::Extrude;
   }
-  ImGui::SetItemTooltip("Sketch Edit Tool");
+  ImGui::SetItemTooltip("Extrude Tool");
 
   if (setStyle) {
     ImGui::PopStyleColor(3);
     setStyle = false;
   }
+    ImGui::SameLine();
+    if (currentTool == Tools::Rotate) {
+        ImGui::PushStyleColor(ImGuiCol_Button,
+                              (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                              (ImVec4)ImColor::HSV(7.0f, 0.7f, 0.7f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                              (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
+        setStyle = true;
+    }
+    if (ImGui::Button(ICON_FA_SYNC)) {
+        currentTool = Tools::Rotate;
+    }
+    ImGui::SetItemTooltip("Rotate Tool");
+
+    if (setStyle) {
+        ImGui::PopStyleColor(3);
+        setStyle = false;
+    }
 
   ImGui::End();
 }
@@ -541,19 +591,38 @@ void MyApplication::onKeyPress(int key) {
   case GLFW_KEY_U: {
     if (sketches.size() == 0)
       return;
-    auto obj = ENDER::Utils::createParametricSurface(
-        [&](float u, float v) {
-          auto point = sketches[currentSketchId]->getSpline()->getSplinePoint(u) +
-                       v * extrudeHeight * extrudeDirection;
-          return point;
-        },
-        0, 0, 1, 1, 200, 200);
+    if(currentTool == Tools::Extrude) {
+        auto obj = ENDER::Utils::createParametricSurface(
+                [&](float u, float v) {
+                    auto point = sketches[currentSketchId]->getSpline()->getSplinePoint(u) +
+                                 v * extrudeHeight * extrudeDirection;
+                    return point;
+                },
+                0, 0, 1, 1, 200, 200);
 
-    obj->setPosition(selectedObjectViewport->getPosition());
-    obj->setRotation(selectedObjectViewport->getRotation());
+        obj->setPosition(selectedObjectViewport->getPosition());
+        obj->setRotation(selectedObjectViewport->getRotation());
 
-    viewportScene->addObject(obj);
-    obj->isSelectable = true;
+        viewportScene->addObject(obj);
+        obj->isSelectable = true;
+    }
+    else if(currentTool == Tools::Rotate) {
+        auto obj = ENDER::Utils::createParametricSurface(
+                [&](float u, float v) {
+                    auto splinePoint =
+                            sketches[currentSketchId]->getSpline()->getSplinePoint(u) + glm::vec3{-rotateRadius, 0, 0};
+                    auto point = glm::vec3{rotateRadius, 0, 0} +
+                                 glm::vec3{splinePoint.x * glm::cos(v), splinePoint.x * glm::sin(v), splinePoint.z};
+                    return point;
+                },
+                0, 0, 1, rotateAngle, 200, 200);
+
+        obj->setPosition(selectedObjectViewport->getPosition());
+        obj->setRotation(selectedObjectViewport->getRotation());
+
+        viewportScene->addObject(obj);
+        obj->isSelectable = true;
+    }
   } break;
   }
 }
