@@ -37,6 +37,8 @@ class MyApplication : public ENDER::Application {
   sptr<ENDER::Scene> viewportScene;
   sptr<ENDER::Scene> sketchScene;
 
+  sptr<EGEOM::Spline1> splineDim;
+
   std::vector<sptr<EGEOM::Sketch>> sketches;
   int currentSketchId = -1;
 

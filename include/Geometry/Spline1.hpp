@@ -512,7 +512,7 @@ public:
       C = C + N[i] * (_glmPoints[span - bSplinePower + i]);
       H += weights[span - bSplinePower + i] * N[i];
     }
-    return Point::create({C.x / H, 0, C.z / H});
+    return Point::create({C.x / H, C.y/H, C.z / H});
   }
 
   void rebuild() override {
