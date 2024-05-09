@@ -90,7 +90,7 @@ sptr<ENDER::VertexArray> ENDER::Object::getVertexArray() const {
     return _vertexArray;
 }
 
-void ENDER::Object::setVertexArrat(sptr<VertexArray> vertexArray) {
+void ENDER::Object::setVertexArray(sptr<VertexArray> vertexArray) {
     _vertexArray = vertexArray;
 }
 

@@ -30,8 +30,7 @@ namespace ENDER {
             }
             return indices;
         }
-
-        inline sptr<Object> createParametricSurface(ParametricSurfFunc func,float u_min, float v_min, float u_max,
+        inline sptr<VertexArray> createParametricSurfaceVAO(ParametricSurfFunc func,float u_min, float v_min, float u_max,
                                                     float v_max, uint rows, uint cols) {
             auto indices = generateParametricSurfaceGrid(rows, cols);
 
@@ -72,10 +71,20 @@ namespace ENDER {
             vao->addVBO(std::move(vbo));
             vao->setIndexBuffer(std::move(ibo));
 
+
+            return vao;
+        }
+
+
+        inline sptr<Object> createParametricSurface(ParametricSurfFunc func,float u_min, float v_min, float u_max,
+                                                    float v_max, uint rows, uint cols) {
+
+            auto vao = createParametricSurfaceVAO(func, u_min, v_min, u_max, v_max, rows, cols);
             auto object = ENDER::Object::create("ParametricSurface", vao);
 
             return object;
         }
+
 
         void applyImguiTheme() {
             ImGuiIO& io = ImGui::GetIO();

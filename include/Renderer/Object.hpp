@@ -41,16 +41,17 @@ namespace ENDER {
 
         std::string label = "Object";
 
-        bool selected() const;
-
-        void setSelected(bool selected);
-
         Object(const std::string &name, sptr<VertexArray> vertexArray);
 
         Object(const std::string &name);
         ~Object(){
             spdlog::debug("deleted obj: {}", _id);
         }
+
+        bool selected() const;
+
+        void setSelected(bool selected);
+
 
         void setTexture(Texture *texture);
 
@@ -92,7 +93,7 @@ namespace ENDER {
 
         sptr<VertexArray> getVertexArray() const;
 
-        void setVertexArrat(sptr<VertexArray> vertexArray);
+        void setVertexArray(sptr<VertexArray> vertexArray);
 
         virtual void drawProperties();
 
