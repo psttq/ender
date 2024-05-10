@@ -2,7 +2,6 @@
 
 #include "Line.hpp"
 #include "Object.hpp"
-#include "Point.hpp"
 #include "imgui.h"
 #include <Ender.hpp>
 #include <ImGuizmo.h>
@@ -10,7 +9,6 @@
 #include <Sketch.hpp>
 #include <Spline1.hpp>
 #include <font/IconsFontAwesome5.h>
-#include <memory>
 
 class MyApplication : public ENDER::Application {
 

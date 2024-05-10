@@ -7,144 +7,138 @@
 #include <glm/glm.hpp>
 
 namespace ENDER {
-    class Object {
-    public:
-        enum class ObjectType {
-            Surface,
-            Line,
-            Multi
-        };
+class Object {
+public:
+  enum class ObjectType { Surface, Line, Multi };
 
-        bool isSelectable = false;
+  bool isSelectable = false;
 
-    protected:
-        unsigned int _id;
-        std::string _name;
+protected:
+  unsigned int _id;
+  std::string _name;
 
-        sptr<Shader> _shader = nullptr;
+  sptr<Shader> _shader = nullptr;
 
-        sptr<VertexArray> _vertexArray = nullptr;
-        Texture *_texture = nullptr;
-        glm::vec3 _position{};
-        glm::vec3 _rotation{};
-        glm::vec3 _scale = glm::vec3(1.0f);
+  sptr<VertexArray> _vertexArray = nullptr;
+  Texture *_texture = nullptr;
+  glm::vec3 _position{};
+  glm::vec3 _rotation{};
+  glm::vec3 _scale = glm::vec3(1.0f);
 
-        sptr<Object> _childObject;
+  sptr<Object> _childObject;
 
-        bool _selected = false;
+  bool _selected = false;
 
-    public:
+public:
+  Material material;
 
-        Material material;
+  ObjectType type = ObjectType::Surface;
 
-        ObjectType type = ObjectType::Surface;
+  std::string label = "Object";
 
-        std::string label = "Object";
+  Object(const std::string &name, sptr<VertexArray> vertexArray);
 
-        Object(const std::string &name, sptr<VertexArray> vertexArray);
+  Object(const std::string &name);
+  ~Object() { spdlog::debug("deleted obj: {}", _id); }
 
-        Object(const std::string &name);
-        ~Object(){
-            spdlog::debug("deleted obj: {}", _id);
-        }
+  bool selected() const;
 
-        bool selected() const;
+  void setSelected(bool selected);
 
-        void setSelected(bool selected);
+  void setTexture(Texture *texture);
 
+  Texture *getTexture() const;
 
-        void setTexture(Texture *texture);
+  void setPosition(const glm::vec3 &position);
 
-        Texture *getTexture() const;
+  void setRotation(const glm::vec3 &rotation);
 
-        void setPosition(const glm::vec3 &position);
+  void setScale(const glm::vec3 &scale);
 
-        void setRotation(const glm::vec3 &rotation);
+  glm::vec3 &getPosition();
 
-        void setScale(const glm::vec3 &scale);
+  glm::vec3 &getRotation();
 
-        glm::vec3 &getPosition();
+  glm::vec3 &getScale();
 
-        glm::vec3 &getRotation();
+  glm::vec3 getPosition() const;
 
-        glm::vec3 &getScale();
+  glm::vec3 getRotation() const;
 
-        glm::vec3 getPosition() const;
+  glm::vec3 getScale() const;
 
-        glm::vec3 getRotation() const;
+  glm::mat4 getTransform() const;
 
-        glm::vec3 getScale() const;
+  const std::string &getName();
 
-        glm::mat4 getTransform() const;
+  unsigned int getId() const;
 
-        const std::string &getName();
+  void setShader(sptr<Shader> shader);
 
-        unsigned int getId() const;
+  sptr<Shader> getShader();
 
-        void setShader(sptr<Shader> shader);
+  void setChildObject(sptr<Object> childObject);
 
-        sptr<Shader> getShader();
+  void resetChildObject();
 
-        void setChildObject(sptr<Object> childObject);
+  sptr<Object> getChildObject();
 
-        void resetChildObject();
+  sptr<VertexArray> getVertexArray() const;
 
-        sptr<Object> getChildObject();
+  void setVertexArray(sptr<VertexArray> vertexArray);
 
-        sptr<VertexArray> getVertexArray() const;
+  virtual void drawProperties();
 
-        void setVertexArray(sptr<VertexArray> vertexArray);
+  virtual void drawGizmo() {}
 
-        virtual void drawProperties();
+  std::string getName() const;
 
-        std::string getName() const;
+  static sptr<Object> create(const std::string &name,
+                             sptr<VertexArray> vertexArray);
 
-        static sptr<Object> create(const std::string &name,
-                                   sptr<VertexArray> vertexArray);
+  static sptr<Object> createCube(const std::string &name);
 
-        static sptr<Object> createCube(const std::string &name);
+  static sptr<Object> createGrid(const std::string &name);
+};
 
-        static sptr<Object> createGrid(const std::string &name);
-    };
+static float CUBE_VERTICES[] = {
+    // positions          // normals           // texture coords
+    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.5f,  -0.5f,
+    -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 0.0f,
+    0.0f,  -1.0f, 1.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
+    1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,
 
-    static float CUBE_VERTICES[] = {
-            // positions          // normals           // texture coords
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.5f, -0.5f,
-            -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.5f, 0.5f, -0.5f, 0.0f,
-            0.0f, -1.0f, 1.0f, 1.0f, 0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            1.0f, 1.0f, -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.5f,  -0.5f,
+    0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,
+    0.0f,  1.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+    1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, -0.5f,
-            0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f,
-            0.0f, 1.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-            1.0f, 1.0f, -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,
+    -0.5f, -1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f,
+    0.0f,  0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
+    0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
 
-            -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -0.5f, 0.5f,
-            -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, -0.5f, -0.5f, -0.5f, -1.0f,
-            0.0f, 0.0f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,
+    -0.5f, 1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,
+    0.0f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
+    0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f,
-            -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f,
-            0.0f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.5f,  -0.5f,
+    -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,
+    -1.0f, 0.0f,  1.0f,  0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
+    1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,
 
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f,
-            -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.5f, -0.5f, 0.5f, 0.0f,
-            -1.0f, 0.0f, 1.0f, 0.0f, 0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-            1.0f, 0.0f, -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,
+    -0.5f, 0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,
+    1.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
 
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f,
-            -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f,
-            1.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-            1.0f, 0.0f, -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
-
-    static float GRID_VERTICES[] = {1, 1, 0, -1, -1, 0, -1, 1, 0,
-                                    -1, -1, 0, 1, 1, 0, 1, -1, 0};
+static float GRID_VERTICES[] = {1,  1,  0, -1, -1, 0, -1, 1,  0,
+                                -1, -1, 0, 1,  1,  0, 1,  -1, 0};
 } // namespace ENDER

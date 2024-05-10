@@ -12,14 +12,16 @@ class RotationSurface : public Surface {
   RotationSurface(const std::string &name, sptr<Spline1> baseSpline,
                   float rotationAngle, float rotationRadius);
 
-
 public:
-  static sptr<RotationSurface> create(const std::string &name, sptr<Spline1> baseSpline,
-                  float rotationAngle, float rotationRadius);
+  static sptr<RotationSurface> create(const std::string &name,
+                                      sptr<Spline1> baseSpline,
+                                      float rotationAngle,
+                                      float rotationRadius);
 
   glm::vec3 pointOnSurface(float u, float v) override;
 
   void drawProperties() override;
+  void drawGizmo() override;
 
   void update();
 };
