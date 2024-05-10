@@ -3,16 +3,17 @@
 #include <RotationSurface.hpp>
 
 namespace EGEOM {
-
-const uint SURFACE_ROWS = 100;
-const uint SURFACE_COLS = 100;
-
 RotationSurface::RotationSurface(const std::string &name,
                                  sptr<Spline1> baseSpline, float rotationAngle,
                                  float rotationRadius)
     : Surface(name), _baseSpline(baseSpline), _rotationRadius(rotationRadius),
       _rotationAngle(rotationAngle) {
   update();
+}
+
+sptr<RotationSurface> RotationSurface::create(const std::string &name, sptr<Spline1> baseSpline,
+                  float rotationAngle, float rotationRadius){
+    return sptr<RotationSurface>(new RotationSurface(name, baseSpline,rotationAngle, rotationRadius));
 }
 
 void RotationSurface::update() { // FIXME: set vbo data ideally but i am too

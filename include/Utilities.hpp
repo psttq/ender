@@ -86,7 +86,7 @@ namespace ENDER {
         }
 
 
-        void applyImguiTheme() {
+        inline void applyImguiTheme() {
             ImGuiIO& io = ImGui::GetIO();
             io.Fonts->AddFontFromFileTTF("../resources/font.ttf", 14);
 

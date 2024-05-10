@@ -1,9 +1,9 @@
 #include "MyApplication.hpp"
-#include "BufferLayout.hpp"
 #include "IconsFontAwesome5.h"
 #include "ImGuizmo.h"
 #include "Point.hpp"
 #include "Renderer.hpp"
+#include "RotationSurface.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
 #include "imgui.h"
@@ -13,8 +13,6 @@
 #include <Utilities.hpp>
 #include <fstream>
 #include <glm/gtx/rotate_vector.hpp>
-#include <iterator>
-#include <memory>
 #include <toml.hpp>
 
 MyApplication::MyApplication(uint appWidth, uint appHeight)
@@ -127,6 +125,16 @@ void MyApplication::handleOperationPropertiesGUI() {
         ImGui::Begin("Rotate");
         ImGui::DragFloat("Rotate radius", &rotateRadius, 0.1);
         ImGui::DragFloat("Rotate angle", &rotateAngle, 0.1, 0, glm::pi<float>() * 2);
+        if(ImGui::Button("Create")){
+          auto pivot = std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
+          if(pivot){
+            auto spline = pivot->getSketch()->getSpline();
+            if(spline){
+              auto obj = EGEOM::RotationSurface::create(spline->getName()+"_RS", spline, rotateAngle, rotateRadius); 
+              viewportScene->addObject(obj);
+            }
+          }
+        }
         ImGui::End();
     }
 }

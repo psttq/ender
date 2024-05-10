@@ -13,6 +13,7 @@ namespace EGEOM {
         static sptr<PivotPlane> create(const std::string &name);
 
         void setSketch(sptr<EGEOM::Sketch> sketch);
+        sptr<Sketch> getSketch();
 
         static sptr<ENDER::VertexArray> planeVAO;
         static sptr<ENDER::Shader> planeShader;
