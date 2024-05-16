@@ -2,6 +2,8 @@
 
 #include <Ender.hpp>
 #include <Point.hpp>
+#include <Utils.hpp>
+#include <algorithm>
 #include <ranges>
 
 namespace EGEOM {
@@ -14,6 +16,11 @@ public:
   virtual ~SplineBuilder() = default;
 
   virtual sptr<Point> getSplinePoint(float t) = 0;
+
+  virtual std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                        int dirsCount) {
+    return {};
+  }
 
   virtual void rebuild() = 0;
 
@@ -277,43 +284,6 @@ public:
 };
 
 class BSplineBuilder : public SplineBuilder {
-  int _findSpan(int n, int p, float u, std::vector<float> U) {
-    if (u == U[n + 1]) {
-      return n;
-    }
-    int low = p;
-    int high = n + 1;
-    int mid = (low + high) / 2;
-    while (u < U[mid] || u >= U[mid + 1]) {
-      if (u < U[mid])
-        high = mid;
-      else
-        low = mid;
-      mid = (low + high) / 2;
-    }
-    return mid;
-  }
-
-  std::vector<float> _basisFunc(int i, float u, int p, std::vector<float> U) {
-    std::vector<float> N(p + 1, 0);
-    std::vector<float> left(p + 1, 0);
-    std::vector<float> right(p + 1, 0);
-
-    N[0] = 1.0f;
-    for (int j = 1; j <= p; j++) {
-      left[j] = u - U[i + 1 - j];
-      right[j] = U[i + j] - u;
-      float saved = 0.0f;
-      for (int r = 0; r < j; r++) {
-        float temp = N[r] / (right[r + 1] + left[j - r]);
-        N[r] = saved + right[r + 1] * temp;
-        saved = left[j - r] * temp;
-      }
-      N[j] = saved;
-    }
-    return N;
-  }
-
   void _checkAndSetDefault() {
     if (points.size() < bSplinePower + 1) {
       spdlog::warn(
@@ -337,7 +307,6 @@ class BSplineBuilder : public SplineBuilder {
           1.0f / ((float)knotVector.size() - 2.0f * bSplinePower - 2.0f + 1.0f);
       for (auto i = bSplinePower + 1;
            i < this->knotVector.size() - bSplinePower - 1; i++) {
-        spdlog::info("here {} {}", i, step);
         this->knotVector[i] = (i - bSplinePower) * step;
       }
       std::string vectorData = "{";
@@ -361,13 +330,29 @@ public:
   }
 
   sptr<Point> getSplinePoint(float t) override {
-    int span = _findSpan(points.size() - 1, bSplinePower, t, knotVector);
-    auto N = _basisFunc(span, t, bSplinePower, knotVector);
+    int span = bSplineFindSpan(points.size() - 1, bSplinePower, t, knotVector);
+    auto N = bSplineBasisFunc(span, t, bSplinePower, knotVector);
     auto C = Point::create({0, 0, 0});
     for (int i = 0; i <= bSplinePower; i++) {
       *C = *C + N[i] * (*points[span - bSplinePower + i]);
     }
     return C;
+  }
+
+  std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                int dirsCount) override {
+    int du = std::min(dirsCount, bSplinePower);
+    std::vector<sptr<Point>> result;
+    int span = bSplineFindSpan(points.size() - 1, bSplinePower, t, knotVector);
+    auto nders = dersBasisFunc(span, t, bSplinePower, du, knotVector);
+    for (auto k = 0; k <= du; k++) {
+      auto C = Point::create({0, 0, 0});
+      for (auto j = 0; j <= bSplinePower; j++) {
+        *C = *C + nders[k][j] * *points[span - bSplinePower + j];
+      }
+      result.push_back(C);
+    }
+    return result;
   }
 
   void rebuild() override { _checkAndSetDefault(); }
@@ -393,7 +378,6 @@ public:
             if (ImGui::SliderFloat(label.c_str(), &knotVector[i],
                                    knotVector[i - 1], knotVector[i + 1])) {
               modified = true;
-              spdlog::info(knotVector[i]);
             }
           }
         }
@@ -409,42 +393,6 @@ public:
 };
 
 class RationalBSplineBuilder : public SplineBuilder {
-  int _findSpan(int n, int p, float u, std::vector<float> U) {
-    if (u == U[n + 1]) {
-      return n;
-    }
-    int low = p;
-    int high = n + 1;
-    int mid = (low + high) / 2;
-    while (u < U[mid] || u >= U[mid + 1]) {
-      if (u < U[mid])
-        high = mid;
-      else
-        low = mid;
-      mid = (low + high) / 2;
-    }
-    return mid;
-  }
-
-  std::vector<float> _basisFunc(int i, float u, int p, std::vector<float> U) {
-    std::vector<float> N(p + 1, 0);
-    std::vector<float> left(p + 1, 0);
-    std::vector<float> right(p + 1, 0);
-
-    N[0] = 1.0f;
-    for (int j = 1; j <= p; j++) {
-      left[j] = u - U[i + 1 - j];
-      right[j] = U[i + j] - u;
-      float saved = 0.0f;
-      for (int r = 0; r < j; r++) {
-        float temp = N[r] / (right[r + 1] + left[j - r]);
-        N[r] = saved + right[r + 1] * temp;
-        saved = left[j - r] * temp;
-      }
-      N[j] = saved;
-    }
-    return N;
-  }
 
   void _checkAndSetDefault() {
     if (points.size() < bSplinePower + 1) {
@@ -470,7 +418,6 @@ class RationalBSplineBuilder : public SplineBuilder {
           1.0f / ((float)knotVector.size() - 2.0f * bSplinePower - 2.0f + 1.0f);
       for (auto i = bSplinePower + 1;
            i < this->knotVector.size() - bSplinePower - 1; i++) {
-        spdlog::info("here {} {}", i, step);
         this->knotVector[i] = (i - bSplinePower) * step;
       }
       std::string vectorData = "{";
@@ -486,7 +433,7 @@ class RationalBSplineBuilder : public SplineBuilder {
       weights = std::vector<float>(points.size(), 1);
     }
   }
-  std::vector<glm::vec3> _glmPoints;
+  std::vector<glm::vec4> _glmPoints;
 
 public:
   int bSplinePower = 0;
@@ -503,28 +450,66 @@ public:
   }
 
   sptr<Point> getSplinePoint(float t) override {
-    int span = _findSpan(points.size() - 1, bSplinePower, t, knotVector);
-    auto N = _basisFunc(span, t, bSplinePower, knotVector);
-    glm::vec3 C = {0, 0, 0};
-    float H = 0.0f;
+    // int span = bSplineFindSpan(points.size() - 1, bSplinePower, t,
+    // knotVector); auto N = bSplineBasisFunc(span, t, bSplinePower,
+    // knotVector); glm::vec4 C = {0, 0, 0, 0}; float H = 0.0f;
+    //
+    // for (int i = 0; i <= bSplinePower; i++) {
+    //   C = C + N[i] * (_glmPoints[span - bSplinePower + i]);
+    //   H += weights[span - bSplinePower + i] * N[i];
+    // }
+    // return Point::create({C.x / H, C.y / H, C.z / H});
 
-    for (int i = 0; i <= bSplinePower; i++) {
-      C = C + N[i] * (_glmPoints[span - bSplinePower + i]);
-      H += weights[span - bSplinePower + i] * N[i];
+    auto ck = getSplineDerivatives(t, 2);
+    return ck[0];
+  }
+
+  std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                int dirsCount) override {
+    int du = std::min(dirsCount, bSplinePower);
+    std::vector<glm::vec4> c4d;
+    int span = bSplineFindSpan(points.size() - 1, bSplinePower, t, knotVector);
+    auto nders = dersBasisFunc(span, t, bSplinePower, du, knotVector);
+    for (auto k = 0; k <= du; k++) {
+      glm::vec4 C = {0, 0, 0, 0};
+      for (auto j = 0; j <= bSplinePower; j++) {
+        C = C + nders[k][j] * _glmPoints[span - bSplinePower + j];
+      }
+      c4d.push_back(C);
     }
-    return Point::create({C.x / H, C.y/H, C.z / H});
+    std::vector<glm::vec3> aders;
+    std::vector<float> wders;
+
+    for (auto &p : c4d) {
+      aders.push_back({p.x, p.y, p.z});
+      wders.push_back(p.w);
+    }
+
+    std::vector<glm::vec3> CK;
+
+    for (auto k = 0; k <= dirsCount; k++) {
+      auto v = aders[k];
+      for (auto i = 1; i <= k; i++) {
+        v = v - binomialCoeff(k, i) * wders[i] * CK[k - i];
+      }
+      CK.push_back(v / wders[0]);
+    }
+
+    std::vector<sptr<Point>> result;
+    for (auto &p : CK) {
+      result.push_back(Point::create(p));
+    }
+    return result;
   }
 
   void rebuild() override {
     _checkAndSetDefault();
-    auto glmPoints = points | std::ranges::views::transform([](auto point) {
-                       return point->getPosition();
-                     });
     _glmPoints.clear();
-    std::copy(glmPoints.begin(), glmPoints.end(),
-              std::back_inserter(_glmPoints));
-    for (auto i = 0; i < _glmPoints.size(); i++) {
-      _glmPoints[i] *= weights[i];
+    int i = 0;
+    for (auto point : points) {
+      auto pos = point->getPosition();
+      _glmPoints.push_back(glm::vec4{pos * weights[i], weights[i]});
+      i++;
     }
   }
 

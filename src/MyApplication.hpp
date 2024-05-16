@@ -12,13 +12,13 @@
 
 class MyApplication : public ENDER::Application {
 
-  enum class Tools { Cursor, Pencil, Extrude, Rotate};
+  enum class Tools { Cursor, Pencil, Extrude, Rotate };
 
   enum class Windows { SketchEditor, Viewport };
 
   Tools currentTool = Tools::Cursor;
   Windows activeWindow = Windows::Viewport;
-  
+
   bool mouseMove = false;
   bool justSelected = false;
 
@@ -47,10 +47,10 @@ class MyApplication : public ENDER::Application {
 
   ImGuizmo::OPERATION currentOperation = ImGuizmo::OPERATION::TRANSLATE;
 
-  glm::vec3 extrudeDirection = {0,1,0};
+  glm::vec3 extrudeDirection = {0, 1, 0};
   float extrudeHeight = 2;
   float rotateRadius = 1;
-  float rotateAngle = glm::pi<float>()*2;
+  float rotateAngle = glm::pi<float>() * 2;
 
   uint _appWidth;
   uint _appHeight;
@@ -58,8 +58,6 @@ class MyApplication : public ENDER::Application {
   int interpolationPointsCount = 30;
 
   ImVec2 sketchWindowPos;
-
-  sptr<ENDER::Object> sphere;
 
   glm::vec3 directionalLightDirection;
 

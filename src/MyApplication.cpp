@@ -58,6 +58,7 @@ void MyApplication::onStart() {
   directionalLight =
       new ENDER::DirectionalLight(directionalLightDirection, {1, 1, 1});
   viewportScene->addLight(directionalLight);
+  sketchScene->addLight(directionalLight);
 
   //
   // sphere = ENDER::Utils::createParametricSurface(
@@ -546,16 +547,19 @@ void MyApplication::onKeyPress(int key) {
   case GLFW_KEY_SPACE: {
     auto pos = viewportScene->getCamera()->getPosition();
 
-    auto lightCube = ENDER::Object::createCube("Light Debug Cube");
-    lightCube->setPosition(pos);
-    lightCube->setScale(glm::vec3(0.2f));
-    lightCube->setShader(lightCubeShader);
-    viewportScene->addObject(lightCube);
-
-    auto pointLight = new ENDER::PointLight(pos, glm::vec3(1));
-    viewportScene->addLight(pointLight);
+    // auto lightCube = ENDER::Object::createCube("Light Debug Cube");
+    // lightCube->setPosition(pos);
+    // lightCube->setScale(glm::vec3(0.2f));
+    // lightCube->setShader(lightCubeShader);
+    // viewportScene->addObject(lightCube);
+    //
+    // auto pointLight = new ENDER::PointLight(pos, glm::vec3(1));
+    // viewportScene->addLight(pointLight);
     if (splineDim) {
       auto point = EGEOM::Point::create(pos);
+      point->setScale({0.4, 0.4, 0.4});
+      point->isSelectable = true;
+      viewportScene->addObject(point);
       splineDim->addPoint(point);
     } else {
       spdlog::error("SPLINE NOT FOUND");
