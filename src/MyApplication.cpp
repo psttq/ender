@@ -8,6 +8,7 @@
 #include "Sketch.hpp"
 #include "Spline1.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
+#include "glm/matrix.hpp"
 #include "imgui.h"
 #include "spdlog/spdlog.h"
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
@@ -211,6 +212,31 @@ void MyApplication::handleViewportGUI() {
                          currentOperation, ImGuizmo::LOCAL,
                          glm::value_ptr(model));
 
+    float h = 1.0f / numCount;
+    if (splineDim->getSplineType() == EGEOM::Spline1::SplineType::NURBS)
+      for (auto i = 0; i <= numCount; ++i) {
+        float u = h * i;
+
+        auto gs = splineDim->getSplineDirs(u, 2);
+
+        glm::vec3 d = {glm::sqrt(2), glm::sqrt(2), glm::sqrt(2)};
+        auto i1 = glm::normalize(gs[1]->getPosition());
+        auto d2 = d - (glm::dot(i1, d)) * i1;
+        auto i2 = glm::normalize(d2);
+        auto i3 = glm::cross(i1, i2);
+
+        auto p1 = gs[0]->getPosition();
+        auto p2 = p1 + i1;
+        ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
+                            0xFFaaaa55);
+        auto p3 = p1 + i2;
+        ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p3.x, p3.y, p3.z, 0},
+                            0xAAFFaa55);
+        auto p4 = p1 + i3;
+        ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p4.x, p4.y, p4.z, 0},
+                            0xAAAAFF55);
+      }
+
     if (currentTool == Tools::Extrude &&
         selectedObjectViewport->label == "PivotPlane") {
       glm::vec3 p1 = selectedObjectViewport->getPosition();
@@ -232,6 +258,7 @@ void MyApplication::handleViewportGUI() {
 
       ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
                           0xFF110055);
+
     } else if (currentTool == Tools::Rotate &&
                selectedObjectViewport->label == "PivotPlane") {
       glm::vec3 p1 = selectedObjectViewport->getPosition();
@@ -291,6 +318,8 @@ void MyApplication::handleDebugGUI() {
         interpolationPointsCount);
     sketches[currentSketchId]->getSpline()->update();
   }
+
+  ImGui::SliderInt("Vecs", &numCount, 0, 60);
 
   ImGui::End();
 }
@@ -582,6 +611,53 @@ void MyApplication::onKeyPress(int key) {
   } break;
   case GLFW_KEY_Y: {
     currentOperation = ImGuizmo::OPERATION::SCALE;
+  } break;
+  case GLFW_KEY_U: {
+    auto currSpline = sketches[currentSketchId]->getSpline();
+    auto gs0 = splineDim->getSplineDirs(0, 3);
+    auto obj = ENDER::Utils::createParametricSurface(
+        [&](float u, float v) {
+          // auto g = splineDim->getSplineDirs(v,1)[0]->getPosition();
+          // auto g0 = splineDim->getSplinePoint(0);
+          // auto c = currSpline->getSplinePoint(u);
+          // glm::vec3 h = {0,0,0};
+          // auto p = g + (c- g0 - h);
+          // return p;
+
+          auto gs = splineDim->getSplineDirs(v, 4);
+
+          glm::vec3 d = {glm::sqrt(2), glm::sqrt(2), glm::sqrt(2)};
+
+          auto i1 = glm::normalize(gs[1]->getPosition());
+          auto d2 = d - (glm::dot(i1, d)) * i1;
+          auto i2 = glm::normalize(d2);
+          auto i3 = glm::cross(i1, i2);
+
+          auto i10 = glm::normalize(gs0[1]->getPosition());
+          auto d20 = d - (glm::dot(i10, d)) * i10;
+          auto i20 = glm::normalize(d20);
+          auto i30 = glm::cross(i10, i20);
+
+          glm::mat3 A{i1, i2, i3};
+          glm::mat3 Am{i10, i20, i30};
+          Am = glm::transpose(Am);
+
+          auto M = A * Am;
+
+          spdlog::info("M[][0] = {} {} {}", M[0][0], M[1][0], M[2][0]);
+          spdlog::info("M[][1] = {} {} {}", M[0][1], M[1][1], M[2][1]);
+          spdlog::info("M[][2] = {} {} {}", M[0][2], M[1][2], M[2][2]);
+
+          auto g = gs[0]->getPosition();
+          auto g0 = gs0[0]->getPosition();
+          auto c = currSpline->getSplinePoint(u);
+          glm::vec3 h = {0, 1, 0};
+          auto p = g + M * (c - g0 - h);
+          return p;
+        },
+        0, 0, 1, 1, 200, 200);
+    obj->isSelectable = true;
+    viewportScene->addObject(obj);
   } break;
   }
 }

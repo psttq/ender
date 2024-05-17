@@ -39,6 +39,7 @@ class MyApplication : public ENDER::Application {
 
   std::vector<sptr<EGEOM::Sketch>> sketches;
   int currentSketchId = -1;
+  int numCount = 10;
 
   sptr<EGEOM::Line> line;
 

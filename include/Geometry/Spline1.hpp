@@ -487,7 +487,7 @@ public:
 
     std::vector<glm::vec3> CK;
 
-    for (auto k = 0; k <= dirsCount; k++) {
+    for (auto k = 0; k <= du; k++) {
       auto v = aders[k];
       for (auto i = 1; i <= k; i++) {
         v = v - binomialCoeff(k, i) * wders[i] * CK[k - i];
@@ -603,6 +603,8 @@ public:
   std::vector<sptr<Point>> getPoints();
 
   glm::vec3 getSplinePoint(float u);
+  
+  std::vector<sptr<Point>> getSplineDirs(float u, int dirsCount);
 
   void setInterpolationPointsCount(uint count);
 
