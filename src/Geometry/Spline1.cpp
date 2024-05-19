@@ -187,7 +187,7 @@ glm::vec3 Spline1::getSplinePoint(float u) {
   return point->getPosition();
 }
 
-std::vector<sptr<Point>> Spline1::getSplineDirs(float u, int dirsCount){
+std::vector<sptr<Point>> Spline1::getSplineDirs(float u, int dirsCount) {
   return _splineBuilder->getSplineDerivatives(u, dirsCount);
 }
 
