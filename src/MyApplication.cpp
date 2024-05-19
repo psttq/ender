@@ -8,6 +8,7 @@
 #include "Sketch.hpp"
 #include "Spline1.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include "glm/matrix.hpp"
 #include "imgui.h"
 #include "spdlog/spdlog.h"
@@ -98,7 +99,25 @@ void MyApplication::onStart() {
   splineDim = EGEOM::Spline1::create({}, 100);
   splineDim->addPoint(EGEOM::Point::create({0, 0, 0}));
   splineDim->addPoint(EGEOM::Point::create({0, 2, 0}));
+  splineDim->addPoint(EGEOM::Point::create({4, 3, 0}));
+  splineDim->addPoint(EGEOM::Point::create({8, 4, 0}));
+  splineDim->addPoint(EGEOM::Point::create({12, 5, 0}));
+  splineDim->addPoint(EGEOM::Point::create({16, 4, 0}));
+  splineDim->addPoint(EGEOM::Point::create({20, 3, 0}));
+  splineDim->addPoint(EGEOM::Point::create({24, 2, 0}));
 
+  dimSplines.push_back(splineDim);
+  currentDimSpline = 0;
+  //
+  // std::vector<float> kv{};
+  // std::vector<float> wv{};
+  //
+  // auto nurbsBuilder = std::make_unique<EGEOM::RationalBSplineBuilder>(
+  //     splineDim->getPoints(), 4, kv, wv);
+  //
+  // splineDim->setSplineType(EGEOM::Spline1::SplineType::NURBS);
+  // splineDim->setSplineBuilder(std::move(nurbsBuilder));
+  //
   viewportScene->addObject(splineDim);
 
   viewportScene->addObject(grid);
@@ -213,22 +232,37 @@ void MyApplication::handleViewportGUI() {
                          glm::value_ptr(model));
 
     float h = 1.0f / numCount;
+
+    auto hs = [](float v) { return glm::vec3{v + 1000, v + 1000, v + 1000}; };
+
     if (splineDim->getSplineType() == EGEOM::Spline1::SplineType::NURBS)
       for (auto i = 0; i <= numCount; ++i) {
         float u = h * i;
 
-        auto gs = splineDim->getSplineDirs(u, 2);
+        auto gs = splineDim->getSplineDirs(u, 3);
 
-        glm::vec3 d = {glm::sqrt(2), glm::sqrt(2), glm::sqrt(2)};
+        if (gs.size() < 3)
+          break;
+
+        auto g2 = gs[2]->getPosition();
+        // glm::vec3 d = glm::normalize(
+        //     glm::cross(gs[1]->getPosition(), gs[0]->getPosition()));
+        //
+        glm::vec3 d = gs[1]->getPosition() - hs(u);
         auto i1 = glm::normalize(gs[1]->getPosition());
         auto d2 = d - (glm::dot(i1, d)) * i1;
         auto i2 = glm::normalize(d2);
         auto i3 = glm::cross(i1, i2);
 
+        auto dr = glm::normalize(d);
+
         auto p1 = gs[0]->getPosition();
         auto p2 = p1 + i1;
         ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
                             0xFFaaaa55);
+        ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0},
+                            {p1.x + dr.x, p1.y + dr.y, p1.z + dr.z, 0},
+                            0xFFFFFFFF);
         auto p3 = p1 + i2;
         ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p3.x, p3.y, p3.z, 0},
                             0xAAFFaa55);
@@ -319,7 +353,12 @@ void MyApplication::handleDebugGUI() {
     sketches[currentSketchId]->getSpline()->update();
   }
 
-  ImGui::SliderInt("Vecs", &numCount, 0, 60);
+  if (ImGui::SliderFloat3("DirectionalLight",
+                          glm::value_ptr(directionalLightDirection), -1, 1)) {
+    directionalLight->setDirection(directionalLightDirection);
+  }
+
+  ImGui::SliderInt("Vecs", &numCount, 0, 400);
 
   ImGui::End();
 }
@@ -424,6 +463,25 @@ void MyApplication::handleToolbarGUI() {
     setStyle = false;
   }
 
+  ImGui::SameLine();
+  if (currentTool == Tools::Spliner) {
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          (ImVec4)ImColor::HSV(7.0f, 0.7f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
+    setStyle = true;
+  }
+  if (ImGui::Button(ICON_FA_BEZIER_CURVE)) {
+    currentTool = Tools::Spliner;
+  }
+  ImGui::SetItemTooltip("Sketch Edit Tool");
+
+  if (setStyle) {
+    ImGui::PopStyleColor(3);
+    setStyle = false;
+  }
   if (ImGui::Button(ICON_FA_VECTOR_SQUARE)) {
     createPivotPlane();
   }
@@ -482,6 +540,7 @@ void MyApplication::onGUI() {
   handleObjectsGUI();
   handlePropertiesGUI();
   handleOperationPropertiesGUI();
+  handleDimensionalSplinesGUI();
 
   endDockspace();
 }
@@ -584,15 +643,17 @@ void MyApplication::onKeyPress(int key) {
     //
     // auto pointLight = new ENDER::PointLight(pos, glm::vec3(1));
     // viewportScene->addLight(pointLight);
-    if (splineDim) {
+    if (currentDimSpline >= 0 && currentTool == Tools::Spliner) {
       auto point = EGEOM::Point::create(pos);
       point->setScale({0.4, 0.4, 0.4});
       point->isSelectable = true;
       viewportScene->addObject(point);
-      splineDim->addPoint(point);
-    } else {
-      spdlog::error("SPLINE NOT FOUND");
+      dimSplines[currentDimSpline]->addPoint(point);
     }
+  } break;
+  case GLFW_KEY_P: {
+    auto pos = viewportScene->getCamera()->getPosition();
+    viewportScene->addLight(new ENDER::PointLight(pos, glm::vec3{1}));
   } break;
   case GLFW_KEY_L: {
     ENDER::Renderer::setDrawType(ENDER::Renderer::DrawType::Lines);
@@ -615,47 +676,57 @@ void MyApplication::onKeyPress(int key) {
   case GLFW_KEY_U: {
     auto currSpline = sketches[currentSketchId]->getSpline();
     auto gs0 = splineDim->getSplineDirs(0, 3);
+
+    auto hs = [](float v) {
+      return glm::vec3{v + 1000 * v * v, v - 1000 * v, v * v + 1000};
+    };
+    auto i10 = glm::normalize(gs0[1]->getPosition());
+    auto d20 = hs(0) - (glm::dot(i10, hs(0))) * i10;
+    auto i20 = glm::normalize(d20);
+    auto i30 = glm::cross(i10, i20);
+
+    glm::mat3 Am{i10, i20, i30};
+    Am = glm::inverse(Am);
+
     auto obj = ENDER::Utils::createParametricSurface(
         [&](float u, float v) {
-          // auto g = splineDim->getSplineDirs(v,1)[0]->getPosition();
-          // auto g0 = splineDim->getSplinePoint(0);
-          // auto c = currSpline->getSplinePoint(u);
-          // glm::vec3 h = {0,0,0};
-          // auto p = g + (c- g0 - h);
-          // return p;
-
-          auto gs = splineDim->getSplineDirs(v, 4);
-
-          glm::vec3 d = {glm::sqrt(2), glm::sqrt(2), glm::sqrt(2)};
-
-          auto i1 = glm::normalize(gs[1]->getPosition());
-          auto d2 = d - (glm::dot(i1, d)) * i1;
-          auto i2 = glm::normalize(d2);
-          auto i3 = glm::cross(i1, i2);
-
-          auto i10 = glm::normalize(gs0[1]->getPosition());
-          auto d20 = d - (glm::dot(i10, d)) * i10;
-          auto i20 = glm::normalize(d20);
-          auto i30 = glm::cross(i10, i20);
-
-          glm::mat3 A{i1, i2, i3};
-          glm::mat3 Am{i10, i20, i30};
-          Am = glm::transpose(Am);
-
-          auto M = A * Am;
-
-          spdlog::info("M[][0] = {} {} {}", M[0][0], M[1][0], M[2][0]);
-          spdlog::info("M[][1] = {} {} {}", M[0][1], M[1][1], M[2][1]);
-          spdlog::info("M[][2] = {} {} {}", M[0][2], M[1][2], M[2][2]);
-
-          auto g = gs[0]->getPosition();
-          auto g0 = gs0[0]->getPosition();
+          auto g = splineDim->getSplineDirs(v, 1)[0]->getPosition();
+          auto g0 = splineDim->getSplinePoint(0);
           auto c = currSpline->getSplinePoint(u);
-          glm::vec3 h = {0, 1, 0};
-          auto p = g + M * (c - g0 - h);
+          glm::vec3 h = {0, 0, 0};
+          auto p = g + (c - g0 - h);
           return p;
+
+          // auto gs = splineDim->getSplineDirs(v, 3);
+          //
+          // glm::vec3 d = gs[0]->getPosition() - hs(v);
+          // //
+          // // glm::vec3 d = glm::normalize(
+          // //     glm::cross(gs[1]->getPosition(), gs[2]->getPosition()));
+          //
+          // auto i1 = glm::normalize(gs[1]->getPosition());
+          // auto d2 = d - (glm::dot(i1, d)) * i1;
+          // auto i2 = glm::normalize(d2);
+          // auto i3 = glm::cross(i1, i2);
+          //
+          // glm::mat3 A{i1, i2, i3};
+          //
+          // // A = glm::transpose(A);
+          //
+          // auto M = A * Am;
+          //
+          // // spdlog::info("M[][0] = {} {} {}", M[0][0], M[1][0], M[2][0]);
+          // // spdlog::info("M[][1] = {} {} {}", M[0][1], M[1][1], M[2][1]);
+          // // spdlog::info("M[][2] = {} {} {}", M[0][2], M[1][2], M[2][2]);
+          // //
+          // auto g = gs[0]->getPosition();
+          // auto g0 = gs0[0]->getPosition();
+          // auto c = currSpline->getSplinePoint(u);
+          // glm::vec3 h = {0, 0, 0};
+          // auto p = g + M * (c - g0 - h);
+          // return p;
         },
-        0, 0, 1, 1, 200, 200);
+        0, 0, 1, 1, 600, 600);
     obj->isSelectable = true;
     viewportScene->addObject(obj);
   } break;
@@ -683,6 +754,31 @@ void MyApplication::onMouseMove(uint x, uint y) {
       sketches[currentSketchId]->getSpline()->update();
     }
   }
+}
+
+void MyApplication::handleDimensionalSplinesGUI() {
+  ImGui::Begin("DimSplines");
+  std::vector<const char *> objectsNameList;
+
+  for (auto &spline : dimSplines) {
+    objectsNameList.push_back(spline->getName().c_str());
+  }
+
+  if (ImGui::ListBox("Spline List", &currentDimSpline, &objectsNameList[0],
+                     objectsNameList.size(), 4)) {
+    auto selectedObj = dimSplines[currentDimSpline];
+    selectedObjectViewport = selectedObj;
+    for (auto &obj : viewportScene->getObjects()) {
+      obj->setSelected(false);
+    }
+    selectedObj->setSelected(true);
+  }
+  if (ImGui::Button("Create")) {
+    auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+    viewportScene->addObject(spline);
+    dimSplines.push_back(spline);
+  }
+  ImGui::End();
 }
 
 void MyApplication::handleSketchSideGUI() {
@@ -896,10 +992,11 @@ void MyApplication::handlePropertiesGUI() {
     if (selectedObjectViewport) {
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
-      auto spline = std::dynamic_pointer_cast<EGEOM::Spline1>(splineDim);
+      auto spline =
+          std::dynamic_pointer_cast<EGEOM::Spline1>(selectedObjectViewport);
       if (pivot)
         pivot->drawProperties(sketches);
-      else if (spline && selectedObjectViewport == splineDim) {
+      else if (spline) {
         spline->getPropertiesGUI(justSelected);
         justSelected = false;
       } else

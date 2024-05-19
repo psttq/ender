@@ -12,7 +12,7 @@
 
 class MyApplication : public ENDER::Application {
 
-  enum class Tools { Cursor, Pencil, Extrude, Rotate };
+  enum class Tools { Cursor, Pencil, Extrude, Rotate, Spliner };
 
   enum class Windows { SketchEditor, Viewport };
 
@@ -39,6 +39,10 @@ class MyApplication : public ENDER::Application {
 
   std::vector<sptr<EGEOM::Sketch>> sketches;
   int currentSketchId = -1;
+
+  std::vector<sptr<EGEOM::Spline1>> dimSplines;
+  int currentDimSpline = -1;
+
   int numCount = 10;
 
   sptr<EGEOM::Line> line;
@@ -86,6 +90,7 @@ public:
   void handleObjectsGUI();
   void handlePropertiesGUI();
   void handleOperationPropertiesGUI();
+  void handleDimensionalSplinesGUI();
 
   void createPivotPlane();
 
