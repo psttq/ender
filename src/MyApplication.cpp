@@ -197,6 +197,7 @@ void MyApplication::handleOperationPropertiesGUI() {
                   currentKinematicSurfaceType);
           auto obj = EGEOM::KinematicSurface::create(
               "Kinematic surface", formingSpline, guideSpline, surfType);
+          // obj->setPosition(guideSpline->getPoints()[0]->getPosition());
           viewportScene->addObject(obj);
         }
       }
@@ -824,6 +825,7 @@ void MyApplication::handleDimensionalSplinesGUI() {
   }
   if (ImGui::Button("Create")) {
     auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+    spline->addPoint(EGEOM::Point::create({0, 0, 0}));
     viewportScene->addObject(spline);
     dimSplines.push_back(spline);
   }
