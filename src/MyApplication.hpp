@@ -12,7 +12,7 @@
 
 class MyApplication : public ENDER::Application {
 
-  enum class Tools { Cursor, Pencil, Extrude, Rotate, Spliner };
+  enum class Tools { Cursor, Pencil, Extrude, Rotate, Spliner, Kinematic };
 
   enum class Windows { SketchEditor, Viewport };
 

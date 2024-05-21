@@ -2,12 +2,12 @@
 #include "ExtrudeSurface.hpp"
 #include "IconsFontAwesome5.h"
 #include "ImGuizmo.h"
+#include "KinematicSurfaces.hpp"
 #include "Point.hpp"
 #include "Renderer.hpp"
 #include "RotationSurface.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
-#include "glm/ext/quaternion_geometric.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/matrix.hpp"
 #include "imgui.h"
@@ -24,10 +24,18 @@ MyApplication::MyApplication(uint appWidth, uint appHeight)
       _appHeight(appHeight) {}
 
 void MyApplication::onStart() {
-  ENDER::Renderer::setClearColor({0.093f, 0.093f, 0.093f, 1.0f});
-  ENDER::Utils::applyImguiTheme();
+  bool darkTheme = false;
+
+  if (darkTheme) {
+    ENDER::Renderer::setClearColor({0.093f, 0.093f, 0.093f, 1.0f});
+    ENDER::Utils::applyImguiTheme();
+  } else {
+    ENDER::Renderer::setClearColor({1.f, 1.f, 1.f, 1.0f});
+    ENDER::Utils::applyImguiWhiteTheme();
+  }
 
   ImGuiIO &io = ImGui::GetIO();
+  io.Fonts->AddFontFromFileTTF("../resources/font.ttf", 14);
 
   ImFontConfig config;
   config.MergeMode = true;
@@ -170,6 +178,28 @@ void MyApplication::handleOperationPropertiesGUI() {
         }
       }
     }
+    ImGui::End();
+  } else if (currentTool == Tools::Kinematic) {
+    ImGui::Begin("KinematicSurface");
+    std::vector<const char *> items = {"Sweep", "Shift"};
+    int currentKinematicSurfaceType = 0;
+    ImGui::Combo("Kinematic Surface Type", &currentKinematicSurfaceType,
+                 &items[0], items.size());
+    if (ImGui::Button("Create"))
+      if (currentSketchId >= 0 && currentDimSpline >= 0) {
+        auto formingSpline = sketches[currentSketchId]->getSpline();
+        auto guideSpline = dimSplines[currentDimSpline];
+        if (formingSpline->getSplineType() ==
+                EGEOM::Spline1::SplineType::NURBS &&
+            guideSpline->getSplineType() == EGEOM::Spline1::SplineType::NURBS) {
+          auto surfType =
+              static_cast<EGEOM::KinematicSurface::KinematicSurfaceType>(
+                  currentKinematicSurfaceType);
+          auto obj = EGEOM::KinematicSurface::create(
+              "Kinematic surface", formingSpline, guideSpline, surfType);
+          viewportScene->addObject(obj);
+        }
+      }
     ImGui::End();
   }
 }
@@ -390,7 +420,7 @@ void MyApplication::handleSketchGUI() {
 void MyApplication::handleMenuBarGUI() {
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("Options")) {
-      if (ImGui::MenuItem("Close", NULL, false, &_isRunning != NULL))
+      if (ImGui::MenuItem("Close", NULL, false, true))
         close();
       ImGui::EndMenu();
     }
@@ -519,6 +549,25 @@ void MyApplication::handleToolbarGUI() {
     currentTool = Tools::Rotate;
   }
   ImGui::SetItemTooltip("Rotate Tool");
+
+  if (setStyle) {
+    ImGui::PopStyleColor(3);
+    setStyle = false;
+  }
+  ImGui::SameLine();
+  if (currentTool == Tools::Kinematic) {
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          (ImVec4)ImColor::HSV(7.0f, 0.7f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
+    setStyle = true;
+  }
+  if (ImGui::Button(ICON_FA_LAYER_GROUP)) {
+    currentTool = Tools::Kinematic;
+  }
+  ImGui::SetItemTooltip("Kinematic Surface Tool");
 
   if (setStyle) {
     ImGui::PopStyleColor(3);
