@@ -24,7 +24,7 @@ MyApplication::MyApplication(uint appWidth, uint appHeight)
       _appHeight(appHeight) {}
 
 void MyApplication::onStart() {
-  bool darkTheme = false;
+  bool darkTheme = true;
 
   if (darkTheme) {
     ENDER::Renderer::setClearColor({0.093f, 0.093f, 0.093f, 1.0f});

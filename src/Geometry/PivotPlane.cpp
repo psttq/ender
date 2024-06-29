@@ -34,7 +34,7 @@ void EGEOM::PivotPlane::setSketch(sptr<EGEOM::Sketch> sketch) {
   _currentSketch = sketch;
   auto newObj = ENDER::Object::create("PivotPlane_Child", sketch->getVAO());
   newObj->type = ObjectType::Line;
-  setChildObject(newObj);
+  addChildObject(newObj);
 }
 
 sptr<EGEOM::Sketch> EGEOM::PivotPlane::getSketch() { return _currentSketch; }
@@ -60,7 +60,7 @@ void EGEOM::PivotPlane::drawProperties(
   if (ImGui::TreeNode("Pivot Plane")) {
     if (ImGui::Combo("Sketches", &currentItem, &items[0], items.size())) {
       if (currentItem == 0) {
-        resetChildObject();
+        deleteAllChildren();
         _currentSketch = nullptr;
       } else
         setSketch(sketches[currentItem - 1]);

@@ -21,13 +21,9 @@ static const int MAX_POINT_LIGHTS_NUMBER = 100;
 
 class Renderer {
 public:
-  enum class DrawType {
-    Triangles,
-    Lines
-  };
+  enum class DrawType { Triangles, Lines };
 
 private:
-
   DrawType _drawType = DrawType::Triangles;
 
   sptr<Shader> _simpleShader;
@@ -56,15 +52,19 @@ private:
   void createCircleVAO();
 
   void renderObject(sptr<Object> object, sptr<Scene> scene);
-  void renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Shader> shader);
-  void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene, sptr<PickingTexture> pickingTexture);
+  void renderObject(sptr<Object> object, sptr<Scene> scene,
+                    sptr<Shader> shader);
+  void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene,
+                             sptr<PickingTexture> pickingTexture);
 
   void _configureSpotLight(sptr<Shader> shader, sptr<Camera> camera);
-  void _configurePointLight(sptr<Shader> shader, const std::string &pointLightLabel, PointLight *pointLight);
-  void _configureDirectionLight(sptr<Shader> shader, DirectionalLight *directionalLight);
+  void _configurePointLight(sptr<Shader> shader,
+                            const std::string &pointLightLabel,
+                            PointLight *pointLight);
+  void _configureDirectionLight(sptr<Shader> shader,
+                                DirectionalLight *directionalLight);
 
   void _configureLight(sptr<Shader> shader, sptr<Scene> scene);
-
 
   bool _renderNormals = false;
 
@@ -100,13 +100,11 @@ public:
   static void setRenderNormals(bool value);
   static bool isRenderingNormals();
 
-
   static sptr<Shader> shader();
 
   static void renderScene(sptr<Scene> scene, sptr<Framebuffer> framebuffer);
-  static void renderScene(sptr<Scene> scene);
-  static void renderObject(sptr<Object> object, sptr<Scene> scene, sptr<Framebuffer> framebuffer);
-
+  static void renderObject(sptr<Object> object, sptr<Scene> scene,
+                           sptr<Framebuffer> framebuffer);
 
   static unsigned int pickObjAt(uint x, uint y, uint window_height);
 
@@ -118,7 +116,7 @@ public:
 
   static sptr<VertexArray> getCubeVAO() { return instance().cubeVAO; }
   static sptr<VertexArray> getGridVAO() { return instance().gridVAO; }
-  static sptr<VertexArray> getCircleVAO() {return instance().circleVAO; }
+  static sptr<VertexArray> getCircleVAO() { return instance().circleVAO; }
 };
 
 static float debugSquareVertices[] = {
@@ -128,7 +126,7 @@ static float debugSquareVertices[] = {
     -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
     -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
     0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
-  -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
 };
 static unsigned int debugSquareIndices[] = {
     0, 1, 3, // first triangle

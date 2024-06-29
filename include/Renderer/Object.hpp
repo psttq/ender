@@ -25,7 +25,7 @@ protected:
   glm::vec3 _rotation{};
   glm::vec3 _scale = glm::vec3(1.0f);
 
-  sptr<Object> _childObject;
+  std::vector<sptr<Object>> _children;
 
   bool _selected = false;
 
@@ -77,11 +77,13 @@ public:
 
   sptr<Shader> getShader();
 
-  void setChildObject(sptr<Object> childObject);
+  void addChildObject(sptr<Object> childObject);
 
-  void resetChildObject();
+  bool hasChildren() const;
 
-  sptr<Object> getChildObject();
+  void deleteAllChildren();
+
+  std::vector<sptr<Object>> getChildren();
 
   sptr<VertexArray> getVertexArray() const;
 
