@@ -32,9 +32,9 @@ sptr<EGEOM::PivotPlane> EGEOM::PivotPlane::create(const std::string &name) {
 
 void EGEOM::PivotPlane::setSketch(sptr<EGEOM::Sketch> sketch) {
   _currentSketch = sketch;
-  auto newObj = ENDER::Object::create("PivotPlane_Child", sketch->getVAO());
-  newObj->type = ObjectType::Line;
-  addChildObject(newObj);
+  _currentSketch->setPosition(getPosition());
+  deleteAllChildren();
+  addChildObject(std::static_pointer_cast<ENDER::Object>(sketch));
 }
 
 sptr<EGEOM::Sketch> EGEOM::PivotPlane::getSketch() { return _currentSketch; }

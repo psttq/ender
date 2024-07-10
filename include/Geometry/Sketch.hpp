@@ -1,20 +1,22 @@
 #pragma once
-#include <string>
+#include "Object.hpp"
+#include "Wire.hpp"
 #include <Spline1.hpp>
+#include <string>
 
-namespace EGEOM{
-    class Sketch{
-        sptr<Spline1> _spline;
+namespace EGEOM {
+class Sketch : public ENDER::Object {
+  sptr<Wire> _wire;
 
-        Sketch(const std::string &name, sptr<Spline1> spline);
-    public:
-        std::string name;
+  Sketch(const std::string &name, sptr<Wire> wire);
 
-        static sptr<Sketch> create(const std::string &name, sptr<Spline1> spline);
+public:
+  std::string name;
 
-        sptr<Spline1> getSpline();
-        sptr<ENDER::VertexArray> getVAO();
+  static sptr<Sketch> create(const std::string &name, sptr<Wire> wire);
 
-        void setSpline(sptr<Spline1> spline);
-    };
-}
+  sptr<Wire> getWire();
+
+  void setWire(sptr<Wire> wire);
+};
+} // namespace EGEOM

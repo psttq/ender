@@ -8,6 +8,7 @@
 #include "RotationSurface.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
+#include "Wire.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/matrix.hpp"
 #include "imgui.h"
@@ -96,9 +97,11 @@ void MyApplication::onStart() {
   // viewportScene->addObject(cube);
   //
   auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+  auto wire = EGEOM::Wire::create();
+  wire->addEdge(spline);
 
-  auto newSketch = EGEOM::Sketch::create(
-      "Sketch " + std::to_string(sketches.size()), spline);
+  auto newSketch =
+      EGEOM::Sketch::create("Sketch " + std::to_string(sketches.size()), wire);
   sketches.push_back(newSketch);
   currentSketchId = sketches.size() - 1;
 
@@ -143,8 +146,10 @@ void MyApplication::handleOperationPropertiesGUI() {
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
       if (pivot && pivot->getSketch()) {
-        auto spline = pivot->getSketch()->getSpline();
-        if (spline) {
+        auto wire = pivot->getSketch()->getWire();
+        auto edges = wire->getEdges();
+        if (edges.size() == 1) {
+          auto spline = edges[0];
           auto obj =
               EGEOM::ExtrudeSurface::create(spline->getName() + "_ES", spline,
                                             extrudeDirection, extrudeHeight);
@@ -166,8 +171,10 @@ void MyApplication::handleOperationPropertiesGUI() {
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
       if (pivot && pivot->getSketch()) {
-        auto spline = pivot->getSketch()->getSpline();
-        if (spline) {
+        auto wire = pivot->getSketch()->getWire();
+        auto edges = wire->getEdges();
+        if (edges.size() == 1) {
+          auto spline = edges[0];
           auto obj = EGEOM::RotationSurface::create(
               spline->getName() + "_RS", spline, rotateAngle, rotateRadius);
           obj->setPosition(selectedObjectViewport->getPosition());
@@ -187,7 +194,8 @@ void MyApplication::handleOperationPropertiesGUI() {
                  &items[0], items.size());
     if (ImGui::Button("Create"))
       if (currentSketchId >= 0 && currentDimSpline >= 0) {
-        auto formingSpline = sketches[currentSketchId]->getSpline();
+        auto formingSpline =
+            sketches[currentSketchId]->getWire()->getEdges()[0];
         auto guideSpline = dimSplines[currentDimSpline];
         if (formingSpline->getSplineType() ==
                 EGEOM::Spline1::SplineType::NURBS &&
@@ -379,9 +387,11 @@ void MyApplication::handleDebugGUI() {
 
   if (ImGui::SliderInt("Interpolation Points Count", &interpolationPointsCount,
                        2, 300)) {
-    sketches[currentSketchId]->getSpline()->setInterpolationPointsCount(
-        interpolationPointsCount);
-    sketches[currentSketchId]->getSpline()->update();
+    sketches[currentSketchId]
+        ->getWire()
+        ->getEdges()[0]
+        ->setInterpolationPointsCount(interpolationPointsCount);
+    sketches[currentSketchId]->getWire()->getEdges()[0]->update();
   }
 
   if (ImGui::SliderFloat3("DirectionalLight",
@@ -605,19 +615,23 @@ void MyApplication::render() {
     return;
 
   if (renderDebugSplinePoints)
-    for (auto p :
-         sketches[currentSketchId]->getSpline()->getInterpolatedPoints()) {
+    for (auto p : sketches[currentSketchId]
+                      ->getWire()
+                      ->getEdges()[0]
+                      ->getInterpolatedPoints()) {
       p->material.ambient = {0.0, 0.6, 0.6};
       p->material.diffuse = {0.0, 0.6, 0.6};
 
       ENDER::Renderer::renderObject(p, sketchScene, sketchFramebuffer);
     }
 
-  for (auto p : sketches[currentSketchId]->getSpline()->getPoints()) {
+  for (auto p :
+       sketches[currentSketchId]->getWire()->getEdges()[0]->getPoints()) {
     ENDER::Renderer::renderObject(p, sketchScene, sketchFramebuffer);
   }
-  ENDER::Renderer::renderObject(sketches[currentSketchId]->getSpline(),
-                                sketchScene, sketchFramebuffer);
+  ENDER::Renderer::renderObject(
+      sketches[currentSketchId]->getWire()->getEdges()[0], sketchScene,
+      sketchFramebuffer);
 }
 
 void MyApplication::onKey(int key, ENDER::Window::EventStatus status) {}
@@ -648,7 +662,8 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
       sptr<ENDER::Object> currentSelected;
       auto pickedID =
           sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY);
-      for (auto object : sketches[currentSketchId]->getSpline()->getPoints()) {
+      for (auto object :
+           sketches[currentSketchId]->getWire()->getEdges()[0]->getPoints()) {
         object->setSelected(object->getId() == pickedID);
         if (object->getId() == pickedID) {
           currentSelected = object;
@@ -664,14 +679,14 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
           point = std::static_pointer_cast<EGEOM::Point>(currentSelected);
         }
         point->isSelectable = true;
-        sketches[currentSketchId]->getSpline()->addPoint(point);
+        sketches[currentSketchId]->getWire()->getEdges()[0]->addPoint(point);
 
       } else if (currentTool == Tools::Cursor) {
         if (currentSelected) {
           selectedObjectSketch = currentSelected;
           justSelected = true;
           for (auto object :
-               sketches[currentSketchId]->getSpline()->getPoints())
+               sketches[currentSketchId]->getWire()->getEdges()[0]->getPoints())
             object->setSelected(false);
           currentSelected->setSelected(true);
         }
@@ -724,7 +739,7 @@ void MyApplication::onKeyPress(int key) {
     currentOperation = ImGuizmo::OPERATION::SCALE;
   } break;
   case GLFW_KEY_U: {
-    auto currSpline = sketches[currentSketchId]->getSpline();
+    auto currSpline = sketches[currentSketchId]->getWire()->getEdges()[0];
     auto gs0 = splineDim->getSplineDirs(0, 3);
 
     auto hs = [](float v) {
@@ -801,7 +816,7 @@ void MyApplication::onMouseMove(uint x, uint y) {
           {mouseScreenPosX, mouseScreenPosY});
 
       selectedObjectSketch->setPosition({worldPos.x, 0, worldPos.y});
-      sketches[currentSketchId]->getSpline()->update();
+      sketches[currentSketchId]->getWire()->getEdges()[0]->update();
     }
   }
 }
@@ -836,9 +851,11 @@ void MyApplication::handleSketchSideGUI() {
   ImGui::Begin("Sketches");
   if (ImGui::Button("Add sketch")) {
     auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+    auto wire = EGEOM::Wire::create();
+    wire->addEdge(spline);
 
     auto newSketch = EGEOM::Sketch::create(
-        "Sketch " + std::to_string(sketches.size()), spline);
+        "Sketch " + std::to_string(sketches.size()), wire);
     sketches.push_back(newSketch);
     currentSketchId = sketches.size() - 1;
   }
@@ -857,7 +874,7 @@ void MyApplication::handleSketchSideGUI() {
       toml::table tbl;
 
       auto currentSketch = sketches[currentSketchId];
-      auto spline = currentSketch->getSpline();
+      auto spline = currentSketch->getWire()->getEdges()[0];
       toml::array points;
       for (auto &p : spline->getPoints()) {
         auto position = p->getPosition();
@@ -983,9 +1000,10 @@ void MyApplication::handleSketchSideGUI() {
         throw;
       }
       }
-
+      auto wire = EGEOM::Wire::create();
+      wire->addEdge(spline);
       auto newSketch = EGEOM::Sketch::create(
-          "Sketch " + std::to_string(sketches.size()), spline);
+          "Sketch " + std::to_string(sketches.size()), wire);
       sketches.push_back(newSketch);
       currentSketchId = sketches.size() - 1;
 
@@ -1025,6 +1043,27 @@ void MyApplication::handleObjectsGUI() {
     }
     selectedObj->setSelected(true);
   }
+  static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+  ImGuiTreeNodeFlags node_flags = base_flags;
+
+  if(ImGui::TreeNode("Objects")){
+    for(auto &obj: viewportScene->getObjects()){
+      if(obj->selected())
+        node_flags |= ImGuiTreeNodeFlags_Selected;
+      bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)obj->getId(), node_flags, obj->getName().c_str());
+      if(node_open)
+      {
+        for(auto child : obj->getChildren()){
+          bool child_open = ImGui::TreeNodeEx((void*)(intptr_t)child->getId(), node_flags, child->getName().c_str());
+          if(child_open){
+            ImGui::TreePop();
+          }
+        }
+      ImGui::TreePop();
+      }
+    }
+    ImGui::TreePop();
+  }
   ImGui::End();
 }
 
@@ -1057,7 +1096,8 @@ void MyApplication::handlePropertiesGUI() {
   }
   if (activeWindow == Windows::SketchEditor) {
     if (currentSketchId >= 0) {
-      sketches[currentSketchId]->getSpline()->getPropertiesGUI(justSelected);
+      sketches[currentSketchId]->getWire()->getEdges()[0]->getPropertiesGUI(
+          justSelected);
       justSelected = false;
     } else
       ImGui::Text("Select object to edit properties...");

@@ -83,7 +83,6 @@ sptr<ENDER::Object> ENDER::Object::createGrid(const std::string &name) {
 
 void ENDER::Object::addChildObject(sptr<ENDER::Object> childObject) {
   _children.push_back(childObject);
-  type = ObjectType::Multi;
 }
 
 void ENDER::Object::deleteAllChildren() {

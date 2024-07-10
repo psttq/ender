@@ -9,7 +9,7 @@
 namespace ENDER {
 class Object {
 public:
-  enum class ObjectType { Surface, Line, Multi };
+  enum class ObjectType { Surface, Line, Empty };
 
   bool isSelectable = false;
 

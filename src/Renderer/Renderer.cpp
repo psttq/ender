@@ -198,7 +198,15 @@ void ENDER::Renderer::_configureLight(sptr<Shader> shader, sptr<Scene> scene) {
   shader->setInt("pointLightsCount", pointLightsCount);
 }
 
-void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
+void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::optional<glm::mat4> model) {
+  if (object->hasChildren())
+    for (auto child : object->getChildren()) {
+        instance().renderObject(child, scene, model.value_or(object->getTransform()));
+    }
+  if (object->type == Object::ObjectType::Empty) {
+    return;
+  }
+
   auto camera = scene->getCamera();
 
   auto currentShader = object->getShader();
@@ -236,9 +244,8 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene) {
 
   currentShader->setFloat("time", Window::currentTime());
 
-  auto model = object->getTransform();
+    currentShader->setMat4("model", model.value_or(object->getTransform()));
 
-  currentShader->setMat4("model", model);
 
   _configureLight(currentShader, scene);
 
@@ -329,9 +336,6 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene,
     instance().renderObject(obj, scene);
     if (instance()._renderNormals)
       instance().renderObject(obj, scene, instance()._debugNormalsShader);
-    if (obj->hasChildren())
-      for (auto child : obj->getChildren())
-        instance().renderObject(child, scene);
   }
   if (framebuffer)
     framebuffer->unbind();
@@ -349,6 +353,12 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene,
 void ENDER::Renderer::renderObjectToPicking(
     sptr<Object> object, sptr<Scene> scene,
     sptr<PickingTexture> pickingTexture) {
+  if (object->hasChildren())
+    for (auto child : object->getChildren())
+      instance().renderObjectToPicking(child, scene, pickingTexture);
+  if (object->type == Object::ObjectType::Empty) {
+    return;
+  }
   pickingTexture->enableWriting();
   instance()._pickingEffect->use();
   instance()._pickingEffect->setInt("gObjectIndex", object->getId());
@@ -453,7 +463,13 @@ void ENDER::Renderer::setRenderNormals(bool value) {
 bool ENDER::Renderer::isRenderingNormals() { return instance()._renderNormals; }
 
 void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
-                                   sptr<Shader> shader) {
+                                   sptr<Shader> shader,  std::optional<glm::mat4> model) {
+  if (object->hasChildren())
+    for (auto child : object->getChildren())
+      instance().renderObject(child, scene, shader, object->getTransform());
+  if (object->type == Object::ObjectType::Empty) {
+    return;
+  }
   auto camera = scene->getCamera();
   shader->use();
 
@@ -463,9 +479,9 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
 
   auto objRotation = object->getRotation();
 
-  auto model = object->getTransform();
 
-  shader->setMat4("model", model);
+  shader->setMat4("model", model.value_or(object->getTransform()));
+
   object->getVertexArray()->bind();
 
   if (object->getVertexArray()->isIndexBuffer())
@@ -477,6 +493,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
 
 void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
                                    sptr<Framebuffer> framebuffer) {
+
   framebuffer->bind();
   /* RENDERING TO FRAMEBUFFER */
   instance().renderObject(object, scene);
@@ -484,4 +501,9 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
   if (object->isSelectable)
     instance().renderObjectToPicking(object, scene,
                                      framebuffer->getPickingTexture());
+  if (object->hasChildren()) {
+    for (auto children : object->getChildren()) {
+      renderObject(children, scene, framebuffer);
+    }
+  }
 }

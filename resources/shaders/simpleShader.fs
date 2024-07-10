@@ -85,7 +85,7 @@ void main()
     if(spotLight.toggled)
         result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
     if(selected)
-        result *= vec3(0.3, 0.3, 0);
+        result *= vec3(1.5, 1.5, 1.5);
     FragColor = vec4(result, 1.0);
 }
 

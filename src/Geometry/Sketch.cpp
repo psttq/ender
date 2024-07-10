@@ -1,20 +1,24 @@
 #include <Sketch.hpp>
 
-EGEOM::Sketch::Sketch(const std::string &name, sptr<EGEOM::Spline1> spline) : name(name), _spline(std::move(spline)){
+EGEOM::Sketch::Sketch(const std::string &name, sptr<EGEOM::Wire> wire)
+    : ENDER::Object(name), name(name), _wire(std::move(wire)) {
+  type = ObjectType::Empty;
+   for (auto edge : _wire->getEdges()) {
+    edge->setPosition(getPosition());
+    addChildObject(edge);
+  }
 }
 
-sptr<EGEOM::Spline1> EGEOM::Sketch::getSpline() {
-    return _spline;
+sptr<EGEOM::Wire> EGEOM::Sketch::getWire() { return _wire; }
+
+void EGEOM::Sketch::setWire(sptr<EGEOM::Wire> wire) {
+  _wire = wire;
+  for (auto edge : _wire->getEdges()) {
+    addChildObject(edge);
+  }
 }
 
-void EGEOM::Sketch::setSpline(sptr<EGEOM::Spline1> spline) {
-    _spline = spline;
-}
-
-sptr<EGEOM::Sketch> EGEOM::Sketch::create(const std::string &name, sptr<EGEOM::Spline1> spline) {
-    return sptr<EGEOM::Sketch>(new Sketch(name, std::move(spline)));
-}
-
-sptr<ENDER::VertexArray> EGEOM::Sketch::getVAO() {
-    return _spline->getVertexArray();
+sptr<EGEOM::Sketch> EGEOM::Sketch::create(const std::string &name,
+                                          sptr<EGEOM::Wire> wire) {
+  return sptr<EGEOM::Sketch>(new Sketch(name, std::move(wire)));
 }

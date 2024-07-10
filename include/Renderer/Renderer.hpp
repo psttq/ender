@@ -51,9 +51,9 @@ private:
   void createDebugSquareVAO();
   void createCircleVAO();
 
-  void renderObject(sptr<Object> object, sptr<Scene> scene);
+  void renderObject(sptr<Object> object, sptr<Scene> scene, std::optional<glm::mat4> model = std::nullopt);
   void renderObject(sptr<Object> object, sptr<Scene> scene,
-                    sptr<Shader> shader);
+                    sptr<Shader> shader,  std::optional<glm::mat4> model = std::nullopt);
   void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene,
                              sptr<PickingTexture> pickingTexture);
 
