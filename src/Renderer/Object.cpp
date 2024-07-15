@@ -11,6 +11,8 @@ bool ENDER::Object::selected() const { return _selected; }
 
 void ENDER::Object::setSelected(bool selected) { this->_selected = selected; }
 
+
+
 ENDER::Object::Object(const std::string &name, sptr<VertexArray> vertexArray)
     : _name(name), _vertexArray(vertexArray) {
   static unsigned int _objCount = 1;
@@ -84,6 +86,11 @@ sptr<ENDER::Object> ENDER::Object::createGrid(const std::string &name) {
 void ENDER::Object::addChildObject(sptr<ENDER::Object> childObject) {
   _children.push_back(childObject);
 }
+
+void ENDER::Object::deleteChildObject(sptr<Object> childObject){
+  _children.erase(std::remove(_children.begin(), _children.end(), childObject), _children.end());
+}
+
 
 void ENDER::Object::deleteAllChildren() {
   _children.clear();

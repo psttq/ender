@@ -35,6 +35,7 @@ public:
                               uint interpolatedPointsCount);
 
   void addPoint(sptr<Point> point);
+  void removePoint(sptr<Point> point);
 
   void setPoints(const std::vector<sptr<Point>> &points);
 

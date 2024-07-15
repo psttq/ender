@@ -81,6 +81,8 @@ public:
 
   bool hasChildren() const;
 
+  void deleteChildObject(sptr<Object> childObject);
+
   void deleteAllChildren();
 
   std::vector<sptr<Object>> getChildren();

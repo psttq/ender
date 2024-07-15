@@ -65,6 +65,12 @@ void Spline1::addPoint(sptr<Point> point) {
   update();
 }
 
+void Spline1::removePoint(sptr<Point> point) {
+  auto iter = std::remove(_splineBuilder->points.begin(),
+                          _splineBuilder->points.end(), point);
+  _splineBuilder->points.erase(iter, _splineBuilder->points.end());
+}
+
 std::vector<sptr<Point>> Spline1::getPoints() { return _splineBuilder->points; }
 
 sptr<Spline1> Spline1::create(const std::vector<sptr<Point>> &points,
