@@ -84,9 +84,11 @@ void main()
 
     if(spotLight.toggled)
         result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
-    if(selected)
-        result *= vec3(1.5, 1.5, 1.5);
-    FragColor = vec4(result, 1.0);
+    if(selected){
+        result *= vec3(0.5, 0.5, 3.5);
+        FragColor = vec4(result, 0.5);}
+    else
+        FragColor = vec4(result, 1.0);
 }
 
 // calculates the color when using a directional light.

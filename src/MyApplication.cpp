@@ -19,6 +19,7 @@
 #include <fstream>
 #include <glm/gtx/rotate_vector.hpp>
 #include <toml.hpp>
+#include <set>
 
 MyApplication::MyApplication(uint appWidth, uint appHeight)
     : ENDER::Application(appWidth, appHeight), _appWidth(appWidth),
@@ -156,9 +157,8 @@ void MyApplication::handleOperationPropertiesGUI()
       {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
-        if (edges.size() == 1)
+        for(auto spline : edges)
         {
-          auto spline = edges[0];
           auto obj =
               EGEOM::ExtrudeSurface::create(spline->getName() + "_ES", spline,
                                             extrudeDirection, extrudeHeight);
@@ -186,9 +186,8 @@ void MyApplication::handleOperationPropertiesGUI()
       {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
-        if (edges.size() == 1)
+        for(auto spline : edges)
         {
-          auto spline = edges[0];
           auto obj = EGEOM::RotationSurface::create(
               spline->getName() + "_RS", spline, rotateAngle, rotateRadius);
           obj->setPosition(selectedObjectViewport->getPosition());
@@ -691,18 +690,18 @@ void MyApplication::render()
     for (auto p :
          edge->getPoints())
     {
-    if (sketches[currentSketchId]->getWire()->isCurrentEdge(edge))
-    {
-      p->material.ambient = {0.5, 0.3, 0.7};
-      p->material.diffuse = {0.5, 0.3, 0.7};
-      p->material.specular = {0.5, 0.3, 0.7};
-    }
-    else
-    {
-      p->material.ambient = {1.0f, 0.5f, 0.31f};
-      p->material.diffuse = {1.0f, 0.5f, 0.31f};
-      p->material.specular = {0.5f, 0.5f, 0.5f};
-    }
+      if (sketches[currentSketchId]->getWire()->isCurrentEdge(edge))
+      {
+        p->material.ambient = {0.5, 0.3, 0.7};
+        p->material.diffuse = {0.5, 0.3, 0.7};
+        p->material.specular = {0.5, 0.3, 0.7};
+      }
+      else
+      {
+        p->material.ambient = {1.0f, 0.5f, 0.31f};
+        p->material.diffuse = {1.0f, 0.5f, 0.31f};
+        p->material.specular = {0.5f, 0.5f, 0.5f};
+      }
       ENDER::Renderer::renderObject(p, sketchScene, sketchFramebuffer);
     }
     if (sketches[currentSketchId]->getWire()->isCurrentEdge(edge))
@@ -796,7 +795,7 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
           if (object->getId() == pickedID)
           {
             currentSelected = object;
-            if(currentTool == Tools::Cursor)
+            if (currentTool == Tools::Cursor)
               sketches[currentSketchId]->getWire()->setCurrentEdge(edge);
           }
         }
@@ -1044,12 +1043,22 @@ void MyApplication::handleSketchSideGUI()
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
-      toml::table tbl;
+      toml::array wires;
+      toml::table result_table;
 
       auto currentSketch = sketches[currentSketchId];
-      auto spline = currentSketch->getWire()->getEdges()[0]; // TODO: change save for wire
+
+      std::set<sptr<EGEOM::Point>> points_set;
+      for (auto edge : currentSketch->getWire()->getEdges())
+      {
+        for (auto point : edge->getPoints())
+        {
+          points_set.insert(point);
+        }
+      }
+
       toml::array points;
-      for (auto &p : spline->getPoints())
+      for (auto &p : points_set)
       {
         auto position = p->getPosition();
         auto pointTable = toml::table{
@@ -1058,60 +1067,79 @@ void MyApplication::handleSketchSideGUI()
         points.push_back(pointTable);
       }
 
-      switch (spline->getSplineType())
+      for (auto spline : currentSketch->getWire()->getEdges())
       {
-      case EGEOM::Spline1::SplineType::LinearInterpolation:
-      {
+        toml::table tbl;
 
-        tbl = toml::table{{"type", static_cast<int>(spline->getSplineType())},
-                          {"points", points}};
-      }
-      break;
-      case EGEOM::Spline1::SplineType::NURBS:
-      {
-        auto splineBuilder =
-            spline->getSplineBuilder<EGEOM::RationalBSplineBuilder>();
-        auto knotVector = splineBuilder.knotVector;
-        auto weights = splineBuilder.weights;
-        auto power = splineBuilder.bSplinePower;
+        toml::array spline_points;
 
-        auto knotVectorToml = toml::array{};
-        for (auto &e : knotVector)
+        for (auto point : spline->getPoints())
         {
-          knotVectorToml.push_back(e);
+          int i = 0;
+          for (auto ps : points_set)
+          {
+            if (ps == point)
+              break;
+            i++;
+          }
+          spline_points.push_back(i);
         }
 
-        auto weigtsToml = toml::array{};
-        for (auto &e : weights)
+        switch (spline->getSplineType())
         {
-          weigtsToml.push_back(e);
+        case EGEOM::Spline1::SplineType::LinearInterpolation:
+        {
+
+          tbl = toml::table{{"type", static_cast<int>(spline->getSplineType())},
+                            {"points", spline_points}};
         }
+        break;
+        case EGEOM::Spline1::SplineType::NURBS:
+        {
+          auto splineBuilder =
+              spline->getSplineBuilder<EGEOM::RationalBSplineBuilder>();
+          auto knotVector = splineBuilder.knotVector;
+          auto weights = splineBuilder.weights;
+          auto power = splineBuilder.bSplinePower;
 
-        tbl = toml::table{{"type", static_cast<int>(spline->getSplineType())},
-                          {"power", power},
-                          {"knotVector", knotVectorToml},
-                          {"weights", weigtsToml},
-                          {"points", points}};
-      }
-      break;
-      default:
-      {
-        spdlog::error("Can't write sketch of this type!");
-      }
-      }
+          auto knotVectorToml = toml::array{};
+          for (auto &e : knotVector)
+          {
+            knotVectorToml.push_back(e);
+          }
 
-      if (!tbl.empty())
+          auto weigtsToml = toml::array{};
+          for (auto &e : weights)
+          {
+            weigtsToml.push_back(e);
+          }
+
+          tbl = toml::table{{"type", static_cast<int>(spline->getSplineType())},
+                            {"power", power},
+                            {"knotVector", knotVectorToml},
+                            {"weights", weigtsToml},
+                            {"points", spline_points}};
+        }
+        break;
+        default:
+        {
+          spdlog::error("Can't write sketch of this type!");
+        }
+        }
+        wires.push_back(tbl);
+      }
+      result_table = toml::table{{"points_set", points}, {"wires", wires}};
+      if (!result_table.empty())
       {
         std::ofstream fs(filePathName);
-        fs << tbl;
+        fs << result_table;
         spdlog::info("Sketch successefully written to {}", filePathName);
       }
       // action
     }
-
-    // close
     ImGuiFileDialog::Instance()->Close();
   }
+  // close
 
   ImGui::SameLine();
 
@@ -1131,16 +1159,9 @@ void MyApplication::handleSketchSideGUI()
 
       auto tbl = toml::parse_file(filePathName);
 
-      auto splineTypeId = *tbl["type"].value<int>();
-
-      auto splineType = static_cast<EGEOM::Spline1::SplineType>(splineTypeId);
-      auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
-
-      spline->setSplineType(splineType);
-
       std::vector<sptr<EGEOM::Point>> points;
 
-      auto pointsTbl = tbl["points"].as_array();
+      auto pointsTbl = tbl["points_set"].as_array();
 
       pointsTbl->for_each([&points](auto &&el)
                           {
@@ -1148,8 +1169,36 @@ void MyApplication::handleSketchSideGUI()
           auto x = *el["x"].template value<float>();
           auto y = *el["y"].template value<float>();
           auto z = *el["z"].template value<float>();
-          points.push_back(EGEOM::Point::create({x, y, z}));
+          auto point = EGEOM::Point::create({x, y, z});
+          point->isSelectable = true;
+          points.push_back(point);
         } });
+
+      spdlog::info("Points loaded");
+
+      auto wiresTbl = tbl["wires"].as_array();
+      auto wire = EGEOM::Wire::create();
+
+      wiresTbl->for_each([&](auto &&el)
+                         {
+      if constexpr (toml::is_table<decltype(el)>) {
+
+
+      auto splineTypeId = *el["type"].template value<int>();
+      spdlog::info("Spline type: {}", splineTypeId);
+
+      auto splineType = static_cast<EGEOM::Spline1::SplineType>(splineTypeId);
+      auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
+
+      spline->setSplineType(splineType);
+
+      std::vector<sptr<EGEOM::Point>> spline_points;
+      el["points"].as_array()->for_each([&spline_points, &points](auto &&el)
+                                               {
+          if constexpr (toml::is_integer<decltype(el)>) {
+            spdlog::info("Knot vector: {}", *el);
+            spline_points.push_back(points[*el]);
+          } });
 
       switch (splineType)
       {
@@ -1157,7 +1206,7 @@ void MyApplication::handleSketchSideGUI()
       {
         auto linearBuilder =
             std::make_unique<EGEOM::LinearInterpolationBuilder>(
-                points,
+                spline_points,
                 EGEOM::LinearInterpolationBuilder::ParamMethod::Uniform);
         spline->setSplineBuilder(std::move(linearBuilder));
         spline->update();
@@ -1167,20 +1216,22 @@ void MyApplication::handleSketchSideGUI()
       {
         std::vector<float> knotVector;
         std::vector<float> weights;
-        int power = *tbl["power"].value<int>();
-        tbl["knotVector"].as_array()->for_each([&knotVector](auto &&el)
+
+        int power = *el["power"].template value<int>();
+        el["knotVector"].as_array()->for_each([&knotVector](auto &&el)
                                                {
           if constexpr (toml::is_floating_point<decltype(el)>) {
+            spdlog::info("Knot vector: {}", *el);
             knotVector.push_back(*el);
           } });
-        tbl["weights"].as_array()->for_each([&weights](auto &&el)
+        el["weights"].as_array()->for_each([&weights](auto &&el)
                                             {
           if constexpr (toml::is_floating_point<decltype(el)>) {
             weights.push_back(*el);
           } });
 
         auto nurbsBuilder = std::make_unique<EGEOM::RationalBSplineBuilder>(
-            points, power, knotVector, weights);
+            spline_points, power, knotVector, weights);
         spline->setSplineBuilder(std::move(nurbsBuilder));
         spline->update();
       }
@@ -1191,8 +1242,9 @@ void MyApplication::handleSketchSideGUI()
         throw;
       }
       }
-      auto wire = EGEOM::Wire::create();
       wire->addEdge(spline);
+      } });
+
       auto newSketch = EGEOM::Sketch::create(
           "Sketch " + std::to_string(sketches.size()), wire);
       sketches.push_back(newSketch);
