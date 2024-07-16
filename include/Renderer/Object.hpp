@@ -12,6 +12,7 @@ public:
   enum class ObjectType { Surface, Line, Empty };
 
   bool isSelectable = false;
+  bool isHoverable = true;
 
 protected:
   unsigned int _id;
@@ -28,7 +29,7 @@ protected:
   std::vector<sptr<Object>> _children;
 
   bool _selected = false;
-
+  bool _hovered = false;
 public:
   Material material;
 
@@ -44,6 +45,10 @@ public:
   bool selected() const;
 
   void setSelected(bool selected);
+
+  void setHovered(bool hovered){ _hovered = hovered; };
+
+  bool hovered() const { return _hovered; }
 
   void setTexture(Texture *texture);
 

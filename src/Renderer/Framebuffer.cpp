@@ -47,8 +47,9 @@ sptr<ENDER::Framebuffer> ENDER::Framebuffer::create(float width, float height) {
   return std::shared_ptr<Framebuffer>(new Framebuffer(width, height));
 }
 
-uint ENDER::Framebuffer::pickObjAt(uint x, uint y) {
-  return _pickingTexture->readPixel(x, _height - y - 1).objectID;
+ENDER::Framebuffer::ObjectInfo ENDER::Framebuffer::pickObjAt(uint x, uint y) {
+  auto pixInfo = _pickingTexture->readPixel(x, _height - y - 1);
+  return {pixInfo.objectID, pixInfo.parentID};
 }
 
 uint ENDER::Framebuffer::getId() { return _id; }

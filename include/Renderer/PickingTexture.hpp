@@ -25,11 +25,11 @@ namespace ENDER {
 
         struct PixelInfo {
             unsigned int objectID = 0;
-            unsigned int drawID = 0;
+            unsigned int parentID = 0;
             unsigned int primID = 0;
 
             void print() {
-                spdlog::debug("Object %d draw %d prim %d\n", objectID, drawID, primID);
+                spdlog::debug("Object %d draw %d prim %d\n", objectID, parentID, primID);
             }
         };
 

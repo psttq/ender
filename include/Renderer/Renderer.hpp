@@ -17,7 +17,7 @@ static const int MAX_POINT_LIGHTS_NUMBER = 100;
 #define CIRCLE_VERTICES_COUNT 20
 #define CIRCLE_RADIUS 0.020f
 
-#define LINE_WIDTH 2
+#define LINE_WIDTH 5
 
 class Renderer {
 public:
@@ -55,7 +55,7 @@ private:
   void renderObject(sptr<Object> object, sptr<Scene> scene,
                     sptr<Shader> shader,  std::optional<glm::mat4> model = std::nullopt);
   void renderObjectToPicking(sptr<Object> object, sptr<Scene> scene,
-                             sptr<PickingTexture> pickingTexture);
+                             sptr<PickingTexture> pickingTexture, sptr<Object> parent = nullptr);
 
   void _configureSpotLight(sptr<Shader> shader, sptr<Camera> camera);
   void _configurePointLight(sptr<Shader> shader,

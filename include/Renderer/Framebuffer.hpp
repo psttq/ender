@@ -4,6 +4,12 @@
 
 namespace ENDER {
     class Framebuffer {
+        public:
+        struct ObjectInfo{
+            uint objectId;
+            uint parentId;
+        };
+        private:
         uint _id;
         uint _rid;
         uint _tid;
@@ -28,7 +34,7 @@ namespace ENDER {
 
         void clear();
 
-        uint pickObjAt(uint x, uint y); 
+        ObjectInfo pickObjAt(uint x, uint y); 
         // here we bind our framebuffer
         void bind();
 

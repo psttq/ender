@@ -19,10 +19,12 @@
 
 ENDER::Renderer::Renderer() {}
 
-void ENDER::Renderer::init() {
+void ENDER::Renderer::init()
+{
   spdlog::info("Inititing renderer.");
 
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  {
     spdlog::error("Failed to initialize GLAD");
     throw;
   }
@@ -99,19 +101,23 @@ void ENDER::Renderer::init() {
   glLineWidth(LINE_WIDTH);
 }
 
-unsigned int ENDER::Renderer::getPickingTextureID() {
+unsigned int ENDER::Renderer::getPickingTextureID()
+{
   return instance()._pickingTexture->getTextureID();
 }
 
-void ENDER::Renderer::framebufferSizeCallback(int width, int height) {
+void ENDER::Renderer::framebufferSizeCallback(int width, int height)
+{
   glViewport(0, 0, width, height);
 }
 
-void ENDER::Renderer::pickingResize(float width, float height) {
+void ENDER::Renderer::pickingResize(float width, float height)
+{
   instance()._pickingTexture->updateTextureSize(width, height);
 }
 
-ENDER::Renderer::~Renderer() {
+ENDER::Renderer::~Renderer()
+{
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
@@ -120,7 +126,8 @@ ENDER::Renderer::~Renderer() {
 }
 
 void ENDER::Renderer::_configureSpotLight(sptr<Shader> shader,
-                                          sptr<Camera> camera) {
+                                          sptr<Camera> camera)
+{
   shader->setVec3("spotLight.position", camera->getPosition());
   shader->setVec3("spotLight.direction", camera->getFront());
   shader->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
@@ -137,7 +144,8 @@ void ENDER::Renderer::_configureSpotLight(sptr<Shader> shader,
 
 void ENDER::Renderer::_configurePointLight(sptr<Shader> shader,
                                            const std::string &pointLightLabel,
-                                           PointLight *pointLight) {
+                                           PointLight *pointLight)
+{
   shader->setVec3(pointLightLabel + ".position", pointLight->position());
   shader->setVec3(pointLightLabel + ".ambient", pointLight->ambient());
   shader->setVec3(pointLightLabel + ".diffuse", pointLight->diffuse());
@@ -148,7 +156,8 @@ void ENDER::Renderer::_configurePointLight(sptr<Shader> shader,
 }
 
 void ENDER::Renderer::_configureDirectionLight(
-    sptr<Shader> shader, DirectionalLight *directionalLight) {
+    sptr<Shader> shader, DirectionalLight *directionalLight)
+{
   shader->setBool("dirLight.enabled", true);
   shader->setVec3("dirLight.direction", directionalLight->direction());
   shader->setVec3("dirLight.ambient", directionalLight->ambient());
@@ -156,17 +165,22 @@ void ENDER::Renderer::_configureDirectionLight(
   shader->setVec3("dirLight.specular", directionalLight->specular());
 }
 
-void ENDER::Renderer::_configureLight(sptr<Shader> shader, sptr<Scene> scene) {
+void ENDER::Renderer::_configureLight(sptr<Shader> shader, sptr<Scene> scene)
+{
   unsigned int pointLightsCount = 0;
 
-  for (auto light : scene->getLights()) {
-    switch (light->type) {
-    case Light::LightType::PointLight: {
+  for (auto light : scene->getLights())
+  {
+    switch (light->type)
+    {
+    case Light::LightType::PointLight:
+    {
       if (pointLightsCount == MAX_POINT_LIGHTS_NUMBER)
         continue;
 
       auto pointLight = dynamic_cast<PointLight *>(light);
-      if (pointLight == nullptr) {
+      if (pointLight == nullptr)
+      {
         spdlog::error("ENDER::Renderer::renderObject: something went wrong "
                       "when casting light");
         continue;
@@ -179,16 +193,20 @@ void ENDER::Renderer::_configureLight(sptr<Shader> shader, sptr<Scene> scene) {
       _configurePointLight(shader, pointLightLabel, pointLight);
 
       pointLightsCount++;
-    } break;
-    case Light::LightType::DirectionalLight: {
+    }
+    break;
+    case Light::LightType::DirectionalLight:
+    {
       auto directionalLight = dynamic_cast<DirectionalLight *>(light);
-      if (directionalLight == nullptr) {
+      if (directionalLight == nullptr)
+      {
         spdlog::error("ENDER::Renderer::renderObject: something went wrong "
                       "when casting light");
         continue;
       }
       _configureDirectionLight(shader, directionalLight);
-    } break;
+    }
+    break;
     default:
       spdlog::error("ENDER::Renderer::renderObject: unknown type of light");
       continue;
@@ -198,12 +216,15 @@ void ENDER::Renderer::_configureLight(sptr<Shader> shader, sptr<Scene> scene) {
   shader->setInt("pointLightsCount", pointLightsCount);
 }
 
-void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::optional<glm::mat4> model) {
+void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::optional<glm::mat4> model)
+{
   if (object->hasChildren())
-    for (auto child : object->getChildren()) {
-        instance().renderObject(child, scene, model.value_or(object->getTransform()));
+    for (auto child : object->getChildren())
+    {
+      instance().renderObject(child, scene, model.value_or(object->getTransform()));
     }
-  if (object->type == Object::ObjectType::Empty) {
+  if (object->type == Object::ObjectType::Empty)
+  {
     return;
   }
 
@@ -211,31 +232,45 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::
 
   auto currentShader = object->getShader();
 
-  if (currentShader == nullptr) {
-    if (object->type == Object::ObjectType::Surface) {
+  auto material = object->material;
+  if (object->hovered())
+  {
+    material = Material();
+    material.ambient = {1.0f, 0.7f, 0.51f};
+    material.ambient*=1.4f;
+  }
+
+  if (currentShader == nullptr)
+  {
+    if (object->type == Object::ObjectType::Surface)
+    {
       currentShader = instance()._simpleShader;
       currentShader->use();
-      currentShader->setVec3("material.diffuse", object->material.diffuse);
-      currentShader->setVec3("material.ambient", object->material.ambient);
-      if (object->getTexture() != nullptr) {
+      currentShader->setVec3("material.diffuse", material.diffuse);
+      currentShader->setVec3("material.ambient", material.ambient);
+      if (object->getTexture() != nullptr)
+      {
         currentShader = instance()._textureShader;
         object->getTexture()->setAsCurrent();
         currentShader->use();
         currentShader->setInt("material.diffuse", 0);
       }
-    } else if (object->type == Object::ObjectType::Line) {
+    }
+    else if (object->type == Object::ObjectType::Line)
+    {
       currentShader = instance()._simpleShaderLine;
       currentShader->use();
-      currentShader->setVec3("material.diffuse", object->material.diffuse);
-      currentShader->setVec3("material.ambient", object->material.ambient);
+      currentShader->setVec3("material.diffuse", material.diffuse);
+      currentShader->setVec3("material.ambient", material.ambient);
     }
-  } else
+  }
+  else
     currentShader->use();
 
   currentShader->setVec3("viewPos", camera->getPosition());
 
-  currentShader->setVec3("material.specular", object->material.specular);
-  currentShader->setFloat("material.shininess", object->material.shininess);
+  currentShader->setVec3("material.specular", material.specular);
+  currentShader->setFloat("material.shininess", material.shininess);
 
   _configureSpotLight(currentShader, camera);
 
@@ -244,8 +279,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::
 
   currentShader->setFloat("time", Window::currentTime());
 
-    currentShader->setMat4("model", model.value_or(object->getTransform()));
-
+  currentShader->setMat4("model", model.value_or(object->getTransform()));
 
   _configureLight(currentShader, scene);
 
@@ -254,13 +288,18 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::
   object->getVertexArray()->bind();
 
   auto drawType = GL_TRIANGLES;
-  switch (_drawType) {
-  case DrawType::Triangles: {
+  switch (_drawType)
+  {
+  case DrawType::Triangles:
+  {
     drawType = GL_TRIANGLES;
-  } break;
-  case DrawType::Lines: {
+  }
+  break;
+  case DrawType::Lines:
+  {
     drawType = GL_LINES;
-  } break;
+  }
+  break;
   default:
     spdlog::error("Unreachable");
   }
@@ -271,20 +310,24 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::
   if (object->getVertexArray()->isIndexBuffer())
     glDrawElements(drawType, object->getVertexArray()->indexCount(),
                    GL_UNSIGNED_INT, 0);
-  else {
+  else
+  {
     glDrawArrays(drawType, 0, object->getVertexArray()->verticesCount());
   }
 }
 
-void ENDER::Renderer::setClearColor(const glm::vec4 &color) {
+void ENDER::Renderer::setClearColor(const glm::vec4 &color)
+{
   glClearColor(color.r, color.g, color.b, color.a);
 }
 
-void ENDER::Renderer::clear() {
+void ENDER::Renderer::clear()
+{
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void ENDER::Renderer::clearPicking() {
+void ENDER::Renderer::clearPicking()
+{
   instance()._pickingTexture->enableWriting();
   clear();
   instance()._pickingTexture->disableWriting();
@@ -292,7 +335,8 @@ void ENDER::Renderer::clearPicking() {
 
 void ENDER::Renderer::swapBuffers() { Window::swapBuffers(); }
 
-void ENDER::Renderer::begin(std::function<void()> imguiDrawCallback) {
+void ENDER::Renderer::begin(std::function<void()> imguiDrawCallback)
+{
   Window::pollEvents();
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
@@ -300,7 +344,8 @@ void ENDER::Renderer::begin(std::function<void()> imguiDrawCallback) {
   imguiDrawCallback();
 }
 
-void ENDER::Renderer::end() {
+void ENDER::Renderer::end()
+{
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   // Update and Render additional Platform Windows
@@ -311,20 +356,24 @@ void ENDER::Renderer::end() {
   Window::flash();
 }
 
-void ENDER::Renderer::setDrawType(DrawType drawType) {
+void ENDER::Renderer::setDrawType(DrawType drawType)
+{
   instance()._drawType = drawType;
 }
 
-glm::mat4 ENDER::Renderer::getProjectMatrix() {
+glm::mat4 ENDER::Renderer::getProjectMatrix()
+{
   return instance()._projectMatrix;
 }
 
-sptr<ENDER::Shader> ENDER::Renderer::shader() {
+sptr<ENDER::Shader> ENDER::Renderer::shader()
+{
   return instance()._simpleShader;
 }
 
 void ENDER::Renderer::renderScene(sptr<Scene> scene,
-                                  sptr<Framebuffer> framebuffer = nullptr) {
+                                  sptr<Framebuffer> framebuffer = nullptr)
+{
   if (framebuffer)
     framebuffer->clear();
   else
@@ -332,7 +381,8 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene,
   if (framebuffer)
     framebuffer->bind();
   /* RENDERING TO FRAMEBUFFER */
-  for (const auto &obj : scene->getObjects()) {
+  for (const auto &obj : scene->getObjects())
+  {
     instance().renderObject(obj, scene);
     if (instance()._renderNormals)
       instance().renderObject(obj, scene, instance()._debugNormalsShader);
@@ -341,7 +391,8 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene,
     framebuffer->unbind();
 
   /* RENDERING TO PICKING TEXTURE */
-  for (const auto &obj : scene->getObjects()) {
+  for (const auto &obj : scene->getObjects())
+  {
     if (obj->isSelectable)
       instance().renderObjectToPicking(obj, scene,
                                        framebuffer
@@ -352,32 +403,37 @@ void ENDER::Renderer::renderScene(sptr<Scene> scene,
 
 void ENDER::Renderer::renderObjectToPicking(
     sptr<Object> object, sptr<Scene> scene,
-    sptr<PickingTexture> pickingTexture) {
+    sptr<PickingTexture> pickingTexture, sptr<Object> parent)
+{
   if (object->hasChildren())
     for (auto child : object->getChildren())
-      instance().renderObjectToPicking(child, scene, pickingTexture);
-  if (object->type == Object::ObjectType::Empty) {
+      instance().renderObjectToPicking(child, scene, pickingTexture, parent ? parent : object);
+  if (object->type == Object::ObjectType::Empty)
+  {
     return;
   }
   pickingTexture->enableWriting();
   instance()._pickingEffect->use();
   instance()._pickingEffect->setInt("gObjectIndex", object->getId());
-  instance()._pickingEffect->setInt("gDrawIndex", 0); // TODO: impl
+  instance()._pickingEffect->setInt("gObjectParent", parent ? parent->getId() : 0); // TODO: impl
   instance().renderObject(object, scene, instance()._pickingEffect);
   pickingTexture->disableWriting();
 }
 
 unsigned int ENDER::Renderer::pickObjAt(unsigned int x, unsigned int y,
-                                        unsigned int window_height) {
+                                        unsigned int window_height)
+{
   return instance()
       ._pickingTexture->readPixel(x, window_height - y - 1)
       .objectID;
 }
 
-void ENDER::Renderer::createCircleVAO() {
+void ENDER::Renderer::createCircleVAO()
+{
   std::vector<float> vertices;
   float dangle = 2 * glm::pi<float>() / (CIRCLE_VERTICES_COUNT - 1);
-  for (auto i = 0; i < CIRCLE_VERTICES_COUNT - 1; i++) {
+  for (auto i = 0; i < CIRCLE_VERTICES_COUNT - 1; i++)
+  {
     float angle = dangle * i;
     vertices.insert(vertices.end(), {glm::sin(angle) * CIRCLE_RADIUS, 0.01,
                                      glm::cos(angle) * CIRCLE_RADIUS});
@@ -395,7 +451,8 @@ void ENDER::Renderer::createCircleVAO() {
   circleVAO->addVBO(std::move(vbo));
 }
 
-void ENDER::Renderer::createCubeVAO() {
+void ENDER::Renderer::createCubeVAO()
+{
   auto cubeLayout =
       uptr<BufferLayout>(new BufferLayout({{ENDER::LayoutObjectType::Float3},
                                            {ENDER::LayoutObjectType::Float3},
@@ -408,7 +465,8 @@ void ENDER::Renderer::createCubeVAO() {
   cubeVAO->addVBO(std::move(cubeVBO));
 }
 
-void ENDER::Renderer::createGridVAO() {
+void ENDER::Renderer::createGridVAO()
+{
   auto gridLayout = uptr<BufferLayout>(
       new ENDER::BufferLayout({ENDER::LayoutObjectType::Float3}));
   auto gridVBO = std::make_unique<VertexBuffer>(std::move(gridLayout));
@@ -426,7 +484,8 @@ void ENDER::Renderer::createGridVAO() {
   _gridShader->setFloat("far", far);
 }
 
-void ENDER::Renderer::createDebugSquareVAO() {
+void ENDER::Renderer::createDebugSquareVAO()
+{
   spdlog::debug("Creating debug VAO");
   auto layout = uptr<BufferLayout>(new BufferLayout(
       {{ENDER::LayoutObjectType::Float3}, {ENDER::LayoutObjectType::Float2}}));
@@ -437,7 +496,8 @@ void ENDER::Renderer::createDebugSquareVAO() {
   debugSquareVAO->addVBO(std::move(vbo));
 }
 
-void ENDER::Renderer::renderDebugTexture(unsigned int textureID) {
+void ENDER::Renderer::renderDebugTexture(unsigned int textureID)
+{
   instance()._debugSquareShader->use();
 
   glActiveTexture(GL_TEXTURE0);
@@ -448,7 +508,8 @@ void ENDER::Renderer::renderDebugTexture(unsigned int textureID) {
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void ENDER::Renderer::renderDebugTexture(Texture *texture) {
+void ENDER::Renderer::renderDebugTexture(Texture *texture)
+{
   texture->setAsCurrent();
   instance()._debugSquareShader->use();
   instance().debugSquareVAO->bind();
@@ -456,18 +517,21 @@ void ENDER::Renderer::renderDebugTexture(Texture *texture) {
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void ENDER::Renderer::setRenderNormals(bool value) {
+void ENDER::Renderer::setRenderNormals(bool value)
+{
   instance()._renderNormals = value;
 }
 
 bool ENDER::Renderer::isRenderingNormals() { return instance()._renderNormals; }
 
 void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
-                                   sptr<Shader> shader,  std::optional<glm::mat4> model) {
+                                   sptr<Shader> shader, std::optional<glm::mat4> model)
+{
   if (object->hasChildren())
     for (auto child : object->getChildren())
       instance().renderObject(child, scene, shader, object->getTransform());
-  if (object->type == Object::ObjectType::Empty) {
+  if (object->type == Object::ObjectType::Empty)
+  {
     return;
   }
   auto camera = scene->getCamera();
@@ -479,20 +543,42 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
 
   auto objRotation = object->getRotation();
 
-
   shader->setMat4("model", model.value_or(object->getTransform()));
 
   object->getVertexArray()->bind();
 
+   auto drawType = GL_TRIANGLES;
+  switch (_drawType)
+  {
+  case DrawType::Triangles:
+  {
+    drawType = GL_TRIANGLES;
+  }
+  break;
+  case DrawType::Lines:
+  {
+    drawType = GL_LINES;
+  }
+  break;
+  default:
+    spdlog::error("Unreachable");
+  }
+
+  if (object->type == Object::ObjectType::Line)
+    drawType = GL_LINE_STRIP;
+
   if (object->getVertexArray()->isIndexBuffer())
-    glDrawElements(GL_TRIANGLES, object->getVertexArray()->indexCount(),
+    glDrawElements(drawType, object->getVertexArray()->indexCount(),
                    GL_UNSIGNED_INT, 0);
   else
-    glDrawArrays(GL_TRIANGLES, 0, object->getVertexArray()->verticesCount());
+  {
+    glDrawArrays(drawType, 0, object->getVertexArray()->verticesCount());
+  }
 }
 
 void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
-                                   sptr<Framebuffer> framebuffer) {
+                                   sptr<Framebuffer> framebuffer)
+{
 
   framebuffer->bind();
   /* RENDERING TO FRAMEBUFFER */
@@ -501,8 +587,10 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
   if (object->isSelectable)
     instance().renderObjectToPicking(object, scene,
                                      framebuffer->getPickingTexture());
-  if (object->hasChildren()) {
-    for (auto children : object->getChildren()) {
+  if (object->hasChildren())
+  {
+    for (auto children : object->getChildren())
+    {
       renderObject(children, scene, framebuffer);
     }
   }

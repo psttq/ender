@@ -160,7 +160,7 @@ void MyApplication::handleOperationPropertiesGUI()
 
         std::set<sptr<EGEOM::Point>> edgesPoints;
 
-        for(auto spline : edges)
+        for (auto spline : edges)
         {
           auto obj =
               EGEOM::ExtrudeSurface::create(spline->getName() + "_ES", spline,
@@ -170,11 +170,12 @@ void MyApplication::handleOperationPropertiesGUI()
           obj->isSelectable = true;
 
           edgesPoints.insert(*spline->getPoints().begin());
-          edgesPoints.insert(*(spline->getPoints().end()-1));
+          edgesPoints.insert(*(spline->getPoints().end() - 1));
 
           viewportScene->addObject(obj);
         }
-        for(auto edgePoint : edgesPoints){
+        for (auto edgePoint : edgesPoints)
+        {
           auto point = edgePoint->getPosition();
 
           auto newEdge = EGEOM::Spline1::create({}, interpolationPointsCount);
@@ -182,16 +183,15 @@ void MyApplication::handleOperationPropertiesGUI()
           newEdge->setName("EDGE");
 
           newEdge->setSplineType(EGEOM::Spline1::SplineType::Parametric);
-          auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(new EGEOM::ParametricBuilder([&](float v){
-             return point + v * extrudeHeight * extrudeDirection;
-          }));
+          auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(new EGEOM::ParametricBuilder([&](float v)
+                                                                                               { return point + v * extrudeHeight * extrudeDirection; }));
           newEdge->setSplineBuilder(std::move(parametricBuilder));
           newEdge->setPosition(selectedObjectViewport->getPosition());
           newEdge->setRotation(selectedObjectViewport->getRotation());
-          newEdge->update();
+          newEdge->update();\
+          newEdge->isSelectable = true;
           viewportScene->addObject(newEdge);
         }
-
       }
     }
     ImGui::End();
@@ -213,7 +213,7 @@ void MyApplication::handleOperationPropertiesGUI()
 
         std::set<sptr<EGEOM::Point>> edgesPoints;
 
-        for(auto spline : edges)
+        for (auto spline : edges)
         {
           auto obj = EGEOM::RotationSurface::create(
               spline->getName() + "_RS", spline, rotateAngle, rotateRadius);
@@ -222,26 +222,26 @@ void MyApplication::handleOperationPropertiesGUI()
           obj->isSelectable = true;
 
           edgesPoints.insert(*spline->getPoints().begin());
-          edgesPoints.insert(*(spline->getPoints().end()-1));
+          edgesPoints.insert(*(spline->getPoints().end() - 1));
 
           viewportScene->addObject(obj);
         }
-          for(auto edgePoint : edgesPoints){
+        for (auto edgePoint : edgesPoints)
+        {
           auto point = edgePoint->getPosition();
 
           auto newEdge = EGEOM::Spline1::create({}, 200);
 
-
           newEdge->setName("EDGE");
 
           newEdge->setSplineType(EGEOM::Spline1::SplineType::Parametric);
-          auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(new EGEOM::ParametricBuilder([&](float v){
+          auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(new EGEOM::ParametricBuilder([&](float v)
+                                                                                               {
               auto splinePoint =
                 point + glm::vec3{-rotateRadius, 0, 0};
               return glm::vec3{rotateRadius, 0, 0} +
                     glm::vec3{splinePoint.x * glm::cos(v), splinePoint.x * glm::sin(v),
-                              splinePoint.z};
-          }));
+                              splinePoint.z}; }));
           newEdge->u_max = rotateAngle;
           newEdge->setSplineBuilder(std::move(parametricBuilder));
           newEdge->setPosition(selectedObjectViewport->getPosition());
@@ -299,14 +299,19 @@ void MyApplication::handleViewportGUI()
   {
     activeWindow = Windows::Viewport;
   }
+  ImVec2 screen_pos = ImGui::GetCursorScreenPos();
+  auto mousePosition = ENDER::Window::getMousePosition();
+  auto objInfo = viewportFramebuffer->pickObjAt(
+      mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
+  for (auto object : viewportScene->getObjects())
+  {
+    object->setHovered(object->getId() == objInfo.objectId);
+  }
 
   if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
       ImGui::IsWindowFocused() && !ImGuizmo::IsUsing())
   {
-    ImVec2 screen_pos = ImGui::GetCursorScreenPos();
-    auto mousePosition = ENDER::Window::getMousePosition();
-    auto pickedID = viewportFramebuffer->pickObjAt(
-        mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
+    auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
     for (auto object : viewportScene->getObjects())
     {
       object->setSelected(object->getId() == pickedID);
@@ -803,7 +808,7 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
 
       sptr<ENDER::Object> currentSelected;
       auto pickedID =
-          sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY);
+          sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY).objectId;
       for (auto object :
            sketches[currentSketchId]->getWire()->getCurrentEdge()->getPoints())
       {
@@ -839,7 +844,7 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
 
       sptr<ENDER::Object> currentSelected;
       auto pickedID =
-          sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY);
+          sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY).objectId;
       for (auto edge : sketches[currentSketchId]->getWire()->getEdges())
         for (auto object :
              edge->getPoints())
