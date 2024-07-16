@@ -1,0 +1,35 @@
+[[points_set]]
+x = 1.0
+y = 0.0
+z = -1.0
+
+[[points_set]]
+x = 1.0
+y = 0.0
+z = 1.0
+
+[[points_set]]
+x = -1.0
+y = 0.0
+z = -1.0
+
+[[points_set]]
+x = -1.0
+y = 0.0
+z = 1.0
+
+[[wires]]
+points = [ 2, 0 ]
+type = 0
+
+[[wires]]
+points = [ 0, 1 ]
+type = 0
+
+[[wires]]
+points = [ 3, 1 ]
+type = 0
+
+[[wires]]
+points = [ 2, 3 ]
+type = 0
