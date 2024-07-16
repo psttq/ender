@@ -15,8 +15,11 @@ public:
     Bezier,
     RationalBezier,
     BSpline,
-    NURBS
+    NURBS,
+    Parametric
   };
+
+  float u_max = 1.0f;
 
 private:
   int _interpolatedPointsCount;

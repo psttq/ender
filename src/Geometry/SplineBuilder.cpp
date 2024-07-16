@@ -4,6 +4,25 @@
 
 namespace EGEOM {
 /////////////////////////////////////
+/// ParametricBuilder
+/////////////////////////////////////
+
+ParametricBuilder::ParametricBuilder(ParametricFunction paramFunc) : SplineBuilder({}), _paramFunc(paramFunc){
+
+}
+
+sptr<Point> ParametricBuilder::getSplinePoint(float t){
+  return Point::create(_paramFunc(t));
+}
+
+void ParametricBuilder::rebuild() {}
+
+bool ParametricBuilder::drawPropertiesGui() {
+  ImGui::Text("Parametric Builder");
+  return false;
+}
+
+/////////////////////////////////////
 /// LinearInterpolationBuilder
 /////////////////////////////////////
 

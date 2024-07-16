@@ -157,6 +157,9 @@ void MyApplication::handleOperationPropertiesGUI()
       {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
+
+        std::set<sptr<EGEOM::Point>> edgesPoints;
+
         for(auto spline : edges)
         {
           auto obj =
@@ -166,8 +169,29 @@ void MyApplication::handleOperationPropertiesGUI()
           obj->setRotation(selectedObjectViewport->getRotation());
           obj->isSelectable = true;
 
+          edgesPoints.insert(*spline->getPoints().begin());
+          edgesPoints.insert(*(spline->getPoints().end()-1));
+
           viewportScene->addObject(obj);
         }
+        for(auto edgePoint : edgesPoints){
+          auto point = edgePoint->getPosition();
+
+          auto newEdge = EGEOM::Spline1::create({}, interpolationPointsCount);
+
+          newEdge->setName("EDGE");
+
+          newEdge->setSplineType(EGEOM::Spline1::SplineType::Parametric);
+          auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(new EGEOM::ParametricBuilder([&](float v){
+             return point + v * extrudeHeight * extrudeDirection;
+          }));
+          newEdge->setSplineBuilder(std::move(parametricBuilder));
+          newEdge->setPosition(selectedObjectViewport->getPosition());
+          newEdge->setRotation(selectedObjectViewport->getRotation());
+          newEdge->update();
+          viewportScene->addObject(newEdge);
+        }
+
       }
     }
     ImGui::End();
@@ -186,6 +210,9 @@ void MyApplication::handleOperationPropertiesGUI()
       {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
+
+        std::set<sptr<EGEOM::Point>> edgesPoints;
+
         for(auto spline : edges)
         {
           auto obj = EGEOM::RotationSurface::create(
@@ -194,7 +221,33 @@ void MyApplication::handleOperationPropertiesGUI()
           obj->setRotation(selectedObjectViewport->getRotation());
           obj->isSelectable = true;
 
+          edgesPoints.insert(*spline->getPoints().begin());
+          edgesPoints.insert(*(spline->getPoints().end()-1));
+
           viewportScene->addObject(obj);
+        }
+          for(auto edgePoint : edgesPoints){
+          auto point = edgePoint->getPosition();
+
+          auto newEdge = EGEOM::Spline1::create({}, 200);
+
+
+          newEdge->setName("EDGE");
+
+          newEdge->setSplineType(EGEOM::Spline1::SplineType::Parametric);
+          auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(new EGEOM::ParametricBuilder([&](float v){
+              auto splinePoint =
+                point + glm::vec3{-rotateRadius, 0, 0};
+              return glm::vec3{rotateRadius, 0, 0} +
+                    glm::vec3{splinePoint.x * glm::cos(v), splinePoint.x * glm::sin(v),
+                              splinePoint.z};
+          }));
+          newEdge->u_max = rotateAngle;
+          newEdge->setSplineBuilder(std::move(parametricBuilder));
+          newEdge->setPosition(selectedObjectViewport->getPosition());
+          newEdge->setRotation(selectedObjectViewport->getRotation());
+          newEdge->update();
+          viewportScene->addObject(newEdge);
         }
       }
     }

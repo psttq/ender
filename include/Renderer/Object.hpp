@@ -96,6 +96,7 @@ public:
   virtual void drawGizmo() {}
 
   std::string getName() const;
+  void setName(const std::string &name);
 
   static sptr<Object> create(const std::string &name,
                              sptr<VertexArray> vertexArray);

@@ -24,14 +24,16 @@ Spline1::Spline1(const std::vector<sptr<Point>> &points,
 }
 
 void Spline1::_calculateDrawPoints() {
-  if (_splineBuilder->points.size() < 2)
+  if (_splineType != SplineType::Parametric && _splineBuilder->points.size() < 2)
     return;
 
   _interpolatedPoints.clear();
   for (auto i = 0; i < _interpolatedPointsCount; i++) {
-    float t = i * 1.f / (_interpolatedPointsCount - 1);
+    float t = i * u_max / (_interpolatedPointsCount - 1);
+
     _interpolatedPoints.push_back(_splineBuilder->getSplinePoint(t));
   }
+
 
   _rawData.clear();
   for (auto point : _interpolatedPoints) {
@@ -86,7 +88,7 @@ void Spline1::setSplineBuilder(uptr<SplineBuilder> splineBuilder) {
 
 void Spline1::getPropertiesGUI(bool scrollToPoint) {
   std::vector<const char *> items = {"Linear Interpolation", "Bezier",
-                                     "Rational Bezier", "BSpline", "NURBS"};
+                                     "Rational Bezier", "BSpline", "NURBS", "Parametric"};
   int currentItem = static_cast<int>(_splineType);
 
   if (ImGui::Combo("Spline Type", &currentItem, &items[0], items.size())) {
