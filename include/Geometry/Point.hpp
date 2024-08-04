@@ -8,6 +8,8 @@ public:
 
   static sptr<Point> create(const glm::vec3 &position);
 
+  sptr<Point> copy();
+
   Point operator+(const Point &other) {
     auto thisPos = getPosition();
     auto otherPos = other.getPosition();

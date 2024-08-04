@@ -236,7 +236,10 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene, std::
   if (object->hovered())
   {
     material = Material();
-    material.ambient = {1.0f, 0.7f, 0.51f};
+    // material.ambient = {1.0f, 0.7f, 0.51f};
+    material.ambient = {1.0f, 0.0f, 0.0f};
+    material.diffuse= {1.0f, 0.0f, 0.0f};
+    material.specular = {1.0f, 0.0f, 0.0f};
     material.ambient*=1.4f;
   }
 
@@ -405,6 +408,7 @@ void ENDER::Renderer::renderObjectToPicking(
     sptr<Object> object, sptr<Scene> scene,
     sptr<PickingTexture> pickingTexture, sptr<Object> parent)
 {
+
   if (object->hasChildren())
     for (auto child : object->getChildren())
       instance().renderObjectToPicking(child, scene, pickingTexture, parent ? parent : object);
@@ -415,8 +419,8 @@ void ENDER::Renderer::renderObjectToPicking(
   pickingTexture->enableWriting();
   instance()._pickingEffect->use();
   instance()._pickingEffect->setInt("gObjectIndex", object->getId());
-  instance()._pickingEffect->setInt("gObjectParent", parent ? parent->getId() : 0); // TODO: impl
-  instance().renderObject(object, scene, instance()._pickingEffect);
+  instance()._pickingEffect->setInt("gObjectParent", parent ? parent->getId() : 0);
+  instance().renderObject(object, scene, instance()._pickingEffect, parent ? std::optional{parent->getTransform()} : std::nullopt);
   pickingTexture->disableWriting();
 }
 
