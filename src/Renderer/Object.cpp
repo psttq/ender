@@ -103,6 +103,34 @@ std::vector<sptr<ENDER::Object>> ENDER::Object::getChildren() {
 
 bool ENDER::Object::hasChildren() const { return !_children.empty(); }
 
+bool ENDER::Object::hasChildById(uint childID) {
+    for(auto child : _children){
+        if(child->getId() == childID)
+            return true;
+        if(child->hasChildById(childID))
+            return true;
+    }
+    return false;
+}
+
+std::optional<sptr<ENDER::Object>> ENDER::Object::getChildByID(uint childID){
+    for(auto child : _children){
+           if(child->getId() == childID)
+               return child;
+            auto child_of_child = child->getChildByID(childID);
+            if(child_of_child.has_value())
+                return child_of_child.value();
+       }
+       return std::nullopt;
+}
+
+void ENDER::Object::setHovered(bool hovered){
+    _hovered = hovered;
+    for(auto child : _children){
+        child->setHovered(hovered);
+    }
+}
+
 void ENDER::Object::drawProperties() {
   if (ImGui::TreeNode("Transform")) {
     ImGui::InputFloat3("Position", glm::value_ptr(_position));

@@ -1,3 +1,4 @@
+#include "Point.hpp"
 #include "Utils.hpp"
 #include <SplineBuilder.hpp>
 #include <ranges>
@@ -7,11 +8,10 @@ namespace EGEOM {
 /// ParametricBuilder
 /////////////////////////////////////
 
-ParametricBuilder::ParametricBuilder(ParametricFunction paramFunc) : SplineBuilder({}), _paramFunc(paramFunc){
+ParametricBuilder::ParametricBuilder(ParametricFunction paramFunc)
+    : SplineBuilder({}), _paramFunc(paramFunc) {}
 
-}
-
-sptr<Point> ParametricBuilder::getSplinePoint(float t){
+sptr<Point> ParametricBuilder::getSplinePoint(float t) {
   return Point::create(_paramFunc(t));
 }
 
@@ -20,6 +20,10 @@ void ParametricBuilder::rebuild() {}
 bool ParametricBuilder::drawPropertiesGui() {
   ImGui::Text("Parametric Builder");
   return false;
+}
+
+uptr<SplineBuilder> ParametricBuilder::clone() {
+  return uptr<ParametricBuilder>(new ParametricBuilder(_paramFunc));
 }
 
 /////////////////////////////////////
@@ -31,6 +35,15 @@ LinearInterpolationBuilder::LinearInterpolationBuilder(
     : SplineBuilder(points), paramMethod(paramMethod) {
   calculateParameter();
 };
+
+uptr<SplineBuilder> LinearInterpolationBuilder::clone() {
+  std::vector<sptr<Point>> pointsCopy;
+  for (auto point : points) {
+    pointsCopy.push_back(point->clone());
+  }
+  return uptr<LinearInterpolationBuilder>(
+      new LinearInterpolationBuilder(pointsCopy, paramMethod));
+}
 
 void LinearInterpolationBuilder::rebuild() { calculateParameter(); };
 
@@ -151,6 +164,14 @@ BezierBuilder::BezierBuilder(const std::vector<sptr<Point>> &points,
                              int bezierPower)
     : SplineBuilder(points), bezierPower(bezierPower) {}
 
+uptr<SplineBuilder> BezierBuilder::clone() {
+  std::vector<sptr<Point>> pointsCopy;
+  for (auto point : points) {
+    pointsCopy.push_back(point->clone());
+  }
+  return uptr<BezierBuilder>(new BezierBuilder(pointsCopy, bezierPower));
+}
+
 sptr<Point> BezierBuilder::getSplinePoint(float t) {
   if (useDeCasteljau) {
     return _deCasteljau(t);
@@ -218,6 +239,15 @@ RationalBezierBuilder::RationalBezierBuilder(
         "points vector. Initializing weights vector with 1.");
     w = std::vector<float>(points.size(), 1);
   }
+}
+
+uptr<SplineBuilder> RationalBezierBuilder::clone() {
+  std::vector<sptr<Point>> pointsCopy;
+  for (auto point : points) {
+    pointsCopy.push_back(point->clone());
+  }
+  return uptr<RationalBezierBuilder>(
+      new RationalBezierBuilder(pointsCopy, bezierPower, w));
 }
 
 sptr<Point> RationalBezierBuilder::getSplinePoint(float t) {
@@ -308,6 +338,15 @@ BSplineBuilder::BSplineBuilder(const std::vector<sptr<Point>> &points,
     : SplineBuilder(points), bSplinePower(bSplinePower),
       knotVector(knotVector) {
   _checkAndSetDefault();
+}
+
+uptr<SplineBuilder> BSplineBuilder::clone() {
+  std::vector<sptr<Point>> pointsCopy;
+  for (auto point : points) {
+    pointsCopy.push_back(point->clone());
+  }
+  return uptr<BSplineBuilder>(
+      new BSplineBuilder(pointsCopy, bSplinePower, knotVector));
 }
 
 sptr<Point> BSplineBuilder::getSplinePoint(float t) {
@@ -422,6 +461,15 @@ RationalBSplineBuilder::RationalBSplineBuilder(
     : SplineBuilder(points), bSplinePower(bSplinePower), knotVector(knotVector),
       weights(weights) {
   _checkAndSetDefault();
+}
+
+uptr<SplineBuilder> RationalBSplineBuilder::clone() {
+  std::vector<sptr<Point>> pointsCopy;
+  for (auto point : points) {
+    pointsCopy.push_back(point->clone());
+  }
+  return uptr<RationalBSplineBuilder>(new RationalBSplineBuilder(
+      pointsCopy, bSplinePower, knotVector, weights));
 }
 
 sptr<Point> RationalBSplineBuilder::getSplinePoint(float t) {

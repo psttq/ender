@@ -65,5 +65,7 @@ public:
   void getPropertiesGUI(bool scrollToPoint);
 
   void update();
+
+  sptr<Spline1> clone();
 };
 } // namespace EGEOM

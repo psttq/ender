@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Material.hpp"
 #include "Texture.hpp"
@@ -46,7 +47,7 @@ public:
 
   void setSelected(bool selected);
 
-  void setHovered(bool hovered){ _hovered = hovered; };
+  void setHovered(bool hovered);
 
   bool hovered() const { return _hovered; }
 
@@ -86,11 +87,15 @@ public:
 
   bool hasChildren() const;
 
+  bool hasChildById(uint childID);
+
   void deleteChildObject(sptr<Object> childObject);
 
   void deleteAllChildren();
 
   std::vector<sptr<Object>> getChildren();
+
+  std::optional<sptr<Object>> getChildByID(uint childID);
 
   sptr<VertexArray> getVertexArray() const;
 

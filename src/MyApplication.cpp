@@ -7,6 +7,7 @@
 #include "Point.hpp"
 #include "Renderer.hpp"
 #include "RotationSurface.hpp"
+#include "SectorialSurface.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
 #include "Wire.hpp"
@@ -151,6 +152,14 @@ void MyApplication::handleOperationPropertiesGUI() {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
 
+        auto bottom =
+            EGEOM::SectorialSurface::create(edges[0]->getPoints()[0], wire);
+
+        bottom->isSelectable = true;
+        bottom->update();
+
+        viewportScene->addObject(bottom);
+
         std::set<sptr<EGEOM::Point>> edgesPoints;
         std::map<sptr<EGEOM::Point>, std::vector<sptr<EGEOM::Face>>> edge_face;
 
@@ -168,6 +177,25 @@ void MyApplication::handleOperationPropertiesGUI() {
           face->setRotation(selectedObjectViewport->getRotation());
           face->isSelectable = true;
 
+          edge->isSelectable = true;
+
+          auto edgeCopy = edge->clone();
+          edgeCopy->update();
+          edgeCopy->setName("EFEFE");
+          viewportScene->addObject(edgeCopy);
+
+          face->addEdge(edgeCopy);
+
+          auto upperEdge = edge->clone();
+
+          for (auto point : upperEdge->getPoints()) {
+            point->setPosition(point->getPosition() +
+                               extrudeHeight * extrudeDirection);
+          }
+          upperEdge->update();
+
+          face->addEdge(upperEdge);
+
           if (edge_face.contains(beginPoint)) {
             edge_face[beginPoint].push_back(face);
           } else
@@ -176,9 +204,8 @@ void MyApplication::handleOperationPropertiesGUI() {
             edge_face[endPoint].push_back(face);
           } else
             edge_face.insert({endPoint, {face}});
-          viewportScene->addObject(obj);
+          // viewportScene->addObject(obj);
           viewportScene->addObject(face);
-
         }
         for (auto ef : edge_face) {
           auto point = ef.first->getPosition();
@@ -195,7 +222,7 @@ void MyApplication::handleOperationPropertiesGUI() {
           newEdge->setRotation(selectedObjectViewport->getRotation());
           newEdge->update();
           newEdge->isSelectable = true;
-          viewportScene->addObject(newEdge);
+          // viewportScene->addObject(newEdge);
           for (auto face : ef.second) {
             face->addEdge(newEdge);
           }
@@ -245,6 +272,7 @@ void MyApplication::handleOperationPropertiesGUI() {
                                  splinePoint.x * glm::sin(v), splinePoint.z};
               }));
           newEdge->u_max = rotateAngle;
+          newEdge->isSelectable = true;
           newEdge->setSplineBuilder(std::move(parametricBuilder));
           newEdge->setPosition(selectedObjectViewport->getPosition());
           newEdge->setRotation(selectedObjectViewport->getRotation());
@@ -299,14 +327,30 @@ void MyApplication::handleViewportGUI() {
   auto mousePosition = ENDER::Window::getMousePosition();
   auto objInfo = viewportFramebuffer->pickObjAt(
       mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
+
+  bool hoverWithParent = false;
+
   for (auto object : viewportScene->getObjects()) {
-    object->setHovered(object->getId() == objInfo.objectId);
+    // spdlog::error("pickedID {}{} {} {} {}", object->getName(),
+    // object->getId(), objInfo.objectId,
+    // object->hasChildById(objInfo.objectId), object->getId() ==
+    // objInfo.objectId);
+    if (hoverWithParent) {
+      auto pickedID =
+          objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
+      object->setHovered(object->getId() == pickedID);
+    } else {
+      object->setHovered(object->getId() == objInfo.objectId);
+      object->getChildByID(objInfo.objectId).and_then([](auto obj) {
+        obj->setHovered(true);
+        return std::optional(obj);
+      });
+    }
   }
 
   if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
       ImGui::IsWindowFocused() && !ImGuizmo::IsUsing()) {
     auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
-    spdlog::error("pickedID {} {} {}",objInfo.parentId, objInfo.objectId, pickedID);
     for (auto object : viewportScene->getObjects()) {
       object->setSelected(object->getId() == pickedID);
       if (object->getId() == pickedID)

@@ -9,6 +9,8 @@ Point::Point(const glm::vec3 &position)
 
 sptr<Point> Point::copy() { return sptr<Point>(new Point(*this)); }
 
+sptr<Point> Point::clone() { return sptr<Point>(new Point(_position));}
+
 sptr<Point> Point::create(const glm::vec3 &position) {
   return sptr<Point>(new Point(position));
 }

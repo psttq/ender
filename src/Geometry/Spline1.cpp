@@ -67,6 +67,13 @@ void Spline1::addPoint(sptr<Point> point) {
   update();
 }
 
+sptr<Spline1> Spline1::clone(){
+    auto splineCopy = Spline1::create({}, _interpolatedPointsCount);
+    splineCopy->setSplineType(_splineType);
+    splineCopy->setSplineBuilder(_splineBuilder->clone());
+    return splineCopy;
+}
+
 void Spline1::removePoint(sptr<Point> point) {
   auto iter = std::remove(_splineBuilder->points.begin(),
                           _splineBuilder->points.end(), point);

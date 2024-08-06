@@ -24,6 +24,8 @@ namespace EGEOM
     virtual void rebuild() = 0;
 
     virtual bool drawPropertiesGui() = 0;
+
+    virtual uptr<SplineBuilder> clone() = 0;
   };
 
   /////////////////////////////////////
@@ -46,6 +48,8 @@ namespace EGEOM
     void rebuild() override;
 
     bool drawPropertiesGui() override;
+
+    uptr<SplineBuilder> clone() override;
   };
 
   /////////////////////////////////////
@@ -73,6 +77,7 @@ namespace EGEOM
 
     bool drawPropertiesGui() override;
 
+    uptr<SplineBuilder> clone() override;
   private:
     void calculateParameter();
     void calculateUniformParameter();
@@ -103,6 +108,8 @@ namespace EGEOM
     void rebuild() override;
 
     bool drawPropertiesGui() override;
+
+    uptr<SplineBuilder> clone() override;
   };
 
   /////////////////////////////////////
@@ -127,6 +134,7 @@ namespace EGEOM
     sptr<Point> getSplinePoint(float t) override;
     void rebuild() override;
     bool drawPropertiesGui() override;
+    uptr<SplineBuilder> clone() override;
   };
 
   /////////////////////////////////////
@@ -149,6 +157,7 @@ namespace EGEOM
                                                   int dirsCount) override;
     void rebuild() override;
     bool drawPropertiesGui() override;
+    uptr<SplineBuilder> clone() override;
   };
 
   /////////////////////////////////////
@@ -175,5 +184,6 @@ namespace EGEOM
                                                   int dirsCount) override;
     void rebuild() override;
     bool drawPropertiesGui() override;
+    uptr<SplineBuilder> clone() override;
   };
 } // namespace EGEOM
