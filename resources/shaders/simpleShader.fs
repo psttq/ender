@@ -73,6 +73,11 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 
+    float scalar = dot(norm, viewDir);
+    float multiplier = scalar/abs(scalar);
+
+    norm *= multiplier;
+
 
     vec3 result = vec3(0.0);
 
@@ -154,4 +159,3 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     specular *= attenuation * intensity;
     return (ambient + diffuse + specular);
 }
-

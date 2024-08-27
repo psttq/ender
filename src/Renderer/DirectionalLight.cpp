@@ -24,5 +24,5 @@ ENDER::DirectionalLight::DirectionalLight(const glm::vec3 &direction, const glm:
     type = LightType::DirectionalLight;
     _specular = glm::vec3(0.5);
     _diffuse = color * glm::vec3(0.7f);
-    _ambient = color * glm::vec3(0.2f);
+    _ambient = color * glm::vec3(0.4f);
 }

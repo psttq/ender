@@ -1,3 +1,4 @@
+#include "glm/geometric.hpp"
 #include <OrthographicCamera.hpp>
 #include <Window.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -24,6 +25,15 @@ ENDER::OrthographicCamera::OrthographicCamera(const glm::vec3 &position,
 
   _scrollCallbackKey = Window::addMouseScrollCallback(
       [&](double offsetX, double offsetY) { processScroll(offsetX, offsetY); });
+
+  auto _pitch = -89.99f;
+  auto _yaw = 90.f;
+
+  glm::vec3 direction;
+  direction.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+  direction.y = sin(glm::radians(_pitch));
+  direction.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+  _front = glm::normalize(direction);
 }
 
 ENDER::OrthographicCamera::~OrthographicCamera() {
@@ -50,7 +60,7 @@ glm::mat4 ENDER::OrthographicCamera::getView() const {
 }
 
 glm::mat4 ENDER::OrthographicCamera::getProjection() const {
-  return glm::ortho(0.0f * _zoom, (float)_framebufferSize.x * _zoom,
+  return glm::ortho((float)_framebufferSize.x * _zoom,0.0f * _zoom,
                     0.0f * _zoom, (float)_framebufferSize.y * _zoom, 0.0f,
                     10.0f);
 }
@@ -70,11 +80,16 @@ glm::vec2 ENDER::OrthographicCamera::mousePositionToWorldPosition(
   mouseWorldY *= _zoom;
 
   mouseWorldY -= _framebufferSize.y * _zoom;
+  mouseWorldX -= _framebufferSize.x * _zoom;
+
 
   mouseWorldX += _position.x;
-  mouseWorldY += _position.z;
+  mouseWorldY -= _position.z;
 
-  return {mouseWorldX, mouseWorldY};
+  spdlog::error("{} {}", mouseWorldX, mouseWorldY);
+  spdlog::error("camera: {} {} {}", _position.x, _position.z,_framebufferSize.x * _zoom);
+
+  return {mouseWorldX, -mouseWorldY};
 }
 
 void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
@@ -101,7 +116,7 @@ void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
   float dy = (float)offsetY / _framebufferSize.y;
 
   _position.x -= _framebufferSize.x * _zoom * dx;
-  _position.z -= _framebufferSize.y * _zoom * dy;
+  _position.z += _framebufferSize.y * _zoom * dy;
 }
 
 void ENDER::OrthographicCamera::processScroll(double offsetX, double offsetY) {

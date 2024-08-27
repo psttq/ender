@@ -6,7 +6,8 @@
 namespace ENDER{
     class OrthographicCamera : public Camera{
         glm::vec3 _position{-2, 4, -2};
-        glm::vec3 _front{0.f, -100.f, -1.f};
+        glm::vec3 _front{-0.00000001f, -1.f
+            , 0.00000000001f};
         glm::vec3 _up{0.f, 1.f, 0.f};
 
         int _mousePosCallbackKey = -1;
@@ -21,7 +22,7 @@ namespace ENDER{
         double _lastY;
 
         float _zoom = 1.f/260.f;
-        
+
         float _zoomSpeed = 1.f/100.f;
 
         float _speed = 0.3f;
