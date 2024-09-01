@@ -1,5 +1,6 @@
-#include <../../include/Renderer/Scene.hpp>
 #include <../../3rd/glm/glm/gtc/matrix_transform.hpp>
+#include <../../include/Renderer/Scene.hpp>
+#include <cstddef>
 
 ENDER::Scene::Scene() { spdlog::debug("Creating scene."); }
 
@@ -14,9 +15,21 @@ glm::mat4 ENDER::Scene::calculateView() const {
   return view;
 }
 
-std::vector<sptr<ENDER::Object>> &ENDER::Scene::getObjects() { return _objects; }
+std::vector<sptr<ENDER::Object>> &ENDER::Scene::getObjects() {
+  return _objects;
+}
 
-void ENDER::Scene::addObject(sptr<Object> object) { _objects.push_back(object); }
+std::optional<sptr<ENDER::Object>> ENDER::Scene::getObjectById(uint id) {
+  for (auto obj : _objects) {
+    if (obj->getId() == id)
+      return obj;
+  }
+  return std::nullopt;
+}
+
+void ENDER::Scene::addObject(sptr<Object> object) {
+  _objects.push_back(object);
+}
 
 void ENDER::Scene::setCamera(sptr<Camera> camera) { _camera = camera; }
 
@@ -26,7 +39,7 @@ void ENDER::Scene::addLight(Light *light) { _lights.push_back(light); }
 
 const std::vector<ENDER::Light *> &ENDER::Scene::getLights() { return _lights; }
 
-void ENDER::Scene::deleteObject(const sptr<ENDER::Object>& object) {
-    auto it = std::find(_objects.begin(),_objects.end(),object);
-    _objects.erase(it);
+void ENDER::Scene::deleteObject(const sptr<ENDER::Object> &object) {
+  auto it = std::find(_objects.begin(), _objects.end(), object);
+  _objects.erase(it);
 }

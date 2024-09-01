@@ -4,6 +4,7 @@
 #include "IconsFontAwesome5.h"
 #include "ImGuizmo.h"
 #include "KinematicSurfaces.hpp"
+#include "Object.hpp"
 #include "Point.hpp"
 #include "Renderer.hpp"
 #include "RotationSurface.hpp"
@@ -11,6 +12,7 @@
 #include "Sketch.hpp"
 #include "Spline1.hpp"
 #include "Wire.hpp"
+#include "glm/geometric.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/matrix.hpp"
 #include "imgui.h"
@@ -20,6 +22,7 @@
 #include <Utilities.hpp>
 #include <fstream>
 #include <glm/gtx/rotate_vector.hpp>
+#include <optional>
 #include <set>
 #include <toml.hpp>
 
@@ -122,15 +125,15 @@ void MyApplication::onStart() {
 
   dimSplines.push_back(splineDim);
   currentDimSpline = 0;
+  // false
+  //  std::vector<float> kv{};
+  //  std::vector<float> wv{};
   //
-  // std::vector<float> kv{};
-  // std::vector<float> wv{};
+  //  auto nurbsBuilder = std::make_unique<EGEOM::RationalBSplineBuilder>(
+  //      splineDim->getPoints(), 4, kv, wv);
   //
-  // auto nurbsBuilder = std::make_unique<EGEOM::RationalBSplineBuilder>(
-  //     splineDim->getPoints(), 4, kv, wv);
-  //
-  // splineDim->setSplineType(EGEOM::Spline1::SplineType::NURBS);
-  // splineDim->setSplineBuilder(std::move(nurbsBuilder));
+  //  splineDim->setSplineType(EGEOM::Spline1::SplineType::NURBS);
+  //  splineDim->setSplineBuilder(std::move(nurbsBuilder));
   //
   viewportScene->addObject(splineDim);
 
@@ -146,6 +149,9 @@ void MyApplication::handleOperationPropertiesGUI() {
                       0.1f, -1, 1);
     ImGui::DragFloat("Extrude Height", &extrudeHeight, 0.1);
     if (ImGui::Button("Create")) {
+
+      extrudeDirection = glm::normalize(extrudeDirection);
+
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
       if (pivot && pivot->getSketch()) {
@@ -328,16 +334,14 @@ void MyApplication::handleViewportGUI() {
   auto objInfo = viewportFramebuffer->pickObjAt(
       mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
 
-  bool hoverWithParent = false;
-
+  bool hoverWithParent = true;
+  auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
   for (auto object : viewportScene->getObjects()) {
     // spdlog::error("pickedID {}{} {} {} {}", object->getName(),
     // object->getId(), objInfo.objectId,
     // object->hasChildById(objInfo.objectId), object->getId() ==
     // objInfo.objectId);
     if (hoverWithParent) {
-      auto pickedID =
-          objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
       object->setHovered(object->getId() == pickedID);
     } else {
       object->setHovered(object->getId() == objInfo.objectId);
@@ -347,6 +351,12 @@ void MyApplication::handleViewportGUI() {
       });
     }
   }
+  if (hoverWithParent)
+    viewportScene->getObjectById(pickedID).and_then(
+        [](sptr<ENDER::Object> obj) {
+          obj->setHovered(true);
+          return std::optional(obj);
+        });
 
   if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
       ImGui::IsWindowFocused() && !ImGuizmo::IsUsing()) {

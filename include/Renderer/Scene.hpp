@@ -3,6 +3,7 @@
 #include <Light.hpp>
 #include <Object.hpp>
 #include <glm/glm.hpp>
+#include <optional>
 #include <vector>
 
 namespace ENDER {
@@ -14,12 +15,11 @@ class Scene {
   Scene();
 
 public:
-
   static sptr<Scene> create();
 
   glm::mat4 calculateView() const;
   void addObject(sptr<Object> object);
-  void deleteObject(const sptr<Object>& object);
+  void deleteObject(const sptr<Object> &object);
 
   void setCamera(sptr<Camera> camera);
   sptr<Camera> getCamera();
@@ -29,5 +29,6 @@ public:
   const std::vector<Light *> &getLights();
 
   std::vector<sptr<Object>> &getObjects();
+  std::optional<sptr<Object>> getObjectById(uint id);
 };
 } // namespace ENDER
