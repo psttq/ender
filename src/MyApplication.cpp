@@ -538,9 +538,8 @@ void MyApplication::handleSketchGUI() {
   if (ImGui::IsWindowFocused()) {
     activeWindow = Windows::SketchEditor;
   }
-
-  auto window_width = ImGui::GetContentRegionAvail().x;
-  auto window_height = ImGui::GetContentRegionAvail().y;
+  float window_width = ImGui::GetContentRegionAvail().x;
+  float window_height = ImGui::GetContentRegionAvail().y;
 
   sketchCamera->setFramebufferSize({window_width, window_height});
 
@@ -550,6 +549,33 @@ void MyApplication::handleSketchGUI() {
 
   ImGui::Image(reinterpret_cast<ImTextureID>(sketchFramebuffer->getTextureId()),
                ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
+  if (currentSketchId >= 0) {
+    auto obj = sketches[currentSketchId]->getWire()->getCurrentEdge();
+
+    ImGuizmo::SetOrthographic(true);
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y,
+                      window_width, window_height);
+
+    auto objRotation = obj->getRotation();
+
+    glm::mat4 model;
+    auto rotation = obj->getRotation();
+    rotation = {radiansToDegree(rotation.x), radiansToDegree(rotation.y),
+                radiansToDegree(rotation.z)};
+    ImGuizmo::RecomposeMatrixFromComponents(
+        glm::value_ptr(obj->getPosition()), glm::value_ptr(rotation),
+        glm::value_ptr(obj->getScale()), glm::value_ptr(model));
+
+    auto cameraView = sketchCamera->getView();
+    auto cameraProj = sketchCamera->getProjection();
+
+    ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProj),
+                         currentOperation, ImGuizmo::LOCAL,
+                         glm::value_ptr(model));
+
+    obj->drawGizmo();
+  }
 
   ImGui::End();
 }
@@ -773,6 +799,7 @@ void MyApplication::render() {
       edge->material.diffuse = {1.0f, 0.5f, 0.31f};
       edge->material.specular = {0.5f, 0.5f, 0.5f};
     }
+    edge->isSelectable = true;
     ENDER::Renderer::renderObject(edge, sketchScene, sketchFramebuffer);
   }
 }
@@ -837,15 +864,23 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
       auto pickedID =
           sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY)
               .objectId;
-      for (auto edge : sketches[currentSketchId]->getWire()->getEdges())
+      spdlog::error("ppp {}", pickedID);
+
+      for (auto edge : sketches[currentSketchId]->getWire()->getEdges()) {
         for (auto object : edge->getPoints()) {
           object->setSelected(object->getId() == pickedID);
           if (object->getId() == pickedID) {
             currentSelected = object;
-            if (currentTool == Tools::Cursor)
+            if (currentTool == Tools::Cursor) {
               sketches[currentSketchId]->getWire()->setCurrentEdge(edge);
+            }
           }
         }
+        if (edge->getId() == pickedID) {
+          if (currentTool == Tools::Cursor)
+            sketches[currentSketchId]->getWire()->setCurrentEdge(edge);
+        }
+      }
       if (currentTool == Tools::Pencil) {
         sptr<EGEOM::Point> point;
         if (!currentSelected) {

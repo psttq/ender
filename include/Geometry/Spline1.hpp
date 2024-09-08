@@ -29,6 +29,8 @@ private:
   SplineType _splineType = SplineType::LinearInterpolation;
   uptr<SplineBuilder> _splineBuilder;
 
+  bool _isDirectionInversed = false;
+
   void _calculateDrawPoints();
 
   Spline1(const std::vector<sptr<Point>> &points, uint interpolatedPointsCount);
@@ -65,6 +67,8 @@ public:
   void getPropertiesGUI(bool scrollToPoint);
 
   void update();
+
+  void drawGizmo() override;
 
   sptr<Spline1> clone();
 };

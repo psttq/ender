@@ -60,7 +60,7 @@ glm::mat4 ENDER::OrthographicCamera::getView() const {
 }
 
 glm::mat4 ENDER::OrthographicCamera::getProjection() const {
-  return glm::ortho((float)_framebufferSize.x * _zoom,0.0f * _zoom,
+  return glm::ortho((float)_framebufferSize.x * _zoom, 0.0f * _zoom,
                     0.0f * _zoom, (float)_framebufferSize.y * _zoom, 0.0f,
                     10.0f);
 }
@@ -82,12 +82,8 @@ glm::vec2 ENDER::OrthographicCamera::mousePositionToWorldPosition(
   mouseWorldY -= _framebufferSize.y * _zoom;
   mouseWorldX -= _framebufferSize.x * _zoom;
 
-
   mouseWorldX += _position.x;
   mouseWorldY -= _position.z;
-
-  spdlog::error("{} {}", mouseWorldX, mouseWorldY);
-  spdlog::error("camera: {} {} {}", _position.x, _position.z,_framebufferSize.x * _zoom);
 
   return {mouseWorldX, -mouseWorldY};
 }
@@ -121,6 +117,7 @@ void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
 }
 
 void ENDER::OrthographicCamera::processScroll(double offsetX, double offsetY) {
-    if(!_isActive) return;
-    _zoom -= offsetY * _zoomSpeed * Window::deltaTime();
+  if (!_isActive)
+    return;
+  _zoom -= offsetY * _zoomSpeed * Window::deltaTime();
 }

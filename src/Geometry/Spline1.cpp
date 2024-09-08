@@ -1,3 +1,6 @@
+#include "imgui.h"
+
+#include "ImGuizmo.h"
 #include <Spline1.hpp>
 
 namespace EGEOM {
@@ -24,7 +27,8 @@ Spline1::Spline1(const std::vector<sptr<Point>> &points,
 }
 
 void Spline1::_calculateDrawPoints() {
-  if (_splineType != SplineType::Parametric && _splineBuilder->getPoints().size() < 2)
+  if (_splineType != SplineType::Parametric &&
+      _splineBuilder->getPoints().size() < 2)
     return;
 
   _interpolatedPoints.clear();
@@ -33,7 +37,6 @@ void Spline1::_calculateDrawPoints() {
 
     _interpolatedPoints.push_back(_splineBuilder->getSplinePoint(t));
   }
-
 
   _rawData.clear();
   for (auto point : _interpolatedPoints) {
@@ -67,18 +70,20 @@ void Spline1::addPoint(sptr<Point> point) {
   update();
 }
 
-sptr<Spline1> Spline1::clone(){
-    auto splineCopy = Spline1::create({}, _interpolatedPointsCount);
-    splineCopy->setSplineType(_splineType);
-    splineCopy->setSplineBuilder(_splineBuilder->clone());
-    return splineCopy;
+sptr<Spline1> Spline1::clone() {
+  auto splineCopy = Spline1::create({}, _interpolatedPointsCount);
+  splineCopy->setSplineType(_splineType);
+  splineCopy->setSplineBuilder(_splineBuilder->clone());
+  return splineCopy;
 }
 
 void Spline1::removePoint(sptr<Point> point) {
   _splineBuilder->removePoint(point);
 }
 
-std::vector<sptr<Point>> Spline1::getPoints() { return _splineBuilder->getPoints(); }
+std::vector<sptr<Point>> Spline1::getPoints() {
+  return _splineBuilder->getPoints();
+}
 
 sptr<Spline1> Spline1::create(const std::vector<sptr<Point>> &points,
                               uint interpolatedPointsCount) {
@@ -92,25 +97,28 @@ void Spline1::setSplineBuilder(uptr<SplineBuilder> splineBuilder) {
 }
 
 void Spline1::getPropertiesGUI(bool scrollToPoint) {
-  std::vector<const char *> items = {"Linear Interpolation", "Bezier",
-                                     "Rational Bezier", "BSpline", "NURBS", "Parametric"};
+  std::vector<const char *> items = {"Linear Interpolation",
+                                     "Bezier",
+                                     "Rational Bezier",
+                                     "BSpline",
+                                     "NURBS",
+                                     "Parametric"};
   int currentItem = static_cast<int>(_splineType);
 
   if (ImGui::Combo("Spline Type", &currentItem, &items[0], items.size())) {
     auto splineType = static_cast<SplineType>(currentItem);
     if (_splineType != splineType) {
       _splineType = splineType;
-     auto points =  _splineBuilder->getPoints();
+      auto points = _splineBuilder->getPoints();
       switch (_splineType) {
       case SplineType::Bezier: {
-        auto bezierBuilder = std::make_unique<BezierBuilder>(
-            points, points.size() - 1);
+        auto bezierBuilder =
+            std::make_unique<BezierBuilder>(points, points.size() - 1);
         setSplineBuilder(std::move(bezierBuilder));
       } break;
       case SplineType::LinearInterpolation: {
         auto linearBuilder = std::make_unique<LinearInterpolationBuilder>(
-            points,
-            LinearInterpolationBuilder::ParamMethod::Uniform);
+            points, LinearInterpolationBuilder::ParamMethod::Uniform);
         setSplineBuilder(std::move(linearBuilder));
       } break;
       case SplineType::RationalBezier: {
@@ -121,8 +129,8 @@ void Spline1::getPropertiesGUI(bool scrollToPoint) {
       } break;
       case SplineType::BSpline: {
         std::vector<float> knotVector = {};
-        auto bsplineBuilder = std::make_unique<BSplineBuilder>(
-            points, 1, knotVector);
+        auto bsplineBuilder =
+            std::make_unique<BSplineBuilder>(points, 1, knotVector);
         setSplineBuilder(std::move(bsplineBuilder));
       } break;
       case SplineType::NURBS: {
@@ -136,6 +144,8 @@ void Spline1::getPropertiesGUI(bool scrollToPoint) {
       update();
     }
   }
+
+  ImGui::Checkbox("isDirectionInversed", &_isDirectionInversed);
 
   if (ImGui::TreeNode("Points")) {
     ImGui::BeginGroup();
@@ -203,6 +213,27 @@ glm::vec3 Spline1::getSplinePoint(float u) {
 
 std::vector<sptr<Point>> Spline1::getSplineDirs(float u, int dirsCount) {
   return _splineBuilder->getSplineDerivatives(u, dirsCount);
+}
+
+void Spline1::drawGizmo() {
+  auto points = _splineBuilder->getPoints();
+  if (points.size() < 2)
+    return;
+  for (auto p1i = points.begin(), end = points.end(); p1i + 1 != end; ++p1i) {
+    auto p2i = p1i + 1;
+    if (p2i == end)
+      break;
+
+    auto p1 = p1i->get()->getPosition();
+    auto p2 = p2i->get()->getPosition();
+    if (_isDirectionInversed) {
+      auto tmp = p1;
+      p1 = p2;
+      p2 = tmp;
+    }
+    ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
+                        0x44FF44FF);
+  }
 }
 
 } // namespace EGEOM
