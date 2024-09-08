@@ -65,7 +65,7 @@ void MyApplication::onStart() {
   viewportCamera =
       ENDER::FirstPersonCamera::create({0, 5, 0}, {_appWidth, _appHeight});
   sketchCamera =
-      ENDER::OrthographicCamera::create({-2, 5, 1.5f}, {_appWidth, _appHeight});
+      ENDER::OrthographicCamera::create({2, 5, -1.4}, {_appWidth, _appHeight});
 
   viewportScene->setCamera(viewportCamera);
   sketchScene->setCamera(sketchCamera);

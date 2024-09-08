@@ -117,6 +117,7 @@ void ENDER::OrthographicCamera::proccessMouseInput(double xpos, double ypos) {
 
   _position.x -= _framebufferSize.x * _zoom * dx;
   _position.z += _framebufferSize.y * _zoom * dy;
+  spdlog::error("pos {} {}", _position.x, _position.z);
 }
 
 void ENDER::OrthographicCamera::processScroll(double offsetX, double offsetY) {

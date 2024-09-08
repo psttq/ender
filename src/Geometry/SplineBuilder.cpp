@@ -4,6 +4,25 @@
 #include <ranges>
 
 namespace EGEOM {
+
+void SplineBuilder::addPoint(sptr<Point> point){
+    points.push_back(point);
+}
+
+void SplineBuilder::removePoint(sptr<Point> point){
+    auto iter = std::remove(points.begin(),
+                            points.end(), point);
+    points.erase(iter, points.end());
+}
+
+std::vector<sptr<Point>> SplineBuilder::getPoints(){
+    return points;
+}
+
+void SplineBuilder::setPoints(std::vector<sptr<Point>> new_points){
+    points = new_points;
+}
+
 /////////////////////////////////////
 /// ParametricBuilder
 /////////////////////////////////////

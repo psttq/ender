@@ -24,7 +24,7 @@ Spline1::Spline1(const std::vector<sptr<Point>> &points,
 }
 
 void Spline1::_calculateDrawPoints() {
-  if (_splineType != SplineType::Parametric && _splineBuilder->points.size() < 2)
+  if (_splineType != SplineType::Parametric && _splineBuilder->getPoints().size() < 2)
     return;
 
   _interpolatedPoints.clear();
@@ -45,7 +45,7 @@ void Spline1::_calculateDrawPoints() {
 }
 
 void Spline1::setPoints(const std::vector<sptr<Point>> &points) {
-  _splineBuilder->points = points;
+  _splineBuilder->setPoints(points);
   update();
 }
 
@@ -63,7 +63,7 @@ void Spline1::update() {
 }
 
 void Spline1::addPoint(sptr<Point> point) {
-  _splineBuilder->points.push_back(point);
+  _splineBuilder->addPoint(point);
   update();
 }
 
@@ -75,12 +75,10 @@ sptr<Spline1> Spline1::clone(){
 }
 
 void Spline1::removePoint(sptr<Point> point) {
-  auto iter = std::remove(_splineBuilder->points.begin(),
-                          _splineBuilder->points.end(), point);
-  _splineBuilder->points.erase(iter, _splineBuilder->points.end());
+  _splineBuilder->removePoint(point);
 }
 
-std::vector<sptr<Point>> Spline1::getPoints() { return _splineBuilder->points; }
+std::vector<sptr<Point>> Spline1::getPoints() { return _splineBuilder->getPoints(); }
 
 sptr<Spline1> Spline1::create(const std::vector<sptr<Point>> &points,
                               uint interpolatedPointsCount) {
@@ -102,35 +100,36 @@ void Spline1::getPropertiesGUI(bool scrollToPoint) {
     auto splineType = static_cast<SplineType>(currentItem);
     if (_splineType != splineType) {
       _splineType = splineType;
+     auto points =  _splineBuilder->getPoints();
       switch (_splineType) {
       case SplineType::Bezier: {
         auto bezierBuilder = std::make_unique<BezierBuilder>(
-            _splineBuilder->points, _splineBuilder->points.size() - 1);
+            points, points.size() - 1);
         setSplineBuilder(std::move(bezierBuilder));
       } break;
       case SplineType::LinearInterpolation: {
         auto linearBuilder = std::make_unique<LinearInterpolationBuilder>(
-            _splineBuilder->points,
+            points,
             LinearInterpolationBuilder::ParamMethod::Uniform);
         setSplineBuilder(std::move(linearBuilder));
       } break;
       case SplineType::RationalBezier: {
         std::vector<float> weighs = {};
         auto rationalBezierBuilder = std::make_unique<RationalBezierBuilder>(
-            _splineBuilder->points, _splineBuilder->points.size() - 1, weighs);
+            points, points.size() - 1, weighs);
         setSplineBuilder(std::move(rationalBezierBuilder));
       } break;
       case SplineType::BSpline: {
         std::vector<float> knotVector = {};
         auto bsplineBuilder = std::make_unique<BSplineBuilder>(
-            _splineBuilder->points, 1, knotVector);
+            points, 1, knotVector);
         setSplineBuilder(std::move(bsplineBuilder));
       } break;
       case SplineType::NURBS: {
         std::vector<float> knotVector = {};
         std::vector<float> weights = {};
         auto nurbsBuilder = std::make_unique<RationalBSplineBuilder>(
-            _splineBuilder->points, 1, knotVector, weights);
+            points, 1, knotVector, weights);
         setSplineBuilder(std::move(nurbsBuilder));
       } break;
       }
@@ -144,7 +143,7 @@ void Spline1::getPropertiesGUI(bool scrollToPoint) {
 
     if (child_is_visible) {
       auto i = 0;
-      for (auto point : _splineBuilder->points) {
+      for (auto point : _splineBuilder->getPoints()) {
         auto point_name = std::string("Point_") + std::to_string(i);
         if (point->selected()) {
           ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));

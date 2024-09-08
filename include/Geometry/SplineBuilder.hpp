@@ -2,188 +2,184 @@
 
 #include <Point.hpp>
 #include <vector>
-namespace EGEOM
-{
+namespace EGEOM {
 
-  class SplineBuilder
-  {
-  public:
-    SplineBuilder(const std::vector<sptr<Point>> &points) : points(points){};
-    std::vector<sptr<Point>> points;
+class SplineBuilder {
+protected:
+  std::vector<sptr<Point>> points;
+  bool isDirected = false;
 
-    virtual ~SplineBuilder() = default;
+public:
+  SplineBuilder(const std::vector<sptr<Point>> &points) : points(points){};
 
-    virtual sptr<Point> getSplinePoint(float t) = 0;
+  virtual ~SplineBuilder() = default;
 
-    virtual std::vector<sptr<Point>> getSplineDerivatives(float t,
-                                                          int dirsCount)
-    {
-      return {};
-    }
+  void addPoint(sptr<Point> point);
+  void removePoint(sptr<Point> point);
+  void setPoints(std::vector<sptr<Point>> new_points);
 
-    virtual void rebuild() = 0;
+  std::vector<sptr<Point>> getPoints();
 
-    virtual bool drawPropertiesGui() = 0;
+  virtual sptr<Point> getSplinePoint(float t) = 0;
 
-    virtual uptr<SplineBuilder> clone() = 0;
-  };
+  virtual std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                        int dirsCount) {
+    return {};
+  }
 
-  /////////////////////////////////////
-  /// ParametricBuilder
-  /////////////////////////////////////
+  virtual void rebuild() = 0;
 
-  class ParametricBuilder : public SplineBuilder
-  {
-  public:
-    using ParametricFunction = std::function<glm::vec3(float)>;
+  virtual bool drawPropertiesGui() = 0;
 
-  private:
-    ParametricFunction _paramFunc;
+  virtual uptr<SplineBuilder> clone() = 0;
+};
 
-  public:
-    ParametricBuilder(ParametricFunction paramFunc);
+/////////////////////////////////////
+/// ParametricBuilder
+/////////////////////////////////////
 
-    sptr<Point> getSplinePoint(float t) override;
+class ParametricBuilder : public SplineBuilder {
+public:
+  using ParametricFunction = std::function<glm::vec3(float)>;
 
-    void rebuild() override;
+private:
+  ParametricFunction _paramFunc;
 
-    bool drawPropertiesGui() override;
+public:
+  ParametricBuilder(ParametricFunction paramFunc);
 
-    uptr<SplineBuilder> clone() override;
-  };
+  sptr<Point> getSplinePoint(float t) override;
 
-  /////////////////////////////////////
-  /// LinearInterpolationBuilder
-  /////////////////////////////////////
+  void rebuild() override;
 
-  class LinearInterpolationBuilder : public SplineBuilder
-  {
-  public:
-    enum class ParamMethod : int
-    {
-      Uniform,
-      Chordal,
-      Centripetal
-    };
+  bool drawPropertiesGui() override;
 
-    ParamMethod paramMethod = ParamMethod::Uniform;
-    std::vector<float> _t;
+  uptr<SplineBuilder> clone() override;
+};
 
-    LinearInterpolationBuilder(const std::vector<sptr<Point>> &points,
-                               ParamMethod paramMethod);
-    void rebuild() override;
+/////////////////////////////////////
+/// LinearInterpolationBuilder
+/////////////////////////////////////
 
-    sptr<Point> getSplinePoint(float t) override;
+class LinearInterpolationBuilder : public SplineBuilder {
+public:
+  enum class ParamMethod : int { Uniform, Chordal, Centripetal };
 
-    bool drawPropertiesGui() override;
+  ParamMethod paramMethod = ParamMethod::Uniform;
+  std::vector<float> _t;
 
-    uptr<SplineBuilder> clone() override;
-  private:
-    void calculateParameter();
-    void calculateUniformParameter();
-  };
+  LinearInterpolationBuilder(const std::vector<sptr<Point>> &points,
+                             ParamMethod paramMethod);
+  void rebuild() override;
 
-  /////////////////////////////////////
-  /// BezierBuilder
-  /////////////////////////////////////
+  sptr<Point> getSplinePoint(float t) override;
 
-  class BezierBuilder : public SplineBuilder
-  {
-    std::vector<float> _allBernstein(float u);
+  bool drawPropertiesGui() override;
 
-    sptr<Point> _deCasteljau(float u);
+  uptr<SplineBuilder> clone() override;
 
-    sptr<Point> pointWithAllBernstein(float u);
+private:
+  void calculateParameter();
+  void calculateUniformParameter();
+};
 
-    std::vector<glm::vec3> _glmPoints;
+/////////////////////////////////////
+/// BezierBuilder
+/////////////////////////////////////
 
-  public:
-    int bezierPower = 3;
-    bool useDeCasteljau = true;
+class BezierBuilder : public SplineBuilder {
+  std::vector<float> _allBernstein(float u);
 
-    BezierBuilder(const std::vector<sptr<Point>> &points, int bezierPower);
+  sptr<Point> _deCasteljau(float u);
 
-    sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> pointWithAllBernstein(float u);
 
-    void rebuild() override;
+  std::vector<glm::vec3> _glmPoints;
 
-    bool drawPropertiesGui() override;
+public:
+  int bezierPower = 3;
+  bool useDeCasteljau = true;
 
-    uptr<SplineBuilder> clone() override;
-  };
+  BezierBuilder(const std::vector<sptr<Point>> &points, int bezierPower);
 
-  /////////////////////////////////////
-  /// RationalBezierBuilder
-  /////////////////////////////////////
+  sptr<Point> getSplinePoint(float t) override;
 
-  class RationalBezierBuilder : public SplineBuilder
-  {
-  private:
-    std::vector<glm::vec3> _glmPoints;
+  void rebuild() override;
 
-    std::vector<float> _allBernstein(float u);
-    sptr<Point> _deCasteljau(float u);
+  bool drawPropertiesGui() override;
 
-  public:
-    std::vector<float> w;
-    int bezierPower = 3;
+  uptr<SplineBuilder> clone() override;
+};
 
-    RationalBezierBuilder(const std::vector<sptr<Point>> &points, int bezierPower,
-                          const std::vector<float> &weights);
+/////////////////////////////////////
+/// RationalBezierBuilder
+/////////////////////////////////////
 
-    sptr<Point> getSplinePoint(float t) override;
-    void rebuild() override;
-    bool drawPropertiesGui() override;
-    uptr<SplineBuilder> clone() override;
-  };
+class RationalBezierBuilder : public SplineBuilder {
+private:
+  std::vector<glm::vec3> _glmPoints;
 
-  /////////////////////////////////////
-  /// BSplineBuilder
-  /////////////////////////////////////
+  std::vector<float> _allBernstein(float u);
+  sptr<Point> _deCasteljau(float u);
 
-  class BSplineBuilder : public SplineBuilder
-  {
-    void _checkAndSetDefault();
+public:
+  std::vector<float> w;
+  int bezierPower = 3;
 
-  public:
-    int bSplinePower = 0;
-    std::vector<float> knotVector = {};
+  RationalBezierBuilder(const std::vector<sptr<Point>> &points, int bezierPower,
+                        const std::vector<float> &weights);
 
-    BSplineBuilder(const std::vector<sptr<Point>> &points, int bSplinePower,
-                   const std::vector<float> &knotVector);
+  sptr<Point> getSplinePoint(float t) override;
+  void rebuild() override;
+  bool drawPropertiesGui() override;
+  uptr<SplineBuilder> clone() override;
+};
 
-    sptr<Point> getSplinePoint(float t) override;
-    std::vector<sptr<Point>> getSplineDerivatives(float t,
-                                                  int dirsCount) override;
-    void rebuild() override;
-    bool drawPropertiesGui() override;
-    uptr<SplineBuilder> clone() override;
-  };
+/////////////////////////////////////
+/// BSplineBuilder
+/////////////////////////////////////
 
-  /////////////////////////////////////
-  /// RationalBSplineBuilder
-  /////////////////////////////////////
+class BSplineBuilder : public SplineBuilder {
+  void _checkAndSetDefault();
 
-  class RationalBSplineBuilder : public SplineBuilder
-  {
+public:
+  int bSplinePower = 0;
+  std::vector<float> knotVector = {};
 
-    void _checkAndSetDefault();
-    std::vector<glm::vec4> _glmPoints;
+  BSplineBuilder(const std::vector<sptr<Point>> &points, int bSplinePower,
+                 const std::vector<float> &knotVector);
 
-  public:
-    int bSplinePower = 0;
-    std::vector<float> knotVector = {};
-    std::vector<float> weights = {};
+  sptr<Point> getSplinePoint(float t) override;
+  std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                int dirsCount) override;
+  void rebuild() override;
+  bool drawPropertiesGui() override;
+  uptr<SplineBuilder> clone() override;
+};
 
-    RationalBSplineBuilder(const std::vector<sptr<Point>> &points,
-                           int bSplinePower, const std::vector<float> &knotVector,
-                           const std::vector<float> &weights);
-    sptr<Point> getSplinePoint(float t) override;
+/////////////////////////////////////
+/// RationalBSplineBuilder
+/////////////////////////////////////
 
-    std::vector<sptr<Point>> getSplineDerivatives(float t,
-                                                  int dirsCount) override;
-    void rebuild() override;
-    bool drawPropertiesGui() override;
-    uptr<SplineBuilder> clone() override;
-  };
+class RationalBSplineBuilder : public SplineBuilder {
+
+  void _checkAndSetDefault();
+  std::vector<glm::vec4> _glmPoints;
+
+public:
+  int bSplinePower = 0;
+  std::vector<float> knotVector = {};
+  std::vector<float> weights = {};
+
+  RationalBSplineBuilder(const std::vector<sptr<Point>> &points,
+                         int bSplinePower, const std::vector<float> &knotVector,
+                         const std::vector<float> &weights);
+  sptr<Point> getSplinePoint(float t) override;
+
+  std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                int dirsCount) override;
+  void rebuild() override;
+  bool drawPropertiesGui() override;
+  uptr<SplineBuilder> clone() override;
+};
 } // namespace EGEOM
