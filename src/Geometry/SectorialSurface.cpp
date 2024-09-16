@@ -31,7 +31,7 @@ glm::vec3 SectorialSurface::pointOnSurface(float u, float v) {
   float w = (u - number_of_edge * step) * edges_count;
 
   auto point_on_surface = (1 - v) * edges[number_of_edge]->getSplinePoint(w) +
-                          v * (_point->getPosition() + glm::vec3{0, 1, 0});
+                          v * (_point->getPosition());
 
   return point_on_surface;
 }

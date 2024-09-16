@@ -232,7 +232,7 @@ void Spline1::drawGizmo() {
       p2 = tmp;
     }
     ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
-                        0x44FF44FF);
+                        gizmoColor);
   }
 }
 

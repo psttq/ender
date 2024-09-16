@@ -164,10 +164,14 @@ void MyApplication::handleOperationPropertiesGUI() {
         bottom->isSelectable = true;
         bottom->update();
 
-        viewportScene->addObject(bottom);
+        auto bottom_face = EGEOM::Face::create(bottom, wire);
+        bottom_face->isSelectable = true;
 
-        std::set<sptr<EGEOM::Point>> edgesPoints;
-        std::map<sptr<EGEOM::Point>, std::vector<sptr<EGEOM::Face>>> edge_face;
+        viewportScene->addObject(bottom_face);
+
+        auto upperWire = EGEOM::Wire::create();
+
+        sptr<EGEOM::Face> prevFace;
 
         for (auto edge : edges) {
           auto obj = EGEOM::ExtrudeSurface::create(
@@ -176,21 +180,16 @@ void MyApplication::handleOperationPropertiesGUI() {
           obj->isSelectable = true;
 
           auto beginPoint = *edge->getPoints().begin();
-          auto endPoint = *(edge->getPoints().end() - 1);
 
-          auto face = EGEOM::Face::create(obj, {});
+          auto wire = EGEOM::Wire::create();
+          wire->addEdge(edge);
+
+          auto face = EGEOM::Face::create(obj, wire);
           face->setPosition(selectedObjectViewport->getPosition());
           face->setRotation(selectedObjectViewport->getRotation());
           face->isSelectable = true;
 
           edge->isSelectable = true;
-
-          auto edgeCopy = edge->clone();
-          edgeCopy->update();
-          edgeCopy->setName("bottomEdge");
-          viewportScene->addObject(edgeCopy);
-
-          face->addEdge(edgeCopy);
 
           auto upperEdge = edge->clone();
 
@@ -201,37 +200,19 @@ void MyApplication::handleOperationPropertiesGUI() {
           upperEdge->setName("upperEdge");
           upperEdge->update();
 
+          upperWire->addEdge(upperEdge);
+
+          auto endPoint = *upperEdge->getPoints().begin();
+          auto sideEdge = EGEOM::Spline1::create({beginPoint, endPoint}, 10);
+          face->addEdge(sideEdge);
+
+          if (prevFace)
+            prevFace->addEdge(sideEdge);
+          prevFace = face;
+
           face->addEdge(upperEdge);
 
-          if (edge_face.contains(beginPoint)) {
-            edge_face[beginPoint].push_back(face);
-          } else
-            edge_face.insert({beginPoint, {face}});
-          if (edge_face.contains(endPoint)) {
-            edge_face[endPoint].push_back(face);
-          } else
-            edge_face.insert({endPoint, {face}});
-          // viewportScene->addObject(obj);
           viewportScene->addObject(face);
-        }
-        for (auto ef : edge_face) {
-          auto point = ef.first->getPosition();
-          auto newEdge = EGEOM::Spline1::create({}, interpolationPointsCount);
-          newEdge->setName("LREdge");
-          newEdge->setSplineType(EGEOM::Spline1::SplineType::Parametric);
-          auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(
-              new EGEOM::ParametricBuilder([&](float v) {
-                return point + v * extrudeHeight * extrudeDirection;
-              }));
-          newEdge->setSplineBuilder(std::move(parametricBuilder));
-          newEdge->setPosition(selectedObjectViewport->getPosition());
-          newEdge->setRotation(selectedObjectViewport->getRotation());
-          newEdge->update();
-          newEdge->isSelectable = true;
-          // viewportScene->addObject(newEdge);
-          for (auto face : ef.second) {
-            face->addEdge(newEdge);
-          }
         }
       }
     }

@@ -3,17 +3,21 @@
 #include "Object.hpp"
 #include "Spline1.hpp"
 #include "Surface.hpp"
+#include "Wire.hpp"
+
 namespace EGEOM {
 class Face : public ENDER::Object {
   using Edge = Spline1;
 
   sptr<Surface> _surface;
-  std::vector<sptr<Edge>> _edges;
-  Face(sptr<Surface> surface, std::vector<sptr<Edge>> edges);
+  sptr<Wire> _wire;
+  Face(sptr<Surface> surface, sptr<Wire> wire);
 
 public:
-  static sptr<Face> create(sptr<Surface> surface,
-                           std::vector<sptr<Edge>> edges);
+  static sptr<Face> create(sptr<Surface> surface, sptr<Wire> wire);
+
+  void setWire(sptr<Wire> wire);
+  sptr<Wire> getWire();
 
   void addEdge(sptr<Edge> edge);
 
