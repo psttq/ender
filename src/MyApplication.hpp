@@ -111,9 +111,9 @@ public:
   void onMouseClick(ENDER::Window::MouseButton button,
                     ENDER::Window::EventStatus status) override;
 
-  void onClose();
+  void onClose() override;
 
-  void onMouseMove(uint x, uint y);
+  void onMouseMove(uint x, uint y) override;
 
   void onKeyPress(int key) override;
 };

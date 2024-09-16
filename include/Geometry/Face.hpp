@@ -16,5 +16,7 @@ public:
                            std::vector<sptr<Edge>> edges);
 
   void addEdge(sptr<Edge> edge);
+
+  void drawGizmo() override;
 };
 } // namespace EGEOM

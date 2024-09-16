@@ -171,7 +171,7 @@ void MyApplication::handleOperationPropertiesGUI() {
 
         for (auto edge : edges) {
           auto obj = EGEOM::ExtrudeSurface::create(
-              edge->getName() + "_ES", edge, extrudeDirection, extrudeHeight);
+              "ExtrudeSurface", edge, extrudeDirection, extrudeHeight);
 
           obj->isSelectable = true;
 
@@ -187,7 +187,7 @@ void MyApplication::handleOperationPropertiesGUI() {
 
           auto edgeCopy = edge->clone();
           edgeCopy->update();
-          edgeCopy->setName("EFEFE");
+          edgeCopy->setName("bottomEdge");
           viewportScene->addObject(edgeCopy);
 
           face->addEdge(edgeCopy);
@@ -198,6 +198,7 @@ void MyApplication::handleOperationPropertiesGUI() {
             point->setPosition(point->getPosition() +
                                extrudeHeight * extrudeDirection);
           }
+          upperEdge->setName("upperEdge");
           upperEdge->update();
 
           face->addEdge(upperEdge);
@@ -215,9 +216,8 @@ void MyApplication::handleOperationPropertiesGUI() {
         }
         for (auto ef : edge_face) {
           auto point = ef.first->getPosition();
-          spdlog::error("FACES {}", ef.second.size());
           auto newEdge = EGEOM::Spline1::create({}, interpolationPointsCount);
-          newEdge->setName("EDGE");
+          newEdge->setName("LREdge");
           newEdge->setSplineType(EGEOM::Spline1::SplineType::Parametric);
           auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(
               new EGEOM::ParametricBuilder([&](float v) {
@@ -334,7 +334,7 @@ void MyApplication::handleViewportGUI() {
   auto objInfo = viewportFramebuffer->pickObjAt(
       mousePosition.x - screen_pos.x, (mousePosition.y - screen_pos.y));
 
-  bool hoverWithParent = true;
+  bool hoverWithParent = false;
   auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
   for (auto object : viewportScene->getObjects()) {
     // spdlog::error("pickedID {}{} {} {} {}", object->getName(),
@@ -361,6 +361,8 @@ void MyApplication::handleViewportGUI() {
   if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
       ImGui::IsWindowFocused() && !ImGuizmo::IsUsing()) {
     auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
+    // auto pickedID = objInfo.objectId;
+    spdlog::error("PICK {}", pickedID);
     for (auto object : viewportScene->getObjects()) {
       object->setSelected(object->getId() == pickedID);
       if (object->getId() == pickedID)
@@ -481,9 +483,11 @@ void MyApplication::handleViewportGUI() {
                           0xFF110055);
     }
 
-    for (auto &obj : viewportScene->getObjects()) {
-      obj->drawGizmo();
-    }
+    // for (auto &obj : viewportScene->getObjects()) {
+    //   obj->drawGizmo();
+    // }
+
+    selectedObjectViewport->drawGizmo();
 
     if (ImGuizmo::IsUsing()) {
 
@@ -1309,7 +1313,13 @@ void MyApplication::handleSketchSideGUI() {
       }
       if (node_open) {
         for (auto child : sketch->getWire()->getChildren()) {
-          ImGui::Text("%s", child->getName().c_str());
+          if (child == sketch->getWire()->getCurrentEdge()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+            ImGui::Text("%s %d", child->getName().c_str(), child->getId());
+            ImGui::PopStyleColor();
+          } else {
+            ImGui::Text("%s %d", child->getName().c_str(), child->getId());
+          }
         }
         ImGui::TreePop();
       }
