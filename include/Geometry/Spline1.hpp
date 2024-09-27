@@ -21,7 +21,6 @@ public:
 
   float u_max = 1.0f;
 
-  ImU32 gizmoColor = 0x44FF44FF;
 
 private:
   int _interpolatedPointsCount;
@@ -70,7 +69,6 @@ public:
 
   void update();
 
-  void drawGizmo() override;
 
   sptr<Spline1> clone();
 };

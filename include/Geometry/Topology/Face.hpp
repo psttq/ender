@@ -1,13 +1,11 @@
 #pragma once
 
 #include "Object.hpp"
-#include "Spline1.hpp"
 #include "Surface.hpp"
 #include "Wire.hpp"
 
 namespace EGEOM {
 class Face : public ENDER::Object {
-  using Edge = Spline1;
 
   sptr<Surface> _surface;
   sptr<Wire> _wire;

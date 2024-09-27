@@ -1,6 +1,5 @@
 #include "imgui.h"
 
-#include "ImGuizmo.h"
 #include <Spline1.hpp>
 
 namespace EGEOM {
@@ -215,25 +214,5 @@ std::vector<sptr<Point>> Spline1::getSplineDirs(float u, int dirsCount) {
   return _splineBuilder->getSplineDerivatives(u, dirsCount);
 }
 
-void Spline1::drawGizmo() {
-  auto points = _splineBuilder->getPoints();
-  if (points.size() < 2)
-    return;
-  for (auto p1i = points.begin(), end = points.end(); p1i + 1 != end; ++p1i) {
-    auto p2i = p1i + 1;
-    if (p2i == end)
-      break;
-
-    auto p1 = p1i->get()->getPosition();
-    auto p2 = p2i->get()->getPosition();
-    if (_isDirectionInversed) {
-      auto tmp = p1;
-      p1 = p2;
-      p2 = tmp;
-    }
-    ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
-                        gizmoColor);
-  }
-}
 
 } // namespace EGEOM

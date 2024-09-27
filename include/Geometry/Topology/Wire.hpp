@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Spline1.hpp"
+#include "Topology/Edge.hpp"
+
 namespace EGEOM {
 class Wire : public ENDER::Object {
-  using Edge = Spline1;
   std::vector<sptr<Edge>> _edges;
   Wire();
 

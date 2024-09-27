@@ -1,4 +1,4 @@
-#include <Wire.hpp>
+#include <Geometry/Topology/Wire.hpp>
 
 namespace EGEOM
 {
@@ -39,6 +39,6 @@ namespace EGEOM
         return _edges[currentEdge] == edge;
     }
 
-    std::vector<sptr<Wire::Edge>> Wire::getEdges() { return _edges; }
-    sptr<Wire::Edge> Wire::getCurrentEdge() { return _edges[currentEdge]; }
+    std::vector<sptr<Edge>> Wire::getEdges() { return _edges; }
+    sptr<Edge> Wire::getCurrentEdge() { return _edges[currentEdge]; }
 } // namespace EGEOM

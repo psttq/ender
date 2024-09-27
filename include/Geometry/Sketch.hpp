@@ -1,6 +1,6 @@
 #pragma once
 #include "Object.hpp"
-#include "Wire.hpp"
+#include "Topology/Wire.hpp"
 #include <Spline1.hpp>
 #include <string>
 

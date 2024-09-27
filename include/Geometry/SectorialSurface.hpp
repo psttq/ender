@@ -2,7 +2,8 @@
 
 #include "Point.hpp"
 #include "Surface.hpp"
-#include "Wire.hpp"
+#include "Topology/Wire.hpp"
+
 namespace EGEOM {
 class SectorialSurface : public EGEOM::Surface {
   sptr<Point> _point;
