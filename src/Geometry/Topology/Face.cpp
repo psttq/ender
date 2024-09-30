@@ -18,7 +18,9 @@ void Face::setWire(sptr<Wire> wire) {
   _wire = wire;
   addChildObject(_wire);
 }
+
 sptr<Wire> Face::getWire() { return _wire; }
+sptr<Surface> Face::getSurface(){ return _surface; }
 
 void Face::addEdge(sptr<Edge> edge) { _wire->addEdge(edge); }
 

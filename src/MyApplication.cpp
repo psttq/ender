@@ -12,6 +12,7 @@
 #include "Spline1.hpp"
 #include "Topology/Edge.hpp"
 #include "Topology/Face.hpp"
+#include "Topology/Shell.hpp"
 #include "Topology/Wire.hpp"
 #include "glm/geometric.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -32,7 +33,7 @@ MyApplication::MyApplication(uint appWidth, uint appHeight)
       _appHeight(appHeight) {}
 
 void MyApplication::onStart() {
-  bool darkTheme = true;
+  bool darkTheme = false;
 
   if (darkTheme) {
     ENDER::Renderer::setClearColor({0.093f, 0.093f, 0.093f, 1.0f});
@@ -160,6 +161,13 @@ void MyApplication::handleOperationPropertiesGUI() {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
 
+        auto shell = EGEOM::Shell::create();
+
+        shell->isSelectable = true;
+
+        shell->setPosition(pivot->getPosition());
+        shell->setRotation(pivot->getRotation());
+
         auto bottom = EGEOM::SectorialSurface::create(
             edges[0]->getSpline()->getPoints()[0], wire);
 
@@ -168,11 +176,8 @@ void MyApplication::handleOperationPropertiesGUI() {
 
         auto bottom_face = EGEOM::Face::create(bottom, wire);
         bottom_face->isSelectable = true;
-        bottom_face->setPosition(pivot->getPosition());
-        bottom_face->setRotation(pivot->getRotation());
 
-        viewportScene->addObject(bottom_face);
-
+        shell->addFace(bottom_face);
         auto upperWire = EGEOM::Wire::create();
 
         sptr<EGEOM::Face> prevFace;
@@ -193,8 +198,6 @@ void MyApplication::handleOperationPropertiesGUI() {
           wire->addEdge(bottomEdge);
 
           auto face = EGEOM::Face::create(obj, wire);
-          face->setPosition(selectedObjectViewport->getPosition());
-          face->setRotation(selectedObjectViewport->getRotation());
           face->isSelectable = true;
 
           edge->isSelectable = true;
@@ -208,7 +211,10 @@ void MyApplication::handleOperationPropertiesGUI() {
           upperEdge->setName("upperEdge");
           upperEdge->update();
 
-          upperWire->addEdge(upperEdge);
+          auto upperEdgeUpperFace = upperEdge->copy();
+          upperEdgeUpperFace->isInvertedDirection = true;
+
+          upperWire->addEdge(upperEdgeUpperFace);
 
           auto endPoint = *upperEdge->getSpline()->getPoints().begin();
           auto sideEdge = EGEOM::Edge::create(
@@ -227,7 +233,7 @@ void MyApplication::handleOperationPropertiesGUI() {
 
           face->addEdge(upperEdge);
 
-          viewportScene->addObject(face);
+          shell->addFace(face);
         }
         auto edge = firstSideEdge->copy();
         edge->isInvertedDirection = true;
@@ -242,10 +248,9 @@ void MyApplication::handleOperationPropertiesGUI() {
 
         auto upper_face = EGEOM::Face::create(upper, upperWire);
         upper_face->isSelectable = true;
-        upper_face->setPosition(pivot->getPosition());
-        upper_face->setRotation(pivot->getRotation());
 
-        viewportScene->addObject(upper_face);
+        shell->addFace(upper_face);
+        viewportScene->addObject(shell);
       }
     }
     ImGui::End();

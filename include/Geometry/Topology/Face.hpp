@@ -16,6 +16,7 @@ public:
 
   void setWire(sptr<Wire> wire);
   sptr<Wire> getWire();
+  sptr<Surface> getSurface();
 
   void addEdge(sptr<Edge> edge);
 
