@@ -7,6 +7,8 @@ namespace ENDER
 
   class IndexBuffer
   {
+    std::shared_ptr<spdlog::logger> logger;
+
     unsigned int _id;
     unsigned int _count;
 

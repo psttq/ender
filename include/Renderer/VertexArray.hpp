@@ -7,10 +7,12 @@
 namespace ENDER
 {
 
-  class VertexArray {
+  class VertexArray
+  {
     unsigned int _id;
     std::vector<uptr<VertexBuffer>> _vbos;
     uptr<IndexBuffer> _indexBuffer = nullptr;
+    sptr<spdlog::logger> logger;
 
     unsigned int _index = 0;
 

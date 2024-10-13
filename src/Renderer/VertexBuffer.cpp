@@ -5,13 +5,15 @@
 ENDER::VertexBuffer::VertexBuffer(uptr<BufferLayout> layout)
     : _layout(std::move(layout))
 {
+  logger = spdlog::default_logger();
+
   glGenBuffers(1, &_id);
   spdlog::info("Created VBO. Index: {}", _id);
 }
 
 void ENDER::VertexBuffer::setData(float *data, unsigned int size)
 {
-  _count = size/_layout->getStride();
+  _count = size / _layout->getStride();
 
   spdlog::debug("Setting data to VBO. Index: {}. Size of data: {} -> Count of elements: {}", _id, size, _count);
   bind();

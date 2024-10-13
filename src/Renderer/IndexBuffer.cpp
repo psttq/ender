@@ -3,6 +3,8 @@
 
 ENDER::IndexBuffer::IndexBuffer(unsigned int *indices, unsigned int count)
 {
+  logger = spdlog::default_logger();
+
   _count = count;
   glGenBuffers(1, &_id);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id);
@@ -22,6 +24,7 @@ void ENDER::IndexBuffer::bind() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id); }
 
 void ENDER::IndexBuffer::unbind() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
 
-unsigned int ENDER::IndexBuffer::getCount() {
-    return _count;
+unsigned int ENDER::IndexBuffer::getCount()
+{
+  return _count;
 }

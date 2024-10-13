@@ -7,6 +7,8 @@ namespace ENDER
 {
   class VertexBuffer
   {
+    sptr<spdlog::logger> logger;
+
     unsigned int _id = 0;
     uptr<BufferLayout> _layout;
     uint _count = 0;

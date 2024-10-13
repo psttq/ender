@@ -17,10 +17,13 @@ namespace ENDER
     {
     public:
         unsigned int ID;
+
+        std::shared_ptr<spdlog::logger> logger;
         // constructor generates the shader on the fly
         // ------------------------------------------------------------------------
         Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
         {
+            logger = spdlog::default_logger();
             spdlog::info("Creating shader. [vertexShaderPath: {}, fragmentShaderPath: {}]", vertexPath, fragmentPath);
             // 1. retrieve the vertex/fragment source code from filePath
             std::string vertexCode;
@@ -51,7 +54,8 @@ namespace ENDER
                 vertexCode = vShaderStream.str();
                 fragmentCode = fShaderStream.str();
 
-                if(geometryPath != nullptr) {
+                if (geometryPath != nullptr)
+                {
                     gShaderFile.open(geometryPath);
                     std::stringstream gShaderStream;
                     gShaderStream << gShaderFile.rdbuf();
@@ -86,7 +90,8 @@ namespace ENDER
             glAttachShader(ID, vertex);
             glAttachShader(ID, fragment);
 
-            if(geometryPath != nullptr) {
+            if (geometryPath != nullptr)
+            {
                 spdlog::debug("\t\t\t \\\\+geometryShader: {}", geometryPath);
                 geometry = glCreateShader(GL_GEOMETRY_SHADER);
                 glShaderSource(geometry, 1, &gShaderCode, NULL);
@@ -104,14 +109,14 @@ namespace ENDER
             spdlog::debug("Shader created successfully!");
         }
 
-      
-
-        ~Shader() {
+        ~Shader()
+        {
             spdlog::debug("Deallocation Shader");
         }
 
-        static sptr<Shader> create(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr){
-          return std::make_shared<Shader>(vertexPath, fragmentPath, geometryPath);
+        static sptr<Shader> create(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
+        {
+            return std::make_shared<Shader>(vertexPath, fragmentPath, geometryPath);
         }
 
         // activate the shader
