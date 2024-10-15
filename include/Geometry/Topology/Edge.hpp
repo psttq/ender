@@ -12,10 +12,13 @@ public:
   bool isInvertedDirection = false;
 
   ImU32 gizmoColor = 0x44FF44FF;
+
 public:
   static sptr<Edge> create(sptr<Spline1> spline);
 
   sptr<Spline1> getSpline() const;
+
+  glm::vec3 getPoint(float u);
 
   sptr<Edge> clone();
   sptr<Edge> copy();

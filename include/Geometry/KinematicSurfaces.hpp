@@ -33,7 +33,7 @@ public:
   void drawProperties() override;
   void drawGizmo() override;
 
-  void update();
+  void update() override;
 };
 
 } // namespace EGEOM

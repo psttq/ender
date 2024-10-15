@@ -19,6 +19,8 @@ public:
 
   void update();
 
+  glm::vec3 getPoint(float u);
+
   std::vector<sptr<Edge>> getEdges();
   sptr<Edge> getCurrentEdge();
 };

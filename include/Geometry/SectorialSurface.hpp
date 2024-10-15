@@ -14,7 +14,7 @@ class SectorialSurface : public EGEOM::Surface {
 public:
   static sptr<SectorialSurface> create(sptr<Point> point, sptr<Wire> wire);
 
-  void update();
+  void update() override;
 
   void drawProperties() override;
 

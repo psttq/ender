@@ -7,9 +7,16 @@
 namespace EGEOM {
 class Face : public ENDER::Object {
 
+  const int wirePointNumber = 100;
+  const int surfacePointsNumberByU = 100;
+  const int surfacePointsNumberByV = 100;
+
   sptr<Surface> _surface;
   sptr<Wire> _wire;
-  Face(sptr<Surface> surface, sptr<Wire> wire);
+
+  bool _basedOnSurface;
+
+  Face(sptr<Surface> surface, sptr<Wire> wire, bool basedOnSurface = false);
 
 public:
   static sptr<Face> create(sptr<Surface> surface, sptr<Wire> wire);
@@ -19,6 +26,8 @@ public:
   sptr<Surface> getSurface();
 
   void addEdge(sptr<Edge> edge);
+
+  void update();
 
   void drawGizmo() override;
 };
