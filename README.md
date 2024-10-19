@@ -1,5 +1,10 @@
 # Ender - simple renderer for everything
 
+## REQUIREMENTS
+
+- GMP
+- MPFR
+- Boost
 
 ### Todo
 - [ ] clone for spline

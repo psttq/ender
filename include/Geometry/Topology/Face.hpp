@@ -14,7 +14,7 @@ class Face : public ENDER::Object {
   sptr<Surface> _surface;
   sptr<Wire> _wire;
 
-  bool _basedOnSurface;
+  bool _basedOnSurface = false;
 
   Face(sptr<Surface> surface, sptr<Wire> wire, bool basedOnSurface = false);
 
@@ -24,6 +24,8 @@ public:
   void setWire(sptr<Wire> wire);
   sptr<Wire> getWire();
   sptr<Surface> getSurface();
+
+  void setBasedOnSurface(bool isBasedOnSurface);
 
   void addEdge(sptr<Edge> edge);
 

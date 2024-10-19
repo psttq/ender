@@ -4,6 +4,7 @@
 #include "ImGuizmo.h"
 #include "KinematicSurfaces.hpp"
 #include "Object.hpp"
+#include "PlaneSurface.hpp"
 #include "Point.hpp"
 #include "Renderer.hpp"
 #include "RotationSurface.hpp"
@@ -34,7 +35,7 @@ MyApplication::MyApplication(uint appWidth, uint appHeight)
 
 void MyApplication::onStart()
 {
-  bool darkTheme = false;
+  bool darkTheme = true;
 
   if (darkTheme)
   {
@@ -176,13 +177,16 @@ void MyApplication::handleOperationPropertiesGUI()
         shell->setPosition(pivot->getPosition());
         shell->setRotation(pivot->getRotation());
 
-        auto bottom = EGEOM::SectorialSurface::create(
-            edges[0]->getSpline()->getPoints()[0], wire);
+        // auto bottom = EGEOM::SectorialSurface::create(
+            // edges[0]->getSpline()->getPoints()[0], wire);
+
+        auto bottom = EGEOM::PlaneSurface::create();
 
         bottom->isSelectable = true;
         bottom->update();
 
         auto bottom_face = EGEOM::Face::create(bottom, wire);
+        bottom_face->setBasedOnSurface(true);
         bottom_face->isSelectable = true;
 
         shell->addFace(bottom_face);
@@ -251,16 +255,16 @@ void MyApplication::handleOperationPropertiesGUI()
         prevFace->addEdge(edge);
 
         auto edgesUpper = upperWire->getEdges();
-        auto upper = EGEOM::SectorialSurface::create(
-            edgesUpper[0]->getSpline()->getPoints()[0], upperWire);
+        // auto upper = EGEOM::SectorialSurface::create(
+            // edgesUpper[0]->getSpline()->getPoints()[0], upperWire);
 
-        upper->isSelectable = true;
-        upper->update();
+        // upper->isSelectable = true;
+        // upper->update();
 
-        auto upper_face = EGEOM::Face::create(upper, upperWire);
-        upper_face->isSelectable = true;
+        // auto upper_face = EGEOM::Face::create(upper, upperWire);
+        // upper_face->isSelectable = true;
 
-        shell->addFace(upper_face);
+        // shell->addFace(upper_face);
         viewportScene->addObject(shell);
       }
     }

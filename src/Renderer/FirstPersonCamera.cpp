@@ -43,6 +43,7 @@ glm::mat4 ENDER::FirstPersonCamera::getView() const {
 }
 
 glm::mat4 ENDER::FirstPersonCamera::getProjection() const {
+  if(_framebufferSize.x <= 0) return {};
   return glm::perspective(
         glm::radians(45.0f),
         (float) _framebufferSize.x / (float) _framebufferSize.y, 0.1f, 100.0f);
