@@ -1,8 +1,19 @@
 #pragma once
 
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Alpha_shape_3.h>
+#include <CGAL/Alpha_shape_cell_base_3.h>
+#include <CGAL/Alpha_shape_vertex_base_3.h>
 #include <CGAL/Delaunay_triangulation_3.h>
-#include <CGAL/Triangulation_vertex_base_3.h>
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+
+#include <CGAL/Alpha_shape_2.h>
+#include <CGAL/Alpha_shape_face_base_2.h>
+#include <CGAL/Alpha_shape_vertex_base_2.h>
+#include <CGAL/Delaunay_triangulation_2.h>
+
+#include <CGAL/Polyhedron_3.h>
+#include <CGAL/convex_hull_3.h>
+
 #include <Ender.hpp>
 #include <ender_types.hpp>
 namespace ENDER {
@@ -15,8 +26,8 @@ typedef CGAL::Delaunay_triangulation_3<K> Triangulation;
 Point_3 convert_to_cgal_point(const glm::vec3 &glm_point);
 
 Triangulation triangulatePoints(const std::vector<glm::vec3> &points);
-sptr<VertexArray>
-createTriangulationSurfaceVAO(const std::vector<glm::vec3> &points);
+sptr<VertexArray> createTriangulationSurfaceVAO(const std::vector<glm::vec3>
+&curve_points, const std::vector<glm::vec3> &surface_points);
 
 typedef std::function<glm::vec3(float, float)> ParametricSurfFunc;
 

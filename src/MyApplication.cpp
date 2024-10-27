@@ -258,11 +258,11 @@ void MyApplication::handleOperationPropertiesGUI()
         // auto upper = EGEOM::SectorialSurface::create(
             // edgesUpper[0]->getSpline()->getPoints()[0], upperWire);
 
-        // upper->isSelectable = true;
-        // upper->update();
+        auto upper = EGEOM::PlaneSurface::create();
 
-        // auto upper_face = EGEOM::Face::create(upper, upperWire);
-        // upper_face->isSelectable = true;
+        auto upper_face = EGEOM::Face::create(upper, upperWire);
+        upper_face->isSelectable = true;
+        upper_face->setBasedOnSurface(true);
 
         // shell->addFace(upper_face);
         viewportScene->addObject(shell);

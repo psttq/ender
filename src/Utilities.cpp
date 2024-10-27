@@ -24,7 +24,12 @@ Triangulation triangulatePoints(const std::vector<glm::vec3> &points) {
 }
 
 sptr<VertexArray>
-createTriangulationSurfaceVAO(const std::vector<glm::vec3> &points) {
+createTriangulationSurfaceVAO(const std::vector<glm::vec3> &curve_points,
+                              const std::vector<glm::vec3> &surface_points) {
+  std::vector<glm::vec3> points = curve_points;
+  for (auto &point : surface_points) {
+    points.push_back(point);
+  }
   Triangulation dt = triangulatePoints(points);
   std::vector<float> vertices;
   std::vector<unsigned int> indices;
@@ -48,7 +53,25 @@ createTriangulationSurfaceVAO(const std::vector<glm::vec3> &points) {
     auto cell = it->first;
     int opposite_vertex = it->second;
 
+
+    //CHECK IF FACET HAS ANY POINT INSIDE SURFACE
+    int pointsOnCurve = 0;
+   for(auto &point: curve_points){
+       for (int i = 0; i < 4; ++i) {
+            if (i != opposite_vertex) {
+                Point_3 p = cell->vertex(i)->point();
+                if(glm::length(glm::vec3{p.x(), p.y(), p.z()} - point) <= 1e-7){
+                    pointsOnCurve++;
+                }
+            }
+            // else
+            // pointsOnCurve = 99;
+       }
+       if(pointsOnCurve > 2) break;
+   }
+
     // Получаем три вершины грани
+    if(pointsOnCurve  <= 2)
     for (int i = 0; i < 4; ++i) {
       if (i != opposite_vertex) {
         Point_3 p = cell->vertex(i)->point();
@@ -56,6 +79,7 @@ createTriangulationSurfaceVAO(const std::vector<glm::vec3> &points) {
       }
     }
   }
+
   auto layout = uptr<BufferLayout>(
       new ENDER::BufferLayout({{ENDER::LayoutObjectType::Float3}}));
   auto vbo = std::make_unique<VertexBuffer>(std::move(layout));

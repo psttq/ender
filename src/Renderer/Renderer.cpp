@@ -220,7 +220,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
     material.diffuse = {1.0f, 0.7f, 0.51f};
     material.specular = {1.0f, 0.7f, 0.51f};
     material.ambient *= 1.4f;
-    material.diffuse*= 1.4f;
+    material.diffuse *= 1.4f;
     material.specular *= 1.4f;
   }
 
@@ -271,12 +271,12 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
     drawType = GL_TRIANGLES;
   } break;
   case DrawType::Lines: {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     drawType = GL_LINES;
   } break;
   default:
     spdlog::error("Unreachable");
   }
-
   if (object->type == Object::ObjectType::Line)
     drawType = GL_LINE_STRIP;
 

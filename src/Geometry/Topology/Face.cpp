@@ -1,3 +1,4 @@
+#include "Surface.hpp"
 #include "glm/fwd.hpp"
 #include "imgui.h"
 #include <Topology/Face.hpp>
@@ -11,8 +12,8 @@ namespace EGEOM
   {
     type = ObjectType::Empty;
     addChildObject(wire);
-    // if (!basedOnSurface)
-      // addChildObject(surface);
+    if (!basedOnSurface)
+      addChildObject(surface);
   }
 
   sptr<Face> Face::create(sptr<Surface> surface, sptr<Wire> wire)
@@ -35,11 +36,19 @@ namespace EGEOM
   void Face::setBasedOnSurface(bool isBasedOnSurface)
   {
     _basedOnSurface = isBasedOnSurface;
-    // if(_basedOnSurface)
-      // deleteChildObject(_surface);
-    // else
-      // addChildObject(_surface);
+    if(_basedOnSurface)
+      deleteChildObject(_surface);
+    else
+      addChildObject(_surface);
     update();
+  }
+
+  bool isIntersecting(const glm::vec2& point, const glm::vec2& p1, const glm::vec2& p2) {
+      if ((p1.y > point.y) != (p2.y > point.y)) {
+          double intersectX = p1.x + (point.y - p1.y) * (p2.x - p1.x) / (p2.y - p1.y);
+          return point.x < intersectX;
+      }
+      return false;
   }
 
   void Face::update()
@@ -54,20 +63,22 @@ namespace EGEOM
         wirePoints.push_back(_wire->getPoint(step * i));
       }
 
-      // glm::vec3 minValues(std::numeric_limits<float>::max());
-      // glm::vec3 maxValues(std::numeric_limits<float>::lowest());
+      glm::vec3 minValues(std::numeric_limits<float>::max());
+      glm::vec3 maxValues(std::numeric_limits<float>::lowest());
 
-      // for (const auto &point : wirePoints) { // BORDERS
-      //   minValues.x = std::min(minValues.x, point.x);
-      //   minValues.y = std::min(minValues.y, point.y);
-      //   minValues.z = std::min(minValues.z, point.z);
+      for (const auto &point : wirePoints) { // BORDERS
+        minValues.x = std::min(minValues.x, point.x);
+        minValues.y = std::min(minValues.y, point.y);
+        minValues.z = std::min(minValues.z, point.z);
 
-      //   maxValues.x = std::max(maxValues.x, point.x);
-      //   maxValues.y = std::max(maxValues.y, point.y);
-      //   maxValues.z = std::max(maxValues.z, point.z);
-      // }
+        maxValues.x = std::max(maxValues.x, point.x);
+        maxValues.y = std::max(maxValues.y, point.y);
+        maxValues.z = std::max(maxValues.z, point.z);
+      }
       if (_surface->getName() == "Plane")
       {
+          _surface->setUMinMax(minValues.x, maxValues.x);
+          _surface->setVMinMax(minValues.z, maxValues.z);
       }
 
       std::vector<glm::vec3> surfacePoints;
@@ -83,34 +94,31 @@ namespace EGEOM
         {
           float v = v_min + v_step * j;
           auto point = _surface->pointOnSurface(u, v);
-          bool inside = false;
+          int intersections = 0;
           for (auto k = 0; k < wirePointNumber;
                k++)
           { // FIXME: WORKS ONLY FOR 2D XZ PLANE!!!
             size_t kn = (k + 1) % wirePointNumber;
             auto pk = wirePoints[k];
             auto pkn = wirePoints[kn];
-            bool intersect = ((pk.z > point.z) != (pkn.z > point.z)) &&
-                             (point.x < (pkn.x - pk.x) * (point.z - pk.z) /
-                                                (pkn.z - pk.z + 1e-9) +
-                                            pk.x);
+
+            bool intersect = isIntersecting({point.x, point.z}, {pk.x, pk.z}, {pkn.x, pkn.z});
 
             if (intersect)
             {
-              inside = !inside;
+                intersections++;
             }
           }
-          if (inside)
+          if (intersections%2!=0)
           {
+
             surfacePoints.push_back(point);
           }
         }
       }
-      for (auto wirePoints : wirePoints)
-      {
-        surfacePoints.push_back(wirePoints);
-      }
-      auto vao = ENDER::Utils::createTriangulationSurfaceVAO(surfacePoints);
+      spdlog::error("NUM: {}", surfacePoints.size());
+
+      auto vao = ENDER::Utils::createTriangulationSurfaceVAO(wirePoints, surfacePoints);
       setVertexArray(vao);
       type = ObjectType::Surface;
     }
