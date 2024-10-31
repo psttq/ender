@@ -180,7 +180,7 @@ void MyApplication::handleOperationPropertiesGUI()
         // auto bottom = EGEOM::SectorialSurface::create(
             // edges[0]->getSpline()->getPoints()[0], wire);
 
-        auto bottom = EGEOM::PlaneSurface::create();
+        auto bottom = EGEOM::PlaneSurface::create(wire->getPoint(0), wire->getPoint(0.5), wire->getPoint(1.0));
 
         bottom->isSelectable = true;
         bottom->update();
@@ -248,7 +248,7 @@ void MyApplication::handleOperationPropertiesGUI()
 
           face->addEdge(upperEdge);
 
-          shell->addFace(face);
+          // shell->addFace(face);
         }
         auto edge = firstSideEdge->copy();
         edge->isInvertedDirection = true;
@@ -258,13 +258,16 @@ void MyApplication::handleOperationPropertiesGUI()
         // auto upper = EGEOM::SectorialSurface::create(
             // edgesUpper[0]->getSpline()->getPoints()[0], upperWire);
 
-        auto upper = EGEOM::PlaneSurface::create();
+
+
+        auto upper = EGEOM::PlaneSurface::create(upperWire->getPoint(0.1), upperWire->getPoint(0.3), upperWire->getPoint(0.5));
 
         auto upper_face = EGEOM::Face::create(upper, upperWire);
         upper_face->isSelectable = true;
         upper_face->setBasedOnSurface(true);
 
-        // shell->addFace(upper_face);
+        spdlog::error("AAA {}", upperWire->getPoint(0.1).y);
+        shell->addFace(upper_face);
         viewportScene->addObject(shell);
       }
     }

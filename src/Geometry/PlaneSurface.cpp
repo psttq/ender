@@ -1,12 +1,19 @@
 #include "Surface.hpp"
 #include "Utilities.hpp"
+#include "glm/geometric.hpp"
 #include <PlaneSurface.hpp>
 
-namespace EGEOM {
-PlaneSurface::PlaneSurface() : EGEOM::Surface("Plane") { update(); }
+namespace EGEOM { PlaneSurface::PlaneSurface(const glm::vec3 &a, const glm::vec3
+&b, const glm::vec3 &c) : EGEOM::Surface("Plane"), _pivot(b){
+    _basisVec1 = glm::normalize(a-b);
+    _normal = glm::normalize(glm::cross(_basisVec1,c-b));
+    _basisVec2 = glm::normalize(glm::cross(_normal, _basisVec1));
 
-sptr<PlaneSurface> PlaneSurface::create() {
-  return sptr<PlaneSurface>(new PlaneSurface());
+    update(); }
+
+//Point b is pivot point
+sptr<PlaneSurface> PlaneSurface::create(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c) {
+  return sptr<PlaneSurface>(new PlaneSurface(a,b,c));
 }
 
 void PlaneSurface::update() {
@@ -18,5 +25,5 @@ void PlaneSurface::update() {
 
 void PlaneSurface::drawProperties() {}
 
-glm::vec3 PlaneSurface::pointOnSurface(float u, float v) { return glm::vec3{u, 0, v}; }
+glm::vec3 PlaneSurface::pointOnSurface(float u, float v) { return _basisVec1*u+_basisVec2*u+_pivot; }
 } // namespace EGEOM

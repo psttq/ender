@@ -49,6 +49,8 @@ createTriangulationSurfaceVAO(const std::vector<glm::vec3> &curve_points,
     // Присваиваем каждой точке индекс
     point_to_index[p] = index++;
   }
+  auto facets_num = dt.number_of_facets();
+    spdlog::error("FACETS: {}", facets_num);
   for (auto it = dt.finite_facets_begin(); it != dt.finite_facets_end(); ++it) {
     auto cell = it->first;
     int opposite_vertex = it->second;
