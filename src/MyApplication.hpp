@@ -60,7 +60,7 @@ class MyApplication : public ENDER::Application {
   uint _appWidth;
   uint _appHeight;
 
-  int interpolationPointsCount = 30;
+  int interpolationPointsCount = 300;
 
   ImVec2 sketchWindowPos;
 

@@ -23,7 +23,15 @@ void PlaneSurface::update() {
   setVertexArray(vao);
 }
 
+std::tuple<glm::vec3, glm::vec3, glm::vec3> PlaneSurface::getBasis(){
+    return {_pivot, _basisVec1, _basisVec2};
+}
+
+void PlaneSurface::setPivot(const glm::vec3 &pivot){
+    _pivot = pivot;
+}
+
 void PlaneSurface::drawProperties() {}
 
-glm::vec3 PlaneSurface::pointOnSurface(float u, float v) { return _basisVec1*u+_basisVec2*u+_pivot; }
+glm::vec3 PlaneSurface::pointOnSurface(float u, float v) { return _basisVec1*u+_basisVec2*v+_pivot; }
 } // namespace EGEOM

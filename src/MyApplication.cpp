@@ -180,7 +180,7 @@ void MyApplication::handleOperationPropertiesGUI()
         // auto bottom = EGEOM::SectorialSurface::create(
             // edges[0]->getSpline()->getPoints()[0], wire);
 
-        auto bottom = EGEOM::PlaneSurface::create(wire->getPoint(0), wire->getPoint(0.5), wire->getPoint(1.0));
+        auto bottom = EGEOM::PlaneSurface::create(wire->getPoint(0), wire->getPoint(0.2), wire->getPoint(0.7));
 
         bottom->isSelectable = true;
         bottom->update();
@@ -248,7 +248,7 @@ void MyApplication::handleOperationPropertiesGUI()
 
           face->addEdge(upperEdge);
 
-          // shell->addFace(face);
+          shell->addFace(face);
         }
         auto edge = firstSideEdge->copy();
         edge->isInvertedDirection = true;
@@ -266,7 +266,6 @@ void MyApplication::handleOperationPropertiesGUI()
         upper_face->isSelectable = true;
         upper_face->setBasedOnSurface(true);
 
-        spdlog::error("AAA {}", upperWire->getPoint(0.1).y);
         shell->addFace(upper_face);
         viewportScene->addObject(shell);
       }
@@ -417,7 +416,6 @@ void MyApplication::handleViewportGUI()
   {
     auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
     // auto pickedID = objInfo.objectId;
-    spdlog::error("PICK {}", pickedID);
     for (auto object : viewportScene->getObjects())
     {
       object->setSelected(object->getId() == pickedID);
@@ -990,7 +988,6 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
       auto pickedID =
           sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY)
               .objectId;
-      spdlog::error("ppp {}", pickedID);
 
       for (auto edge : sketches[currentSketchId]->getWire()->getEdges())
       {
