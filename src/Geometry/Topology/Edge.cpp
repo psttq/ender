@@ -24,6 +24,11 @@ sptr<Edge> Edge::copy() { return Edge::create(_spline); }
 
 void Edge::drawProperties() {}
 
+
+std::vector<sptr<Point>> Edge::getEdgeDirs(float u, int dirsCount){
+    return _spline->getSplineDirs(u, dirsCount);
+}
+
 void Edge::drawGizmo() {
   auto points = _spline->getPoints();
   if (points.size() < 2)

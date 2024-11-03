@@ -22,5 +22,6 @@ public:
   void drawProperties() override;
 
   glm::vec3 pointOnSurface(float u, float v) override;
+  glm::vec3 normalOnSurface(float u, float v) override;
 };
 } // namespace EGEOM

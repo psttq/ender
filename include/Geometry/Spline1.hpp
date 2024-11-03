@@ -16,7 +16,8 @@ public:
     RationalBezier,
     BSpline,
     NURBS,
-    Parametric
+    Parametric,
+    CubicSpline
   };
 
   float u_max = 1.0f;

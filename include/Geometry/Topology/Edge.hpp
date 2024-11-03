@@ -20,6 +20,8 @@ public:
 
   glm::vec3 getPoint(float u);
 
+  std::vector<sptr<Point>> getEdgeDirs(float u, int dirsCount);
+
   sptr<Edge> clone();
   sptr<Edge> copy();
 

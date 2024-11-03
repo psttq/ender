@@ -1,3 +1,4 @@
+#include "SplineBuilder.hpp"
 #include "imgui.h"
 
 #include <Spline1.hpp>
@@ -101,7 +102,8 @@ void Spline1::getPropertiesGUI(bool scrollToPoint) {
                                      "Rational Bezier",
                                      "BSpline",
                                      "NURBS",
-                                     "Parametric"};
+                                     "Parametric",
+                                     "Cubic"};
   int currentItem = static_cast<int>(_splineType);
 
   if (ImGui::Combo("Spline Type", &currentItem, &items[0], items.size())) {
@@ -138,6 +140,10 @@ void Spline1::getPropertiesGUI(bool scrollToPoint) {
         auto nurbsBuilder = std::make_unique<RationalBSplineBuilder>(
             points, 1, knotVector, weights);
         setSplineBuilder(std::move(nurbsBuilder));
+      } break;
+      case SplineType::CubicSpline: {
+        auto cubicBuilder = std::make_unique<CubicSplineBuilder>(points);
+        setSplineBuilder(std::move(cubicBuilder));
       } break;
       }
       update();
@@ -213,6 +219,5 @@ glm::vec3 Spline1::getSplinePoint(float u) {
 std::vector<sptr<Point>> Spline1::getSplineDirs(float u, int dirsCount) {
   return _splineBuilder->getSplineDerivatives(u, dirsCount);
 }
-
 
 } // namespace EGEOM
