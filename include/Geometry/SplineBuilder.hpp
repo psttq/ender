@@ -10,7 +10,7 @@ protected:
   bool isDirected = false;
 
 public:
-  SplineBuilder(const std::vector<sptr<Point>> &points) : points(points){};
+  SplineBuilder(const std::vector<sptr<Point>> &points) : points(points) {};
 
   virtual ~SplineBuilder() = default;
 
@@ -83,24 +83,22 @@ private:
   void calculateUniformParameter();
 };
 
-
 /////////////////////////////////////
-/// LinearInterpolationBuilder
+/// CubicSplineBuilder
 /////////////////////////////////////
 
 class CubicSplineBuilder : public SplineBuilder {
-    struct SplineSegment {
-        float a, b, c, d; // Коэффициенты кубического полинома
-    };
-    size_t n;
-    std::vector<float> x, y;
-    std::vector<SplineSegment> coefficients;
+  struct SplineSegment {
+    float a, b, c, d; // Коэффициенты кубического полинома
+  };
+  size_t n;
+  std::vector<float> x, y;
+  std::vector<SplineSegment> coefficients;
 
+  float x_min;
+  float x_max;
 
-    float x_min;
-    float x_max;
 public:
-
   CubicSplineBuilder(const std::vector<sptr<Point>> &points);
   CubicSplineBuilder(const std::vector<float> &x, const std::vector<float> &y);
 
@@ -111,7 +109,6 @@ public:
   bool drawPropertiesGui() override;
 
   uptr<SplineBuilder> clone() override;
-
 };
 
 /////////////////////////////////////

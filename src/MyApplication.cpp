@@ -1,5 +1,6 @@
 #include "MyApplication.hpp"
 #include "ExtrudeSurface.hpp"
+#include "FilletSurface.hpp"
 #include "IconsFontAwesome5.h"
 #include "ImGuizmo.h"
 #include "KinematicSurfaces.hpp"
@@ -195,6 +196,11 @@ void MyApplication::handleOperationPropertiesGUI()
         sptr<EGEOM::Face> prevFace;
         sptr<EGEOM::Edge> firstSideEdge;
 
+        bool filletReady = false; //FILLET
+        sptr<EGEOM::Surface> r; //Fillet
+        sptr<EGEOM::Surface> s; //Fillet
+        sptr<EGEOM::Edge> c0; //Fillet
+
         for (auto edge : edges)
         {
           auto obj =
@@ -230,9 +236,13 @@ void MyApplication::handleOperationPropertiesGUI()
 
           upperWire->addEdge(upperEdgeUpperFace);
 
-          auto endPoint = *upperEdge->getSpline()->getPoints().begin();
-          auto sideEdge = EGEOM::Edge::create(
-              EGEOM::Spline1::create({beginPoint, endPoint}, 10));
+          auto endPoint = *upperEdge->getSpline()->getPoints().begin();\
+          auto sideSpline = EGEOM::Spline1::create({beginPoint, endPoint}, 10);
+          auto nurbsBuilder = uptr<EGEOM::RationalBSplineBuilder>(new EGEOM::RationalBSplineBuilder(sideSpline->getPoints(), 1,{}, {}));
+          sideSpline->setSplineType(EGEOM::Spline1::SplineType::NURBS);
+          sideSpline->setSplineBuilder(std::move(nurbsBuilder));
+          sideSpline->update();
+          auto sideEdge = EGEOM::Edge::create(sideSpline);
           face->addEdge(sideEdge);
 
           if (!firstSideEdge)
@@ -243,6 +253,13 @@ void MyApplication::handleOperationPropertiesGUI()
             auto sideEdgeCopy = sideEdge->copy();
             sideEdgeCopy->isInvertedDirection = true;
             prevFace->addEdge(sideEdgeCopy);
+
+            if(!filletReady){
+                r = prevFace->getSurface();
+                s = face->getSurface();
+                c0 = sideEdge;
+                filletReady = true;
+            }
           }
           prevFace = face;
 
@@ -268,6 +285,16 @@ void MyApplication::handleOperationPropertiesGUI()
 
         shell->addFace(upper_face);
         viewportScene->addObject(shell);
+
+
+        //TEST FILLET
+        auto filletSurface = EGEOM::FilletSurface::create(c0, r, s);
+        filletSurface->update();
+        auto cr = filletSurface->getCrSpline();
+        auto cs = filletSurface->getCsSpline();
+
+        viewportScene->addObject(cr);
+        viewportScene->addObject(cs);
       }
     }
     ImGui::End();

@@ -17,7 +17,8 @@ public:
     BSpline,
     NURBS,
     Parametric,
-    CubicSpline
+    CubicSpline,
+    SurfaceSpline
   };
 
   float u_max = 1.0f;

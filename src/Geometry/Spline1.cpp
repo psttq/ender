@@ -27,7 +27,7 @@ Spline1::Spline1(const std::vector<sptr<Point>> &points,
 }
 
 void Spline1::_calculateDrawPoints() {
-  if (_splineType != SplineType::Parametric &&
+  if (_splineType != SplineType::Parametric && _splineType != SplineType::SurfaceSpline &&
       _splineBuilder->getPoints().size() < 2)
     return;
 

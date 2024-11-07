@@ -130,6 +130,7 @@ void LinearInterpolationBuilder::calculateUniformParameter() {
                  (static_cast<float>(points.size()) - 1.0f));
   }
 }
+
 /////////////////////////////////////
 /// CubicSplineBuilder
 /////////////////////////////////////
@@ -149,7 +150,10 @@ CubicSplineBuilder::CubicSplineBuilder(const std::vector<sptr<Point>> &points)
 
 CubicSplineBuilder::CubicSplineBuilder(const std::vector<float> &x,
                                        const std::vector<float> &y)
-    : SplineBuilder({}), x(x), y(y), n(x.size()) {}
+    : SplineBuilder({}), x(x), y(y), n(x.size()) {
+    x_min = *std::min_element(x.begin(), x.end());
+    x_max = *std::max_element(y.begin(), y.end());
+    }
 
 uptr<SplineBuilder> CubicSplineBuilder::clone() {
   std::vector<sptr<Point>> pointsCopy;
@@ -202,10 +206,6 @@ sptr<Point> CubicSplineBuilder::getSplinePoint(float t) {
   for (size_t i = 0; i < n - 1; ++i) {
     if (x[i] <= t && t <= x[i + 1]) {
       float dx = t - x[i];
-      spdlog::info("Point spline: {} {} {}", t, 0,
-                   coefficients[i].a + coefficients[i].b * dx +
-                       coefficients[i].c * dx * dx +
-                       coefficients[i].d * dx * dx * dx);
       return Point::create({t, 0,
                             coefficients[i].a + coefficients[i].b * dx +
                                 coefficients[i].c * dx * dx +

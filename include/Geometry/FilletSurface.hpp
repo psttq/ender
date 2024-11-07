@@ -7,8 +7,8 @@
 
 namespace EGEOM{
 
-#define MAX_ITERS 100
-#define SPLINE_APPROX_POINTS 100
+#define MAX_ITERS 1000
+#define SPLINE_APPROX_POINTS 200
 
 class FilletSurface: public Surface{
     sptr<Edge> _edge;
@@ -21,8 +21,12 @@ class FilletSurface: public Surface{
     sptr<Spline1> a_spline;
     sptr<Spline1> b_spline;
 
-    float lR = 1.0f;
-    float rR = 1.0f;
+
+    sptr<Spline1> cr;
+    sptr<Spline1> cs;
+
+    float lR = 0.4f;
+    float rR = 0.4f;
 
     FilletSurface(sptr<Edge> edge, sptr<Surface> leftSurface, sptr<Surface> rightSurface);
 
@@ -35,7 +39,12 @@ class FilletSurface: public Surface{
     public:
     static sptr<FilletSurface> create(sptr<Edge> edge, sptr<Surface> leftSurface, sptr<Surface> rightSurface);
 
+    sptr<Spline1> getCrSpline();
+    sptr<Spline1> getCsSpline();
+
     void update() override;
+
+    glm::vec3 pointOnSurface(float u, float v) override;
 
 };
 }
