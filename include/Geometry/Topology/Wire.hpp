@@ -13,6 +13,7 @@ public:
   static sptr<Wire> create();
   void addEdge(sptr<Edge> edge);
   void removeEdge(sptr<Edge> edge);
+  void replaceEdge(sptr<Edge> oldEdge, sptr<Edge> newEdge);
 
   void setCurrentEdge(sptr<Edge> edge);
   bool isCurrentEdge(sptr<Edge> edge);

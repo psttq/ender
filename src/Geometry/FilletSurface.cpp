@@ -2,6 +2,7 @@
 #include "SplineBuilder.hpp"
 #include "Surface.hpp"
 #include "SurfaceSplineBuilder.hpp"
+#include "Utilities.hpp"
 #include <FilletSurface.hpp>
 
 namespace EGEOM {
@@ -11,11 +12,11 @@ FilletSurface::FilletSurface(sptr<Edge> edge, sptr<Surface> leftSurface,
     : Surface("Fillet"), _edge(edge), _leftSurface(leftSurface),
       _rightSurface(rightSurface) {}
 
-sptr<FilletSurface> FilletSurface::create
-(sptr<Edge> edge, sptr<Surface> leftSurface,
-                             sptr<Surface> rightSurface)
-{
-    return sptr<FilletSurface>(new FilletSurface(edge, leftSurface,rightSurface));
+sptr<FilletSurface> FilletSurface::create(sptr<Edge> edge,
+                                          sptr<Surface> leftSurface,
+                                          sptr<Surface> rightSurface) {
+  return sptr<FilletSurface>(
+      new FilletSurface(edge, leftSurface, rightSurface));
 }
 glm::vec4 FilletSurface::_equationSystem(float u, float v, float a, float b,
                                          float s) {
@@ -40,8 +41,6 @@ glm::vec4 FilletSurface::_equationSystem(float u, float v, float a, float b,
 glm::mat4 FilletSurface::_jacobian(float u, float v, float a, float b,
                                    float s) {
 
-
-
   float delta = 1e-5;
 
   auto eq = _equationSystem(u, v, a, b, s);
@@ -55,10 +54,8 @@ glm::mat4 FilletSurface::_jacobian(float u, float v, float a, float b,
   eq_delta = _equationSystem(u, v, a + delta, b, s);
   auto a_dir = (eq_delta - eq) / delta;
 
-
   eq_delta = _equationSystem(u, v, a, b + delta, s);
   auto b_dir = (eq_delta - eq) / delta;
-
 
   return {u_dir, v_dir, a_dir, b_dir};
 }
@@ -67,54 +64,70 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
                                        float s) {
   float eps = 1e-5;
 
-
   float tol = 100;
   float step = 0.01;
   int i = 0;
 
   spdlog::info("Starting newton method.");
   for (i = 0; i < MAX_ITERS && tol > eps; i++) {
-    if(u < 0) u = 0;
-    if(v < 0) v = 0;
-    if(a < 0) a = 0;
-    if(b < 0) b = 0;
-    
-    if(u > 1) u = 0.99;
-    if(v > 1) v = 0.99;
-    if(a > 1) a = 0.99;
-    if(b > 1) b = 0.99;
+    if (u < 0)
+      u = 0;
+    if (v < 0)
+      v = 0;
+    if (a < 0)
+      a = 0;
+    if (b < 0)
+      b = 0;
+
+    if (u > 1)
+      u = 0.99;
+    if (v > 1)
+      v = 0.99;
+    if (a > 1)
+      a = 0.99;
+    if (b > 1)
+      b = 0.99;
     auto F = _equationSystem(u, v, a, b, s);
     auto J = _jacobian(u, v, a, b, s);
     auto Jdet = glm::determinant(J);
 
-    if(Jdet == 0){
+    if (Jdet == 0) {
       spdlog::error("FilletSurface: initial guess gives bad jacobian.");
       return {};
     }
 
     auto J_inv = glm::inverse(J);
 
-    auto delta = step*J_inv * F;
+    auto delta = step * J_inv * F;
 
-    tol = glm::length(glm::vec4(u,v,a,b) - glm::vec4(u-delta.x,v-delta.y,a-delta.z,b-delta.w));
+    tol = glm::length(
+        glm::vec4(u, v, a, b) -
+        glm::vec4(u - delta.x, v - delta.y, a - delta.z, b - delta.w));
 
     u -= delta.x;
     v -= delta.y;
     a -= delta.z;
     b -= delta.w;
-    if(u < 0) u = 0;
-    if(v < 0) v = 0;
-    if(a < 0) a = 0;
-    if(b < 0) b = 0;
-    
-    if(u > 1) u = 0.99;
-    if(v > 1) v = 0.99;
-    if(a > 1) a = 0.99;
-    if(b > 1) b = 0.99;
+    if (u < 0)
+      u = 0;
+    if (v < 0)
+      v = 0;
+    if (a < 0)
+      a = 0;
+    if (b < 0)
+      b = 0;
 
+    if (u > 1)
+      u = 0.99;
+    if (v > 1)
+      v = 0.99;
+    if (a > 1)
+      a = 0.99;
+    if (b > 1)
+      b = 0.99;
   }
   spdlog::info("iter: {}, tolerance: {}", i, tol);
-  spdlog::info("u_i, v_i, a_i, b_i, s: {} {} {} {} {}", u,v,a,b,s);
+  spdlog::info("u_i, v_i, a_i, b_i, s: {} {} {} {} {}", u, v, a, b, s);
 
   return {u, v, a, b};
 }
@@ -157,7 +170,6 @@ void FilletSurface::update() {
   a_spline = createSpline(s, a_approx);
   b_spline = createSpline(s, b_approx);
 
-
   cr = Spline1::create({}, 300);
   auto ssb_cr = uptr<SurfaceSplineBuilder>(
       new SurfaceSplineBuilder(_leftSurface, u_spline, v_spline));
@@ -171,14 +183,49 @@ void FilletSurface::update() {
   cs->setSplineType(Spline1::SplineType::SurfaceSpline);
   cs->setSplineBuilder(std::move(ssb_cs));
   cs->update();
+
+  auto vao = ENDER::Utils::createParametricSurfaceVAO(
+        [&](float u, float v)
+        { return pointOnSurface(u, v); }, 0, 0, 1, 1,
+        SURFACE_ROWS, SURFACE_COLS);
+  setVertexArray(vao);
+  addChildObject(cs);
+  addChildObject(cr);
 }
 
 sptr<Spline1> FilletSurface::getCrSpline() { return cr; }
 
 sptr<Spline1> FilletSurface::getCsSpline() { return cs; }
 
+glm::vec3 FilletSurface::pointOnSurface(float u, float v) {
+  auto crp = cr->getSplinePoint(u);
+  auto csp = cs->getSplinePoint(u);
 
-glm::vec3 FilletSurface::pointOnSurface(float u, float v){
-    return {};
+  auto u_cur = u_spline->getSplinePoint(u).z;
+  auto v_cur = v_spline->getSplinePoint(u).z;
+  auto a_cur = a_spline->getSplinePoint(u).z;
+  auto b_cur = b_spline->getSplinePoint(u).z;
+
+  auto mr = _leftSurface->normalOnSurface(u_cur, v_cur);
+  auto ms = _rightSurface->normalOnSurface(a_cur, b_cur);
+
+  auto omega =
+      (float)(1.0f / glm::sqrt(2.0f) *
+              glm::sqrt(1.0f + glm::dot(lR * mr, rR * ms) / (lR * rR)));
+
+spdlog::info("Omega: {}", omega);
+
+  auto c =
+      0.5f * (crp + csp -
+              (1.0f - omega * omega) * ((lR * mr + rR * ms) / (omega * omega)));
+
+  auto point =
+      ((1.0f - v) * (1.0f - v) * crp + 2 * (1.0f - v) * v * omega * c +
+       v * v * csp) /
+      ((1.0f - v) * (1.0f - v) + 2.0f * (1.0f - v) * v * omega + v * v);
+
+  return point;
 }
+
+
 } // namespace EGEOM

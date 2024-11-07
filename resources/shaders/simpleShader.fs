@@ -6,6 +6,7 @@ struct Material {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    float alpha;
     float shininess;
 };
 
@@ -93,7 +94,7 @@ void main()
         result = vec3(0.8, 0.8, 0.6);
         FragColor = vec4(result, 0.3);}
     else
-        FragColor = vec4(result, 1.0);
+        FragColor = vec4(result, material.alpha);
 }
 
 // calculates the color when using a directional light.

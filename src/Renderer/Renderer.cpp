@@ -249,6 +249,7 @@ void ENDER::Renderer::renderObject(sptr<Object> object, sptr<Scene> scene,
 
   currentShader->setVec3("material.specular", material.specular);
   currentShader->setFloat("material.shininess", material.shininess);
+  currentShader->setFloat("material.alpha", material.alpha);
 
   _configureSpotLight(currentShader, camera);
 

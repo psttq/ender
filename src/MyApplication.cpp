@@ -197,8 +197,8 @@ void MyApplication::handleOperationPropertiesGUI()
         sptr<EGEOM::Edge> firstSideEdge;
 
         bool filletReady = false; //FILLET
-        sptr<EGEOM::Surface> r; //Fillet
-        sptr<EGEOM::Surface> s; //Fillet
+        sptr<EGEOM::Face> r; //Fillet
+        sptr<EGEOM::Face> s; //Fillet
         sptr<EGEOM::Edge> c0; //Fillet
 
         for (auto edge : edges)
@@ -255,14 +255,13 @@ void MyApplication::handleOperationPropertiesGUI()
             prevFace->addEdge(sideEdgeCopy);
 
             if(!filletReady){
-                r = prevFace->getSurface();
-                s = face->getSurface();
+                r = prevFace;
+                s = face;
                 c0 = sideEdge;
                 filletReady = true;
             }
           }
           prevFace = face;
-
           face->addEdge(upperEdge);
 
           shell->addFace(face);
@@ -288,13 +287,21 @@ void MyApplication::handleOperationPropertiesGUI()
 
 
         //TEST FILLET
-        auto filletSurface = EGEOM::FilletSurface::create(c0, r, s);
+        auto filletSurface = EGEOM::FilletSurface::create(c0, r->getSurface(), s->getSurface());
         filletSurface->update();
         auto cr = filletSurface->getCrSpline();
         auto cs = filletSurface->getCsSpline();
 
+
+        auto cr_edge = EGEOM::Edge::create(cr);
+        auto cs_edge = EGEOM::Edge::create(cs);
+
+        r->getWire()->replaceEdge(c0, cr_edge);
+        s->getWire()->replaceEdge(c0, cs_edge);
+
         viewportScene->addObject(cr);
         viewportScene->addObject(cs);
+        viewportScene->addObject(filletSurface);
       }
     }
     ImGui::End();
