@@ -8,10 +8,10 @@ const uint SURFACE_COLS = 100;
 
 class Surface : public ENDER::Object {
 protected:
-  float u_min;
-  float u_max;
-  float v_min;
-  float v_max;
+  float u_min = 0;
+  float u_max = 1;
+  float v_min = 0;
+  float v_max = 1;
 
 public:
   Surface(const std::string &name);

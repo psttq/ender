@@ -200,6 +200,7 @@ void MyApplication::handleOperationPropertiesGUI()
         sptr<EGEOM::Face> r; //Fillet
         sptr<EGEOM::Face> s; //Fillet
         sptr<EGEOM::Edge> c0; //Fillet
+        sptr<EGEOM::Edge> c0copy; //Fillet
 
         for (auto edge : edges)
         {
@@ -258,6 +259,7 @@ void MyApplication::handleOperationPropertiesGUI()
                 r = prevFace;
                 s = face;
                 c0 = sideEdge;
+                c0copy  = sideEdgeCopy;
                 filletReady = true;
             }
           }
@@ -296,8 +298,16 @@ void MyApplication::handleOperationPropertiesGUI()
         auto cr_edge = EGEOM::Edge::create(cr);
         auto cs_edge = EGEOM::Edge::create(cs);
 
-        r->getWire()->replaceEdge(c0, cr_edge);
+        spdlog::info("R edge");
+        r->getWire()->replaceEdge(c0copy, cr_edge);
+        spdlog::info("s edge");
         s->getWire()->replaceEdge(c0, cs_edge);
+        r->setBasedOnSurface(true);
+        r->update();
+        s->setBasedOnSurface(true);
+        s->update();
+
+        viewportScene->addObject(r);
 
         viewportScene->addObject(cr);
         viewportScene->addObject(cs);

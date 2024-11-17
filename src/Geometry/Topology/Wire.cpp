@@ -12,7 +12,10 @@ void Wire::removeEdge(sptr<Edge> edge) { _edges.push_back(edge); }
 void Wire::replaceEdge(sptr<Edge> oldEdge, sptr<Edge> newEdge){
     for(int i = 0; i < _edges.size(); i++){
         if(_edges[i] == oldEdge){
+            spdlog::info("Changing edge");
             _edges[i] = newEdge;
+            deleteChildObject(oldEdge);
+            addChildObject(newEdge);
             break;
         }
     }

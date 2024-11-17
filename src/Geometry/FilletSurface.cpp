@@ -68,7 +68,7 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
   float step = 0.01;
   int i = 0;
 
-  spdlog::info("Starting newton method.");
+  // spdlog::info("Starting newton method.");
   for (i = 0; i < MAX_ITERS && tol > eps; i++) {
     if (u < 0)
       u = 0;
@@ -126,8 +126,8 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
     if (b > 1)
       b = 0.99;
   }
-  spdlog::info("iter: {}, tolerance: {}", i, tol);
-  spdlog::info("u_i, v_i, a_i, b_i, s: {} {} {} {} {}", u, v, a, b, s);
+  // spdlog::info("iter: {}, tolerance: {}", i, tol);
+  // spdlog::info("u_i, v_i, a_i, b_i, s: {} {} {} {} {}", u, v, a, b, s);
 
   return {u, v, a, b};
 }
@@ -212,8 +212,6 @@ glm::vec3 FilletSurface::pointOnSurface(float u, float v) {
   auto omega =
       (float)(1.0f / glm::sqrt(2.0f) *
               glm::sqrt(1.0f + glm::dot(lR * mr, rR * ms) / (lR * rR)));
-
-spdlog::info("Omega: {}", omega);
 
   auto c =
       0.5f * (crp + csp -

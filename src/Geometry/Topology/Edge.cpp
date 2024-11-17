@@ -16,7 +16,10 @@ void Edge::update() { _spline->update(); }
 
 sptr<Spline1> Edge::getSpline() const { return _spline; }
 
-glm::vec3 Edge::getPoint(float u) { return _spline->getSplinePoint(u); }
+glm::vec3 Edge::getPoint(float u) { 
+  if(isInvertedDirection)
+    u = 1.0 - u;
+  return _spline->getSplinePoint(u); }
 
 sptr<Edge> Edge::clone() { return Edge::create(_spline->clone()); }
 

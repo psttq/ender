@@ -1,6 +1,7 @@
 #include "PlaneSurface.hpp"
 #include "Surface.hpp"
 #include "glm/fwd.hpp"
+#include "glm/geometric.hpp"
 #include "imgui.h"
 #include <Topology/Face.hpp>
 #include <Utilities.hpp>
@@ -40,13 +41,41 @@ void Face::setBasedOnSurface(bool isBasedOnSurface) {
   update();
 }
 
+// Вычисляем нормаль к параметрической поверхности в точке
+glm::vec3 calculateNormal(glm::vec3 p_u, glm::vec3 p_v) {
+  return glm::normalize(glm::cross(p_u, p_v)); // Векторное произведение
+}
+
+
+// Проецируем 3D-точку на плоскость, заданную касательными векторами
+glm::vec2 projectToPlane(const glm::vec3 &point, const glm::vec3 &origin,
+                         const glm::vec3 &tangentX, const glm::vec3 &tangentY) {
+  glm::vec3 relativePos =
+      point - origin; // Перенос точки относительно начала координат
+  return glm::vec2(glm::dot(relativePos, tangentX),
+                   glm::dot(relativePos, tangentY)); // Координаты в плоскости
+}
+
 bool isIntersecting(const glm::vec2 &point, const glm::vec2 &p1,
                     const glm::vec2 &p2) {
   if ((p1.y > point.y) != (p2.y > point.y)) {
     double intersectX = p1.x + (point.y - p1.y) * (p2.x - p1.x) / (p2.y - p1.y);
-    return point.x < intersectX;
+    return point.x < intersectX || glm::abs(point.x - intersectX) < 1e-5;
   }
   return false;
+}
+
+bool isPointInsideCurve(const glm::vec2 &point,
+                        const std::vector<glm::vec2> &curve) {
+  int intersections = 0;
+  for (size_t i = 0; i < curve.size(); ++i) {
+    glm::vec2 p1 = curve[i];
+    glm::vec2 p2 = curve[(i + 1) % curve.size()];
+    if (isIntersecting(point, p1, p2)) {
+      intersections++;
+    }
+  }
+  return intersections % 2 != 0; // Нечетное число пересечений — точка внутри
 }
 
 void Face::update() {
@@ -73,7 +102,6 @@ void Face::update() {
       glm::vec2 minValues(std::numeric_limits<float>::max());
       glm::vec2 maxValues(std::numeric_limits<float>::lowest());
 
-
       for (const auto &point : wirePoints) { // BORDERS
         auto p = point - pivot;
         auto pr1 = glm::dot(b1, p);
@@ -90,6 +118,26 @@ void Face::update() {
       _surface->setVMinMax(0, maxValues.y - minValues.y);
     }
 
+    auto normal = _surface->normalOnSurface(
+        0.4, 0.4); // Actually wont work for some sophisticated surfaces, but
+                   // for my purposes is okay
+    glm::vec3 tangentX, tangentY;
+
+    auto origin = _surface->pointOnSurface(0.4, 0.4);
+    auto p = _surface->pointOnSurface(0.3, 0.4);
+
+    tangentX = glm::normalize(p-origin);
+    tangentY = glm::cross(tangentX, normal);
+
+
+
+    std::vector<glm::vec2> projectedCurve;
+
+    for (const auto &curvePoint : wirePoints) {
+      auto proj = projectToPlane(curvePoint, origin, tangentX, tangentY);
+      projectedCurve.push_back(proj);
+    }
+
     std::vector<glm::vec3> surfacePoints;
     auto [u_min, u_max, v_min, v_max] = _surface->getUVMinMax();
 
@@ -101,24 +149,10 @@ void Face::update() {
       for (auto j = 0; j < surfacePointsNumberByV; j++) {
         float v = v_min + v_step * j;
         auto point = _surface->pointOnSurface(u, v);
-        int intersections = 0;
-        for (auto k = 0; k < wirePointNumber;
-             k++) { // FIXME: WORKS ONLY FOR 2D XZ PLANE!!!
-          size_t kn = (k + 1) % wirePointNumber;
-          auto pk = wirePoints[k];
-          auto pkn = wirePoints[kn];
-
-          bool intersect =
-              isIntersecting({point.x, point.z}, {pk.x, pk.z}, {pkn.x, pkn.z});
-
-          if (intersect) {
-            intersections++;
-          }
-        }
-        if (intersections % 2 != 0) {
-
-        surfacePoints.push_back(point);
-        }
+        auto point2D = projectToPlane(point, origin, tangentX, tangentY);
+        if (isPointInsideCurve(point2D, projectedCurve)) {
+            surfacePoints.push_back(point);
+            }
       }
     }
     spdlog::error("NUM: {}", surfacePoints.size());
