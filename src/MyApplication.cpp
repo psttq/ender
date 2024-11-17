@@ -34,17 +34,13 @@ MyApplication::MyApplication(uint appWidth, uint appHeight)
     : ENDER::Application(appWidth, appHeight), _appWidth(appWidth),
       _appHeight(appHeight) {}
 
-void MyApplication::onStart()
-{
+void MyApplication::onStart() {
   bool darkTheme = true;
 
-  if (darkTheme)
-  {
+  if (darkTheme) {
     ENDER::Renderer::setClearColor({0.093f, 0.093f, 0.093f, 1.0f});
     ENDER::Utils::applyImguiTheme();
-  }
-  else
-  {
+  } else {
     ENDER::Renderer::setClearColor({1.f, 1.f, 1.f, 1.0f});
     ENDER::Utils::applyImguiWhiteTheme();
   }
@@ -150,24 +146,20 @@ void MyApplication::onStart()
   sketchScene->addObject(grid);
 }
 
-void MyApplication::handleOperationPropertiesGUI()
-{
-  if (currentTool == Tools::Extrude)
-  {
+void MyApplication::handleOperationPropertiesGUI() {
+  if (currentTool == Tools::Extrude) {
     ImGui::Begin("Extrude");
 
     ImGui::DragFloat3("Extrude Direction", glm::value_ptr(extrudeDirection),
                       0.1f, -1, 1);
     ImGui::DragFloat("Extrude Height", &extrudeHeight, 0.1);
-    if (ImGui::Button("Create"))
-    {
+    if (ImGui::Button("Create")) {
 
       extrudeDirection = glm::normalize(extrudeDirection);
 
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
-      if (pivot && pivot->getSketch())
-      {
+      if (pivot && pivot->getSketch()) {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
 
@@ -179,9 +171,10 @@ void MyApplication::handleOperationPropertiesGUI()
         shell->setRotation(pivot->getRotation());
 
         // auto bottom = EGEOM::SectorialSurface::create(
-            // edges[0]->getSpline()->getPoints()[0], wire);
+        // edges[0]->getSpline()->getPoints()[0], wire);
 
-        auto bottom = EGEOM::PlaneSurface::create(wire->getPoint(0), wire->getPoint(0.2), wire->getPoint(0.7));
+        auto bottom = EGEOM::PlaneSurface::create(
+            wire->getPoint(0), wire->getPoint(0.2), wire->getPoint(0.7));
 
         bottom->isSelectable = true;
         bottom->update();
@@ -196,14 +189,13 @@ void MyApplication::handleOperationPropertiesGUI()
         sptr<EGEOM::Face> prevFace;
         sptr<EGEOM::Edge> firstSideEdge;
 
-        bool filletReady = false; //FILLET
-        sptr<EGEOM::Face> r; //Fillet
-        sptr<EGEOM::Face> s; //Fillet
-        sptr<EGEOM::Edge> c0; //Fillet
-        sptr<EGEOM::Edge> c0copy; //Fillet
+        bool filletReady = false; // FILLET
+        sptr<EGEOM::Face> r;      // Fillet
+        sptr<EGEOM::Face> s;      // Fillet
+        sptr<EGEOM::Edge> c0;     // Fillet
+        sptr<EGEOM::Edge> c0copy; // Fillet
 
-        for (auto edge : edges)
-        {
+        for (auto edge : edges) {
           auto obj =
               EGEOM::ExtrudeSurface::create("ExtrudeSurface", edge->getSpline(),
                                             extrudeDirection, extrudeHeight);
@@ -224,8 +216,7 @@ void MyApplication::handleOperationPropertiesGUI()
 
           auto upperEdge = edge->clone();
 
-          for (auto point : upperEdge->getSpline()->getPoints())
-          {
+          for (auto point : upperEdge->getSpline()->getPoints()) {
             point->setPosition(point->getPosition() +
                                extrudeHeight * extrudeDirection);
           }
@@ -237,9 +228,11 @@ void MyApplication::handleOperationPropertiesGUI()
 
           upperWire->addEdge(upperEdgeUpperFace);
 
-          auto endPoint = *upperEdge->getSpline()->getPoints().begin();\
+          auto endPoint = *upperEdge->getSpline()->getPoints().begin();
           auto sideSpline = EGEOM::Spline1::create({beginPoint, endPoint}, 10);
-          auto nurbsBuilder = uptr<EGEOM::RationalBSplineBuilder>(new EGEOM::RationalBSplineBuilder(sideSpline->getPoints(), 1,{}, {}));
+          auto nurbsBuilder = uptr<EGEOM::RationalBSplineBuilder>(
+              new EGEOM::RationalBSplineBuilder(sideSpline->getPoints(), 1, {},
+                                                {}));
           sideSpline->setSplineType(EGEOM::Spline1::SplineType::NURBS);
           sideSpline->setSplineBuilder(std::move(nurbsBuilder));
           sideSpline->update();
@@ -249,18 +242,17 @@ void MyApplication::handleOperationPropertiesGUI()
           if (!firstSideEdge)
             firstSideEdge = sideEdge;
 
-          if (prevFace)
-          {
+          if (prevFace) {
             auto sideEdgeCopy = sideEdge->copy();
             sideEdgeCopy->isInvertedDirection = true;
             prevFace->addEdge(sideEdgeCopy);
 
-            if(!filletReady){
-                r = prevFace;
-                s = face;
-                c0 = sideEdge;
-                c0copy  = sideEdgeCopy;
-                filletReady = true;
+            if (!filletReady) {
+              r = prevFace;
+              s = face;
+              c0 = sideEdge;
+              c0copy = sideEdgeCopy;
+              filletReady = true;
             }
           }
           prevFace = face;
@@ -274,11 +266,11 @@ void MyApplication::handleOperationPropertiesGUI()
 
         auto edgesUpper = upperWire->getEdges();
         // auto upper = EGEOM::SectorialSurface::create(
-            // edgesUpper[0]->getSpline()->getPoints()[0], upperWire);
+        // edgesUpper[0]->getSpline()->getPoints()[0], upperWire);
 
-
-
-        auto upper = EGEOM::PlaneSurface::create(upperWire->getPoint(0.1), upperWire->getPoint(0.3), upperWire->getPoint(0.5));
+        auto upper = EGEOM::PlaneSurface::create(upperWire->getPoint(0.1),
+                                                 upperWire->getPoint(0.3),
+                                                 upperWire->getPoint(0.5));
 
         auto upper_face = EGEOM::Face::create(upper, upperWire);
         upper_face->isSelectable = true;
@@ -287,13 +279,12 @@ void MyApplication::handleOperationPropertiesGUI()
         shell->addFace(upper_face);
         viewportScene->addObject(shell);
 
-
-        //TEST FILLET
-        auto filletSurface = EGEOM::FilletSurface::create(c0, r->getSurface(), s->getSurface());
+        // TEST FILLET
+        auto filletSurface =
+            EGEOM::FilletSurface::create(c0, r->getSurface(), s->getSurface());
         filletSurface->update();
         auto cr = filletSurface->getCrSpline();
         auto cs = filletSurface->getCsSpline();
-
 
         auto cr_edge = EGEOM::Edge::create(cr);
         auto cs_edge = EGEOM::Edge::create(cs);
@@ -307,6 +298,17 @@ void MyApplication::handleOperationPropertiesGUI()
         s->setBasedOnSurface(true);
         s->update();
 
+        for (auto edge : s->getWire()->getEdges()) {
+          auto [t1, t2] =
+              cs_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
+          spdlog::error("t1,t2: {} {}", t1, t2);
+          auto p1 = cs_edge->getPoint(t1);
+          auto p2 = edge->getPoint(t1);
+          spdlog::error("p1: {} {} {}", p1.x,p1.y,p1.z);
+          spdlog::error("p2: {} {} {}", p2.x,p2.y,p2.z);
+
+        }
+
         viewportScene->addObject(r);
 
         viewportScene->addObject(cr);
@@ -315,26 +317,21 @@ void MyApplication::handleOperationPropertiesGUI()
       }
     }
     ImGui::End();
-  }
-  else if (currentTool == Tools::Rotate)
-  {
+  } else if (currentTool == Tools::Rotate) {
     ImGui::Begin("Rotate");
     ImGui::DragFloat("Rotate radius", &rotateRadius, 0.1);
     ImGui::DragFloat("Rotate angle", &rotateAngle, 0.1, 0,
                      glm::pi<float>() * 2);
-    if (ImGui::Button("Create"))
-    {
+    if (ImGui::Button("Create")) {
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
-      if (pivot && pivot->getSketch())
-      {
+      if (pivot && pivot->getSketch()) {
         auto wire = pivot->getSketch()->getWire();
         auto edges = wire->getEdges();
 
         std::set<sptr<EGEOM::Point>> edgesPoints;
 
-        for (auto edge : edges)
-        {
+        for (auto edge : edges) {
           auto obj = EGEOM::RotationSurface::create(edge->getName() + "_RS",
                                                     edge->getSpline(),
                                                     rotateAngle, rotateRadius);
@@ -347,8 +344,7 @@ void MyApplication::handleOperationPropertiesGUI()
 
           viewportScene->addObject(obj);
         }
-        for (auto edgePoint : edgesPoints)
-        {
+        for (auto edgePoint : edgesPoints) {
           auto point = edgePoint->getPosition();
 
           auto newEdge = EGEOM::Spline1::create({}, 200);
@@ -357,12 +353,12 @@ void MyApplication::handleOperationPropertiesGUI()
 
           newEdge->setSplineType(EGEOM::Spline1::SplineType::Parametric);
           auto parametricBuilder = uptr<EGEOM::ParametricBuilder>(
-              new EGEOM::ParametricBuilder([&](float v)
-                                           {
+              new EGEOM::ParametricBuilder([&](float v) {
                 auto splinePoint = point + glm::vec3{-rotateRadius, 0, 0};
                 return glm::vec3{rotateRadius, 0, 0} +
                        glm::vec3{splinePoint.x * glm::cos(v),
-                                 splinePoint.x * glm::sin(v), splinePoint.z}; }));
+                                 splinePoint.x * glm::sin(v), splinePoint.z};
+              }));
           newEdge->u_max = rotateAngle;
           newEdge->isSelectable = true;
           newEdge->setSplineBuilder(std::move(parametricBuilder));
@@ -374,24 +370,20 @@ void MyApplication::handleOperationPropertiesGUI()
       }
     }
     ImGui::End();
-  }
-  else if (currentTool == Tools::Kinematic)
-  {
+  } else if (currentTool == Tools::Kinematic) {
     ImGui::Begin("KinematicSurface");
     std::vector<const char *> items = {"Sweep", "Shift"};
     int currentKinematicSurfaceType = 0;
     ImGui::Combo("Kinematic Surface Type", &currentKinematicSurfaceType,
                  &items[0], items.size());
     if (ImGui::Button("Create"))
-      if (currentSketchId >= 0 && currentDimSpline >= 0)
-      {
+      if (currentSketchId >= 0 && currentDimSpline >= 0) {
         auto formingSpline =
             sketches[currentSketchId]->getWire()->getEdges()[0]->getSpline();
         auto guideSpline = dimSplines[currentDimSpline];
         if (formingSpline->getSplineType() ==
                 EGEOM::Spline1::SplineType::NURBS &&
-            guideSpline->getSplineType() == EGEOM::Spline1::SplineType::NURBS)
-        {
+            guideSpline->getSplineType() == EGEOM::Spline1::SplineType::NURBS) {
           auto surfType =
               static_cast<EGEOM::KinematicSurface::KinematicSurfaceType>(
                   currentKinematicSurfaceType);
@@ -405,8 +397,7 @@ void MyApplication::handleOperationPropertiesGUI()
   }
 }
 
-void MyApplication::handleViewportGUI()
-{
+void MyApplication::handleViewportGUI() {
   ImGui::Begin("Viewport");
 
   viewportCamera->setActive(ImGui::IsWindowFocused());
@@ -417,8 +408,7 @@ void MyApplication::handleViewportGUI()
   viewportCamera->setFramebufferSize({window_width, window_height});
 
   viewportFramebuffer->rescale(window_width, window_height);
-  if (ImGui::IsWindowFocused())
-  {
+  if (ImGui::IsWindowFocused()) {
     activeWindow = Windows::Viewport;
   }
   ImVec2 screen_pos = ImGui::GetCursorScreenPos();
@@ -428,40 +418,33 @@ void MyApplication::handleViewportGUI()
 
   bool hoverWithParent = false;
   auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
-  for (auto object : viewportScene->getObjects())
-  {
+  for (auto object : viewportScene->getObjects()) {
     // spdlog::error("pickedID {}{} {} {} {}", object->getName(),
     // object->getId(), objInfo.objectId,
     // object->hasChildById(objInfo.objectId), object->getId() ==
     // objInfo.objectId);
-    if (hoverWithParent)
-    {
+    if (hoverWithParent) {
       object->setHovered(object->getId() == pickedID);
-    }
-    else
-    {
+    } else {
       object->setHovered(object->getId() == objInfo.objectId);
-      object->getChildByID(objInfo.objectId).and_then([](auto obj)
-                                                      {
+      object->getChildByID(objInfo.objectId).and_then([](auto obj) {
         obj->setHovered(true);
-        return std::optional(obj); });
+        return std::optional(obj);
+      });
     }
   }
   if (hoverWithParent)
     viewportScene->getObjectById(pickedID).and_then(
-        [](sptr<ENDER::Object> obj)
-        {
+        [](sptr<ENDER::Object> obj) {
           obj->setHovered(true);
           return std::optional(obj);
         });
 
   if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left) &&
-      ImGui::IsWindowFocused() && !ImGuizmo::IsUsing())
-  {
+      ImGui::IsWindowFocused() && !ImGuizmo::IsUsing()) {
     auto pickedID = objInfo.parentId != 0 ? objInfo.parentId : objInfo.objectId;
     // auto pickedID = objInfo.objectId;
-    for (auto object : viewportScene->getObjects())
-    {
+    for (auto object : viewportScene->getObjects()) {
       object->setSelected(object->getId() == pickedID);
       if (object->getId() == pickedID)
         selectedObjectViewport = object;
@@ -471,8 +454,7 @@ void MyApplication::handleViewportGUI()
   ImGui::Image(
       reinterpret_cast<ImTextureID>(viewportFramebuffer->getTextureId()),
       ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
-  if (selectedObjectViewport)
-  {
+  if (selectedObjectViewport) {
 
     ImGuizmo::SetOrthographic(false);
     ImGuizmo::SetDrawlist();
@@ -500,12 +482,10 @@ void MyApplication::handleViewportGUI()
 
     float h = 1.0f / numCount;
 
-    auto hs = [](float v)
-    { return glm::vec3{v + 1000, v + 1000, v + 1000}; };
+    auto hs = [](float v) { return glm::vec3{v + 1000, v + 1000, v + 1000}; };
 
     if (splineDim->getSplineType() == EGEOM::Spline1::SplineType::NURBS)
-      for (auto i = 0; i <= numCount; ++i)
-      {
+      for (auto i = 0; i <= numCount; ++i) {
         float u = h * i;
 
         auto gs = splineDim->getSplineDirs(u, 3);
@@ -541,8 +521,7 @@ void MyApplication::handleViewportGUI()
       }
 
     if (currentTool == Tools::Extrude &&
-        selectedObjectViewport->label == "PivotPlane")
-    {
+        selectedObjectViewport->label == "PivotPlane") {
       glm::vec3 p1 = selectedObjectViewport->getPosition();
       auto dir = extrudeDirection / glm::length(extrudeDirection);
       auto p2 = p1 + dir * extrudeHeight;
@@ -562,10 +541,8 @@ void MyApplication::handleViewportGUI()
 
       ImGuizmo::DrawArrow({p1.x, p1.y, p1.z, 0}, {p2.x, p2.y, p2.z, 0},
                           0xFF110055);
-    }
-    else if (currentTool == Tools::Rotate &&
-             selectedObjectViewport->label == "PivotPlane")
-    {
+    } else if (currentTool == Tools::Rotate &&
+               selectedObjectViewport->label == "PivotPlane") {
       glm::vec3 p1 = selectedObjectViewport->getPosition();
       p1 += glm::vec3{1, 0, 0} * rotateRadius;
       auto p2 = p1 + glm::vec3{0, 0, 1};
@@ -587,15 +564,13 @@ void MyApplication::handleViewportGUI()
                           0xFF110055);
     }
 
-    for (auto &obj : viewportScene->getObjects())
-    {
+    for (auto &obj : viewportScene->getObjects()) {
       obj->drawGizmo();
     }
 
     selectedObjectViewport->drawGizmo();
 
-    if (ImGuizmo::IsUsing())
-    {
+    if (ImGuizmo::IsUsing()) {
 
       glm::vec3 newPosition;
       glm::vec3 newRotation;
@@ -617,14 +592,12 @@ void MyApplication::handleViewportGUI()
   ImGui::End();
 }
 
-void MyApplication::handleDebugGUI()
-{
+void MyApplication::handleDebugGUI() {
   ImGui::Begin("Debug");
   ImGui::Text("FPS: %.2f", 1.0f / ENDER::Window::deltaTime());
 
   if (ImGui::SliderInt("Interpolation Points Count", &interpolationPointsCount,
-                       2, 300))
-  {
+                       2, 300)) {
     sketches[currentSketchId]
         ->getWire()
         ->getCurrentEdge()
@@ -634,8 +607,7 @@ void MyApplication::handleDebugGUI()
   }
 
   if (ImGui::SliderFloat3("DirectionalLight",
-                          glm::value_ptr(directionalLightDirection), -1, 1))
-  {
+                          glm::value_ptr(directionalLightDirection), -1, 1)) {
     directionalLight->setDirection(directionalLightDirection);
   }
 
@@ -644,14 +616,12 @@ void MyApplication::handleDebugGUI()
   ImGui::End();
 }
 
-void MyApplication::handleSketchGUI()
-{
+void MyApplication::handleSketchGUI() {
   ImGui::Begin("Sketch Editor");
 
   sketchCamera->setActive(ImGui::IsWindowFocused());
 
-  if (ImGui::IsWindowFocused())
-  {
+  if (ImGui::IsWindowFocused()) {
     activeWindow = Windows::SketchEditor;
   }
   float window_width = ImGui::GetContentRegionAvail().x;
@@ -665,8 +635,7 @@ void MyApplication::handleSketchGUI()
 
   ImGui::Image(reinterpret_cast<ImTextureID>(sketchFramebuffer->getTextureId()),
                ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
-  if (currentSketchId >= 0)
-  {
+  if (currentSketchId >= 0) {
     auto obj = sketches[currentSketchId]->getWire()->getCurrentEdge();
 
     ImGuizmo::SetOrthographic(true);
@@ -697,12 +666,9 @@ void MyApplication::handleSketchGUI()
   ImGui::End();
 }
 
-void MyApplication::handleMenuBarGUI()
-{
-  if (ImGui::BeginMenuBar())
-  {
-    if (ImGui::BeginMenu("Options"))
-    {
+void MyApplication::handleMenuBarGUI() {
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("Options")) {
       if (ImGui::MenuItem("Close", NULL, false, true))
         close();
       ImGui::EndMenu();
@@ -711,8 +677,7 @@ void MyApplication::handleMenuBarGUI()
   }
 }
 
-void MyApplication::beginDockspace()
-{
+void MyApplication::beginDockspace() {
   bool p_open = _isRunning;
   ImGuiWindowFlags window_flags =
       ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
@@ -737,13 +702,11 @@ void MyApplication::beginDockspace()
 
 void MyApplication::endDockspace() { ImGui::End(); }
 
-void MyApplication::handleToolbarGUI()
-{
+void MyApplication::handleToolbarGUI() {
   ImGui::Begin("Toolbar", nullptr,
                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
   bool setStyle = false;
-  if (currentTool == Tools::Cursor)
-  {
+  if (currentTool == Tools::Cursor) {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -752,18 +715,15 @@ void MyApplication::handleToolbarGUI()
                           (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
     setStyle = true;
   }
-  if (ImGui::Button(ICON_FA_MOUSE_POINTER))
-  {
+  if (ImGui::Button(ICON_FA_MOUSE_POINTER)) {
     currentTool = Tools::Cursor;
   }
-  if (setStyle)
-  {
+  if (setStyle) {
     ImGui::PopStyleColor(3);
     setStyle = false;
   }
   ImGui::SameLine();
-  if (currentTool == Tools::Pencil)
-  {
+  if (currentTool == Tools::Pencil) {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -772,21 +732,18 @@ void MyApplication::handleToolbarGUI()
                           (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
     setStyle = true;
   }
-  if (ImGui::Button(ICON_FA_PENCIL_ALT))
-  {
+  if (ImGui::Button(ICON_FA_PENCIL_ALT)) {
     currentTool = Tools::Pencil;
   }
   ImGui::SetItemTooltip("Sketch Edit Tool");
 
-  if (setStyle)
-  {
+  if (setStyle) {
     ImGui::PopStyleColor(3);
     setStyle = false;
   }
 
   ImGui::SameLine();
-  if (currentTool == Tools::Spliner)
-  {
+  if (currentTool == Tools::Spliner) {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -795,25 +752,21 @@ void MyApplication::handleToolbarGUI()
                           (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
     setStyle = true;
   }
-  if (ImGui::Button(ICON_FA_BEZIER_CURVE))
-  {
+  if (ImGui::Button(ICON_FA_BEZIER_CURVE)) {
     currentTool = Tools::Spliner;
   }
   ImGui::SetItemTooltip("Sketch Edit Tool");
 
-  if (setStyle)
-  {
+  if (setStyle) {
     ImGui::PopStyleColor(3);
     setStyle = false;
   }
-  if (ImGui::Button(ICON_FA_VECTOR_SQUARE))
-  {
+  if (ImGui::Button(ICON_FA_VECTOR_SQUARE)) {
     createPivotPlane();
   }
   ImGui::SetItemTooltip("Create Pivot Plane");
   ImGui::SameLine();
-  if (currentTool == Tools::Extrude)
-  {
+  if (currentTool == Tools::Extrude) {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -822,20 +775,17 @@ void MyApplication::handleToolbarGUI()
                           (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
     setStyle = true;
   }
-  if (ImGui::Button(ICON_FA_ARROWS_ALT_V))
-  {
+  if (ImGui::Button(ICON_FA_ARROWS_ALT_V)) {
     currentTool = Tools::Extrude;
   }
   ImGui::SetItemTooltip("Extrude Tool");
 
-  if (setStyle)
-  {
+  if (setStyle) {
     ImGui::PopStyleColor(3);
     setStyle = false;
   }
   ImGui::SameLine();
-  if (currentTool == Tools::Rotate)
-  {
+  if (currentTool == Tools::Rotate) {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -844,20 +794,17 @@ void MyApplication::handleToolbarGUI()
                           (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
     setStyle = true;
   }
-  if (ImGui::Button(ICON_FA_SYNC))
-  {
+  if (ImGui::Button(ICON_FA_SYNC)) {
     currentTool = Tools::Rotate;
   }
   ImGui::SetItemTooltip("Rotate Tool");
 
-  if (setStyle)
-  {
+  if (setStyle) {
     ImGui::PopStyleColor(3);
     setStyle = false;
   }
   ImGui::SameLine();
-  if (currentTool == Tools::Kinematic)
-  {
+  if (currentTool == Tools::Kinematic) {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -866,14 +813,12 @@ void MyApplication::handleToolbarGUI()
                           (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
     setStyle = true;
   }
-  if (ImGui::Button(ICON_FA_LAYER_GROUP))
-  {
+  if (ImGui::Button(ICON_FA_LAYER_GROUP)) {
     currentTool = Tools::Kinematic;
   }
   ImGui::SetItemTooltip("Kinematic Surface Tool");
 
-  if (setStyle)
-  {
+  if (setStyle) {
     ImGui::PopStyleColor(3);
     setStyle = false;
   }
@@ -881,8 +826,7 @@ void MyApplication::handleToolbarGUI()
   ImGui::End();
 }
 
-void MyApplication::onGUI()
-{
+void MyApplication::onGUI() {
   beginDockspace();
 
   handleMenuBarGUI();
@@ -901,8 +845,7 @@ void MyApplication::onGUI()
 
 void MyApplication::update(float deltaTime) { viewportCamera->proccessInput(); }
 
-void MyApplication::render()
-{
+void MyApplication::render() {
   ENDER::Renderer::renderScene(viewportScene, viewportFramebuffer);
   ENDER::Renderer::renderScene(sketchScene, sketchFramebuffer);
 
@@ -914,40 +857,31 @@ void MyApplication::render()
                       ->getWire()
                       ->getCurrentEdge()
                       ->getSpline()
-                      ->getInterpolatedPoints())
-    {
+                      ->getInterpolatedPoints()) {
       p->material.ambient = {0.0, 0.6, 0.6};
       p->material.diffuse = {0.0, 0.6, 0.6};
 
       ENDER::Renderer::renderObject(p, sketchScene, sketchFramebuffer);
     }
 
-  for (auto edge : sketches[currentSketchId]->getWire()->getEdges())
-  {
-    for (auto p : edge->getSpline()->getPoints())
-    {
-      if (sketches[currentSketchId]->getWire()->isCurrentEdge(edge))
-      {
+  for (auto edge : sketches[currentSketchId]->getWire()->getEdges()) {
+    for (auto p : edge->getSpline()->getPoints()) {
+      if (sketches[currentSketchId]->getWire()->isCurrentEdge(edge)) {
         p->material.ambient = {0.5, 0.3, 0.7};
         p->material.diffuse = {0.5, 0.3, 0.7};
         p->material.specular = {0.5, 0.3, 0.7};
-      }
-      else
-      {
+      } else {
         p->material.ambient = {1.0f, 0.5f, 0.31f};
         p->material.diffuse = {1.0f, 0.5f, 0.31f};
         p->material.specular = {0.5f, 0.5f, 0.5f};
       }
       ENDER::Renderer::renderObject(p, sketchScene, sketchFramebuffer);
     }
-    if (sketches[currentSketchId]->getWire()->isCurrentEdge(edge))
-    {
+    if (sketches[currentSketchId]->getWire()->isCurrentEdge(edge)) {
       edge->material.ambient = {0.3, 0.3, 0.6};
       edge->material.diffuse = {0.3, 0.3, 0.6};
       edge->material.specular = {0.3, 0.3, 0.6};
-    }
-    else
-    {
+    } else {
       edge->material.ambient = {1.0f, 0.5f, 0.31f};
       edge->material.diffuse = {1.0f, 0.5f, 0.31f};
       edge->material.specular = {0.5f, 0.5f, 0.5f};
@@ -962,19 +896,15 @@ void MyApplication::onKey(int key, ENDER::Window::EventStatus status) {}
 void MyApplication::onKeyRelease(int key) {}
 
 void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
-                                 ENDER::Window::EventStatus status)
-{
+                                 ENDER::Window::EventStatus status) {
   if (button == ENDER::Window::MouseButton::Left &&
-      status == ENDER::Window::EventStatus::Release)
-  {
+      status == ENDER::Window::EventStatus::Release) {
     mouseMove = false;
     selectedObjectSketch = nullptr;
   }
   if (button == ENDER::Window::MouseButton::Right &&
-      status == ENDER::Window::EventStatus::Press && sketchCamera->isActive())
-  {
-    if (currentSketchId != -1)
-    {
+      status == ENDER::Window::EventStatus::Press && sketchCamera->isActive()) {
+    if (currentSketchId != -1) {
       auto mousePosition = ENDER::Window::getMousePosition();
 
       auto mouseScreenPosX = mousePosition.x - sketchWindowPos.x;
@@ -991,17 +921,14 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
                              ->getWire()
                              ->getCurrentEdge()
                              ->getSpline()
-                             ->getPoints())
-      {
+                             ->getPoints()) {
 
         object->setSelected(object->getId() == pickedID);
-        if (object->getId() == pickedID)
-        {
+        if (object->getId() == pickedID) {
           currentSelected = object;
         }
       }
-      if (currentTool == Tools::Pencil)
-      {
+      if (currentTool == Tools::Pencil) {
         sketches[currentSketchId]
             ->getWire()
             ->getCurrentEdge()
@@ -1013,10 +940,8 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
     }
   }
   if (button == ENDER::Window::MouseButton::Left &&
-      status == ENDER::Window::EventStatus::Press)
-  {
-    if (sketchCamera->isActive())
-    {
+      status == ENDER::Window::EventStatus::Press) {
+    if (sketchCamera->isActive()) {
       if (currentSketchId == -1)
         return;
       mouseMove = true;
@@ -1033,37 +958,28 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
           sketchFramebuffer->pickObjAt(mouseScreenPosX, mouseScreenPosY)
               .objectId;
 
-      for (auto edge : sketches[currentSketchId]->getWire()->getEdges())
-      {
-        for (auto object : edge->getSpline()->getPoints())
-        {
+      for (auto edge : sketches[currentSketchId]->getWire()->getEdges()) {
+        for (auto object : edge->getSpline()->getPoints()) {
           object->setSelected(object->getId() == pickedID);
-          if (object->getId() == pickedID)
-          {
+          if (object->getId() == pickedID) {
             currentSelected = object;
-            if (currentTool == Tools::Cursor)
-            {
+            if (currentTool == Tools::Cursor) {
               sketches[currentSketchId]->getWire()->setCurrentEdge(edge);
             }
           }
         }
-        if (edge->getId() == pickedID)
-        {
+        if (edge->getId() == pickedID) {
           if (currentTool == Tools::Cursor)
             sketches[currentSketchId]->getWire()->setCurrentEdge(edge);
         }
       }
-      if (currentTool == Tools::Pencil)
-      {
+      if (currentTool == Tools::Pencil) {
         sptr<EGEOM::Point> point;
-        if (!currentSelected)
-        {
+        if (!currentSelected) {
           auto worldPos = sketchCamera->mousePositionToWorldPosition(
               {mouseScreenPosX, mouseScreenPosY});
           point = EGEOM::Point::create({worldPos.x, 0, worldPos.y});
-        }
-        else
-        {
+        } else {
           point = std::static_pointer_cast<EGEOM::Point>(currentSelected);
         }
         point->isSelectable = true;
@@ -1072,11 +988,8 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
             ->getCurrentEdge()
             ->getSpline()
             ->addPoint(point);
-      }
-      else if (currentTool == Tools::Cursor)
-      {
-        if (currentSelected)
-        {
+      } else if (currentTool == Tools::Cursor) {
+        if (currentSelected) {
           selectedObjectSketch = currentSelected;
           justSelected = true;
           for (auto object : sketches[currentSketchId]
@@ -1092,12 +1005,9 @@ void MyApplication::onMouseClick(ENDER::Window::MouseButton button,
   }
 }
 
-void MyApplication::onKeyPress(int key)
-{
-  switch (key)
-  {
-  case GLFW_KEY_SPACE:
-  {
+void MyApplication::onKeyPress(int key) {
+  switch (key) {
+  case GLFW_KEY_SPACE: {
     auto pos = viewportScene->getCamera()->getPosition();
 
     // auto lightCube = ENDER::Object::createCube("Light Debug Cube");
@@ -1108,59 +1018,41 @@ void MyApplication::onKeyPress(int key)
     //
     // auto pointLight = new ENDER::PointLight(pos, glm::vec3(1));
     // viewportScene->addLight(pointLight);
-    if (currentDimSpline >= 0 && currentTool == Tools::Spliner)
-    {
+    if (currentDimSpline >= 0 && currentTool == Tools::Spliner) {
       auto point = EGEOM::Point::create(pos);
       point->setScale({0.4, 0.4, 0.4});
       point->isSelectable = true;
       viewportScene->addObject(point);
       dimSplines[currentDimSpline]->addPoint(point);
     }
-  }
-  break;
-  case GLFW_KEY_P:
-  {
+  } break;
+  case GLFW_KEY_P: {
     auto pos = viewportScene->getCamera()->getPosition();
     viewportScene->addLight(new ENDER::PointLight(pos, glm::vec3{1}));
-  }
-  break;
-  case GLFW_KEY_L:
-  {
+  } break;
+  case GLFW_KEY_L: {
     ENDER::Renderer::setDrawType(ENDER::Renderer::DrawType::Lines);
-  }
-  break;
-  case GLFW_KEY_N:
-  {
+  } break;
+  case GLFW_KEY_N: {
     ENDER::Renderer::setRenderNormals(!ENDER::Renderer::isRenderingNormals());
-  }
-  break;
-  case GLFW_KEY_K:
-  {
+  } break;
+  case GLFW_KEY_K: {
     ENDER::Renderer::setDrawType(ENDER::Renderer::DrawType::Triangles);
-  }
-  break;
-  case GLFW_KEY_R:
-  {
+  } break;
+  case GLFW_KEY_R: {
     currentOperation = ImGuizmo::OPERATION::ROTATE;
-  }
-  break;
-  case GLFW_KEY_T:
-  {
+  } break;
+  case GLFW_KEY_T: {
     currentOperation = ImGuizmo::OPERATION::TRANSLATE;
-  }
-  break;
-  case GLFW_KEY_Y:
-  {
+  } break;
+  case GLFW_KEY_Y: {
     currentOperation = ImGuizmo::OPERATION::SCALE;
-  }
-  break;
-  case GLFW_KEY_U:
-  {
+  } break;
+  case GLFW_KEY_U: {
     auto currSpline = sketches[currentSketchId]->getWire()->getEdges()[0];
     auto gs0 = splineDim->getSplineDirs(0, 3);
 
-    auto hs = [](float v)
-    {
+    auto hs = [](float v) {
       return glm::vec3{v + 1000 * v * v, v - 1000 * v, v * v + 1000};
     };
     auto i10 = glm::normalize(gs0[1]->getPosition());
@@ -1172,8 +1064,7 @@ void MyApplication::onKeyPress(int key)
     Am = glm::inverse(Am);
 
     auto obj = ENDER::Utils::createParametricSurface(
-        [&](float u, float v)
-        {
+        [&](float u, float v) {
           auto g = splineDim->getSplineDirs(v, 1)[0]->getPosition();
           auto g0 = splineDim->getSplinePoint(0);
           auto c = currSpline->getSpline()->getSplinePoint(u);
@@ -1213,20 +1104,16 @@ void MyApplication::onKeyPress(int key)
         0, 0, 1, 1, 600, 600);
     obj->isSelectable = true;
     viewportScene->addObject(obj);
-  }
-  break;
+  } break;
   }
 }
 
 void MyApplication::onClose() {}
 
-void MyApplication::onMouseMove(uint x, uint y)
-{
-  if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left))
-  {
+void MyApplication::onMouseMove(uint x, uint y) {
+  if (ENDER::Window::isMouseButtonPressed(ENDER::Window::MouseButton::Left)) {
     if (currentTool == Tools::Cursor && selectedObjectSketch != nullptr &&
-        sketchCamera->isActive() && mouseMove && currentSketchId != -1)
-    {
+        sketchCamera->isActive() && mouseMove && currentSketchId != -1) {
       auto mousePosition = ENDER::Window::getMousePosition();
 
       auto mouseScreenPosX = mousePosition.x - sketchWindowPos.x;
@@ -1244,29 +1131,24 @@ void MyApplication::onMouseMove(uint x, uint y)
   }
 }
 
-void MyApplication::handleDimensionalSplinesGUI()
-{
+void MyApplication::handleDimensionalSplinesGUI() {
   ImGui::Begin("DimSplines");
   std::vector<const char *> objectsNameList;
 
-  for (auto &spline : dimSplines)
-  {
+  for (auto &spline : dimSplines) {
     objectsNameList.push_back(spline->getName().c_str());
   }
 
   if (ImGui::ListBox("Spline List", &currentDimSpline, &objectsNameList[0],
-                     objectsNameList.size(), 4))
-  {
+                     objectsNameList.size(), 4)) {
     auto selectedObj = dimSplines[currentDimSpline];
     selectedObjectViewport = selectedObj;
-    for (auto &obj : viewportScene->getObjects())
-    {
+    for (auto &obj : viewportScene->getObjects()) {
       obj->setSelected(false);
     }
     selectedObj->setSelected(true);
   }
-  if (ImGui::Button("Create"))
-  {
+  if (ImGui::Button("Create")) {
     auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
     spline->addPoint(EGEOM::Point::create({0, 0, 0}));
     viewportScene->addObject(spline);
@@ -1275,11 +1157,9 @@ void MyApplication::handleDimensionalSplinesGUI()
   ImGui::End();
 }
 
-void MyApplication::handleSketchSideGUI()
-{
+void MyApplication::handleSketchSideGUI() {
   ImGui::Begin("Sketches");
-  if (ImGui::Button("Add sketch"))
-  {
+  if (ImGui::Button("Add sketch")) {
     auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
     auto edge = EGEOM::Edge::create(spline);
     auto wire = EGEOM::Wire::create();
@@ -1291,17 +1171,14 @@ void MyApplication::handleSketchSideGUI()
     currentSketchId = sketches.size() - 1;
   }
 
-  if (ImGui::Button("Save sketch"))
-  {
+  if (ImGui::Button("Save sketch")) {
     IGFD::FileDialogConfig config;
     config.path = ".";
     ImGuiFileDialog::Instance()->OpenDialog("CSF", "Choose File", ".toml");
   }
 
-  if (ImGuiFileDialog::Instance()->Display("CSF"))
-  {
-    if (ImGuiFileDialog::Instance()->IsOk())
-    { // action if OK
+  if (ImGuiFileDialog::Instance()->Display("CSF")) {
+    if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
@@ -1311,17 +1188,14 @@ void MyApplication::handleSketchSideGUI()
       auto currentSketch = sketches[currentSketchId];
 
       std::set<sptr<EGEOM::Point>> points_set;
-      for (auto edge : currentSketch->getWire()->getEdges())
-      {
-        for (auto point : edge->getSpline()->getPoints())
-        {
+      for (auto edge : currentSketch->getWire()->getEdges()) {
+        for (auto point : edge->getSpline()->getPoints()) {
           points_set.insert(point);
         }
       }
 
       toml::array points;
-      for (auto &p : points_set)
-      {
+      for (auto &p : points_set) {
         auto position = p->getPosition();
         auto pointTable = toml::table{
             {"x", position.x}, {"y", position.y}, {"z", position.z}};
@@ -1329,18 +1203,15 @@ void MyApplication::handleSketchSideGUI()
         points.push_back(pointTable);
       }
 
-      for (auto edge : currentSketch->getWire()->getEdges())
-      {
+      for (auto edge : currentSketch->getWire()->getEdges()) {
         auto spline = edge->getSpline();
         toml::table tbl;
 
         toml::array spline_points;
 
-        for (auto point : spline->getPoints())
-        {
+        for (auto point : spline->getPoints()) {
           int i = 0;
-          for (auto ps : points_set)
-          {
+          for (auto ps : points_set) {
             if (ps == point)
               break;
             i++;
@@ -1348,17 +1219,13 @@ void MyApplication::handleSketchSideGUI()
           spline_points.push_back(i);
         }
 
-        switch (spline->getSplineType())
-        {
-        case EGEOM::Spline1::SplineType::LinearInterpolation:
-        {
+        switch (spline->getSplineType()) {
+        case EGEOM::Spline1::SplineType::LinearInterpolation: {
 
           tbl = toml::table{{"type", static_cast<int>(spline->getSplineType())},
                             {"points", spline_points}};
-        }
-        break;
-        case EGEOM::Spline1::SplineType::NURBS:
-        {
+        } break;
+        case EGEOM::Spline1::SplineType::NURBS: {
           auto splineBuilder =
               spline->getSplineBuilder<EGEOM::RationalBSplineBuilder>();
           auto knotVector = splineBuilder.knotVector;
@@ -1366,14 +1233,12 @@ void MyApplication::handleSketchSideGUI()
           auto power = splineBuilder.bSplinePower;
 
           auto knotVectorToml = toml::array{};
-          for (auto &e : knotVector)
-          {
+          for (auto &e : knotVector) {
             knotVectorToml.push_back(e);
           }
 
           auto weigtsToml = toml::array{};
-          for (auto &e : weights)
-          {
+          for (auto &e : weights) {
             weigtsToml.push_back(e);
           }
 
@@ -1382,18 +1247,15 @@ void MyApplication::handleSketchSideGUI()
                             {"knotVector", knotVectorToml},
                             {"weights", weigtsToml},
                             {"points", spline_points}};
-        }
-        break;
-        default:
-        {
+        } break;
+        default: {
           spdlog::error("Can't write sketch of this type!");
         }
         }
         wires.push_back(tbl);
       }
       result_table = toml::table{{"points_set", points}, {"wires", wires}};
-      if (!result_table.empty())
-      {
+      if (!result_table.empty()) {
         std::ofstream fs(filePathName);
         fs << result_table;
         spdlog::info("Sketch successefully written to {}", filePathName);
@@ -1406,17 +1268,14 @@ void MyApplication::handleSketchSideGUI()
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Load sketch"))
-  {
+  if (ImGui::Button("Load sketch")) {
     IGFD::FileDialogConfig config;
     config.path = ".";
     ImGuiFileDialog::Instance()->OpenDialog("CLF", "Choose File", ".toml");
   }
 
-  if (ImGuiFileDialog::Instance()->Display("CLF"))
-  {
-    if (ImGuiFileDialog::Instance()->IsOk())
-    { // action if OK
+  if (ImGuiFileDialog::Instance()->Display("CLF")) {
+    if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
@@ -1426,8 +1285,7 @@ void MyApplication::handleSketchSideGUI()
 
       auto pointsTbl = tbl["points_set"].as_array();
 
-      pointsTbl->for_each([&points](auto &&el)
-                          {
+      pointsTbl->for_each([&points](auto &&el) {
         if constexpr (toml::is_table<decltype(el)>) {
           auto x = *el["x"].template value<float>();
           auto y = *el["y"].template value<float>();
@@ -1435,15 +1293,15 @@ void MyApplication::handleSketchSideGUI()
           auto point = EGEOM::Point::create({x, y, z});
           point->isSelectable = true;
           points.push_back(point);
-        } });
+        }
+      });
 
       spdlog::info("Points loaded");
 
       auto wiresTbl = tbl["wires"].as_array();
       auto wire = EGEOM::Wire::create();
 
-      wiresTbl->for_each([&](auto &&el)
-                         {
+      wiresTbl->for_each([&](auto &&el) {
         if constexpr (toml::is_table<decltype(el)>) {
 
           auto splineTypeId = *el["type"].template value<int>();
@@ -1501,7 +1359,8 @@ void MyApplication::handleSketchSideGUI()
           }
           }
           wire->addEdge(EGEOM::Edge::create(spline));
-        } });
+        }
+      });
 
       auto newSketch = EGEOM::Sketch::create(
           "Sketch " + std::to_string(sketches.size()), wire);
@@ -1523,8 +1382,7 @@ void MyApplication::handleSketchSideGUI()
   // ImGui::ListBox("Sketches List", &currentSketchId, &sketchesNameList[0],
   //                sketchesNameList.size(), 4);
 
-  if (ImGui::Button("Add Spline"))
-  {
+  if (ImGui::Button("Add Spline")) {
     auto currentSketch = sketches[currentSketchId];
     auto wire = currentSketch->getWire();
     auto spline = EGEOM::Spline1::create({}, interpolationPointsCount);
@@ -1537,33 +1395,25 @@ void MyApplication::handleSketchSideGUI()
                                          ImGuiTreeNodeFlags_OpenOnDoubleClick |
                                          ImGuiTreeNodeFlags_SpanAvailWidth;
 
-  if (ImGui::TreeNode("Sketches"))
-  {
+  if (ImGui::TreeNode("Sketches")) {
     auto i = 0;
-    for (auto &sketch : sketches)
-    {
+    for (auto &sketch : sketches) {
       ImGuiTreeNodeFlags node_flags = base_flags;
       if (i == currentSketchId)
         node_flags |= ImGuiTreeNodeFlags_Selected;
       bool node_open =
           ImGui::TreeNodeEx((void *)(intptr_t)sketch->getId(), node_flags, "%s",
                             sketch->getName().c_str());
-      if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-      {
+      if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
         currentSketchId = i;
       }
-      if (node_open)
-      {
-        for (auto child : sketch->getWire()->getChildren())
-        {
-          if (child == sketch->getWire()->getCurrentEdge())
-          {
+      if (node_open) {
+        for (auto child : sketch->getWire()->getChildren()) {
+          if (child == sketch->getWire()->getCurrentEdge()) {
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
             ImGui::Text("%s %d", child->getName().c_str(), child->getId());
             ImGui::PopStyleColor();
-          }
-          else
-          {
+          } else {
             ImGui::Text("%s %d", child->getName().c_str(), child->getId());
           }
         }
@@ -1577,24 +1427,20 @@ void MyApplication::handleSketchSideGUI()
   ImGui::End();
 }
 
-void MyApplication::handleObjectsGUI()
-{
+void MyApplication::handleObjectsGUI() {
   ImGui::Begin("Objects");
   std::vector<const char *> objectsNameList;
   std::for_each(viewportScene->getObjects().begin(),
                 viewportScene->getObjects().end(),
-                [&objectsNameList](auto object)
-                {
+                [&objectsNameList](auto object) {
                   objectsNameList.push_back(object->getName().c_str());
                 });
   static int currentObject = 0;
   if (ImGui::ListBox("Objects List", &currentObject, &objectsNameList[0],
-                     objectsNameList.size(), 4))
-  {
+                     objectsNameList.size(), 4)) {
     auto selectedObj = viewportScene->getObjects()[currentObject];
     selectedObjectViewport = selectedObj;
-    for (auto &obj : viewportScene->getObjects())
-    {
+    for (auto &obj : viewportScene->getObjects()) {
       obj->setSelected(false);
     }
     selectedObj->setSelected(true);
@@ -1605,34 +1451,27 @@ void MyApplication::handleObjectsGUI()
 
   ImGuiTreeNodeFlags node_flags = base_flags;
 
-  if (ImGui::TreeNode("Objects"))
-  {
-    for (auto &obj : viewportScene->getObjects())
-    {
+  if (ImGui::TreeNode("Objects")) {
+    for (auto &obj : viewportScene->getObjects()) {
       if (obj->selected())
         node_flags |= ImGuiTreeNodeFlags_Selected;
       bool node_open =
           ImGui::TreeNodeEx((void *)(intptr_t)obj->getId(), node_flags, "%s",
                             obj->getName().c_str());
-      if (node_open)
-      {
-        for (auto child : obj->getChildren())
-        {
+      if (node_open) {
+        for (auto child : obj->getChildren()) {
           bool child_open =
               ImGui::TreeNodeEx((void *)(intptr_t)child->getId(), node_flags,
                                 "%s", child->getName().c_str());
-          if (child_open)
-          {
+          if (child_open) {
             ImGui::TreePop();
           }
         }
         ImGui::TreePop();
       }
-      if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-      {
+      if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
         selectedObjectViewport = obj;
-        for (auto &obj : viewportScene->getObjects())
-        {
+        for (auto &obj : viewportScene->getObjects()) {
           obj->setSelected(false);
         }
         obj->setSelected(true);
@@ -1643,8 +1482,7 @@ void MyApplication::handleObjectsGUI()
   ImGui::End();
 }
 
-void MyApplication::createPivotPlane()
-{
+void MyApplication::createPivotPlane() {
   auto pivotPlane = EGEOM::PivotPlane::create("PivotPlane 1");
   pivotPlane->isSelectable = true;
 
@@ -1653,42 +1491,33 @@ void MyApplication::createPivotPlane()
   viewportScene->addObject(pivotPlane);
 }
 
-void MyApplication::handlePropertiesGUI()
-{
+void MyApplication::handlePropertiesGUI() {
   ImGui::Begin("Properties");
-  if (activeWindow == Windows::Viewport)
-  {
-    if (selectedObjectViewport)
-    {
+  if (activeWindow == Windows::Viewport) {
+    if (selectedObjectViewport) {
       auto pivot =
           std::dynamic_pointer_cast<EGEOM::PivotPlane>(selectedObjectViewport);
       auto spline =
           std::dynamic_pointer_cast<EGEOM::Spline1>(selectedObjectViewport);
       if (pivot)
         pivot->drawProperties(sketches);
-      else if (spline)
-      {
+      else if (spline) {
         spline->getPropertiesGUI(justSelected);
         justSelected = false;
-      }
-      else
+      } else
         selectedObjectViewport->drawProperties();
-    }
-    else
+    } else
       ImGui::Text("Select object to edit properties...");
   }
-  if (activeWindow == Windows::SketchEditor)
-  {
-    if (currentSketchId >= 0)
-    {
+  if (activeWindow == Windows::SketchEditor) {
+    if (currentSketchId >= 0) {
       sketches[currentSketchId]
           ->getWire()
           ->getCurrentEdge()
           ->getSpline()
           ->getPropertiesGUI(justSelected);
       justSelected = false;
-    }
-    else
+    } else
       ImGui::Text("Select object to edit properties...");
   }
   ImGui::End();

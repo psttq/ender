@@ -4,24 +4,29 @@
 #include "SplineBuilder.hpp"
 #include "Surface.hpp"
 
-namespace EGEOM {
+namespace EGEOM
+{
 
-class SurfaceSplineBuilder : public SplineBuilder {
-  sptr<Surface> _r;
+  class SurfaceSplineBuilder : public SplineBuilder
+  {
+    sptr<Surface> _r;
 
-  sptr<Spline1> _u;
-  sptr<Spline1> _v;
+    sptr<Spline1> _u;
+    sptr<Spline1> _v;
 
-public:
-  SurfaceSplineBuilder(sptr<Surface> r, sptr<Spline1> u, sptr<Spline1> v);
+  public:
+    SurfaceSplineBuilder(sptr<Surface> r, sptr<Spline1> u, sptr<Spline1> v);
 
-  void rebuild() override;
+    void rebuild() override;
 
-  sptr<Point> getSplinePoint(float t) override;
+    sptr<Point> _getSplinePoint(float t) override;
 
-  bool drawPropertiesGui() override;
+    std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                          int dirsCount) override;
 
-  uptr<SplineBuilder> clone() override;
-};
+    bool drawPropertiesGui() override;
+
+    uptr<SplineBuilder> clone() override;
+  };
 
 } // namespace EGEOM

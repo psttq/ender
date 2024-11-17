@@ -3,221 +3,321 @@
 
 #include <Spline1.hpp>
 
-namespace EGEOM {
-Spline1::Spline1(const std::vector<sptr<Point>> &points,
-                 uint interpolatedPointsCount)
-    : ENDER::Object("Spline1") {
+namespace EGEOM
+{
+  Spline1::Spline1(const std::vector<sptr<Point>> &points,
+                   uint interpolatedPointsCount)
+      : ENDER::Object("Spline1")
+  {
 
-  label = "Spline";
-  type = ObjectType::Line;
-  _splineType = SplineType::LinearInterpolation;
-  _splineBuilder = std::make_unique<LinearInterpolationBuilder>(
-      points, LinearInterpolationBuilder::ParamMethod::Uniform);
-  _interpolatedPointsCount = interpolatedPointsCount;
+    label = "Spline";
+    type = ObjectType::Line;
+    _splineType = SplineType::LinearInterpolation;
+    _splineBuilder = std::make_unique<LinearInterpolationBuilder>(
+        points, LinearInterpolationBuilder::ParamMethod::Uniform);
+    _interpolatedPointsCount = interpolatedPointsCount;
 
-  auto layout = uptr<ENDER::BufferLayout>(
-      new ENDER::BufferLayout({{ENDER::LayoutObjectType::Float3}}));
+    auto layout = uptr<ENDER::BufferLayout>(
+        new ENDER::BufferLayout({{ENDER::LayoutObjectType::Float3}}));
 
-  auto vbo = std::make_unique<ENDER::VertexBuffer>(std::move(layout));
-  vbo->setData(&_rawData[0], _rawData.size() * sizeof(float));
-  _vertexArray = std::make_shared<ENDER::VertexArray>();
-  _vertexArray->addVBO(std::move(vbo));
+    auto vbo = std::make_unique<ENDER::VertexBuffer>(std::move(layout));
+    vbo->setData(&_rawData[0], _rawData.size() * sizeof(float));
+    _vertexArray = std::make_shared<ENDER::VertexArray>();
+    _vertexArray->addVBO(std::move(vbo));
 
-  _calculateDrawPoints();
-}
-
-void Spline1::_calculateDrawPoints() {
-  if (_splineType != SplineType::Parametric && _splineType != SplineType::SurfaceSpline &&
-      _splineBuilder->getPoints().size() < 2)
-    return;
-
-  _interpolatedPoints.clear();
-  for (auto i = 0; i < _interpolatedPointsCount; i++) {
-    float t = i * u_max / (_interpolatedPointsCount - 1);
-
-    _interpolatedPoints.push_back(_splineBuilder->getSplinePoint(t));
+    _calculateDrawPoints();
   }
 
-  _rawData.clear();
-  for (auto point : _interpolatedPoints) {
-    _rawData.insert(_rawData.end(),
-                    {point->getPosition().x, point->getPosition().y,
-                     point->getPosition().z});
-  }
-  _vertexArray->setVBOdata(0, &_rawData[0], _rawData.size() * sizeof(float));
-}
+  void Spline1::_calculateDrawPoints()
+  {
+    if (_splineType != SplineType::Parametric &&
+        _splineType != SplineType::SurfaceSpline &&
+        _splineBuilder->getPoints().size() < 2)
+      return;
 
-void Spline1::setPoints(const std::vector<sptr<Point>> &points) {
-  _splineBuilder->setPoints(points);
-  update();
-}
+    _interpolatedPoints.clear();
+    for (auto i = 0; i < _interpolatedPointsCount; i++)
+    {
+      float t = u_min + i * (u_max - u_min) / (_interpolatedPointsCount - 1);
 
-std::vector<sptr<Point>> Spline1::getInterpolatedPoints() {
-  return _interpolatedPoints;
-}
-
-void Spline1::setInterpolationPointsCount(uint count) {
-  _interpolatedPointsCount = count;
-}
-
-void Spline1::update() {
-  _splineBuilder->rebuild();
-  _calculateDrawPoints();
-}
-
-void Spline1::addPoint(sptr<Point> point) {
-  _splineBuilder->addPoint(point);
-  update();
-}
-
-sptr<Spline1> Spline1::clone() {
-  auto splineCopy = Spline1::create({}, _interpolatedPointsCount);
-  splineCopy->setSplineType(_splineType);
-  splineCopy->setSplineBuilder(_splineBuilder->clone());
-  return splineCopy;
-}
-
-void Spline1::removePoint(sptr<Point> point) {
-  _splineBuilder->removePoint(point);
-}
-
-std::vector<sptr<Point>> Spline1::getPoints() {
-  return _splineBuilder->getPoints();
-}
-
-sptr<Spline1> Spline1::create(const std::vector<sptr<Point>> &points,
-                              uint interpolatedPointsCount) {
-  return sptr<Spline1>(new Spline1(points, interpolatedPointsCount));
-}
-
-void Spline1::setSplineType(SplineType splineType) { _splineType = splineType; }
-
-void Spline1::setSplineBuilder(uptr<SplineBuilder> splineBuilder) {
-  _splineBuilder = std::move(splineBuilder);
-}
-
-void Spline1::getPropertiesGUI(bool scrollToPoint) {
-  std::vector<const char *> items = {"Linear Interpolation",
-                                     "Bezier",
-                                     "Rational Bezier",
-                                     "BSpline",
-                                     "NURBS",
-                                     "Parametric",
-                                     "Cubic"};
-  int currentItem = static_cast<int>(_splineType);
-
-  if (ImGui::Combo("Spline Type", &currentItem, &items[0], items.size())) {
-    auto splineType = static_cast<SplineType>(currentItem);
-    if (_splineType != splineType) {
-      _splineType = splineType;
-      auto points = _splineBuilder->getPoints();
-      switch (_splineType) {
-      case SplineType::Bezier: {
-        auto bezierBuilder =
-            std::make_unique<BezierBuilder>(points, points.size() - 1);
-        setSplineBuilder(std::move(bezierBuilder));
-      } break;
-      case SplineType::LinearInterpolation: {
-        auto linearBuilder = std::make_unique<LinearInterpolationBuilder>(
-            points, LinearInterpolationBuilder::ParamMethod::Uniform);
-        setSplineBuilder(std::move(linearBuilder));
-      } break;
-      case SplineType::RationalBezier: {
-        std::vector<float> weighs = {};
-        auto rationalBezierBuilder = std::make_unique<RationalBezierBuilder>(
-            points, points.size() - 1, weighs);
-        setSplineBuilder(std::move(rationalBezierBuilder));
-      } break;
-      case SplineType::BSpline: {
-        std::vector<float> knotVector = {};
-        auto bsplineBuilder =
-            std::make_unique<BSplineBuilder>(points, 1, knotVector);
-        setSplineBuilder(std::move(bsplineBuilder));
-      } break;
-      case SplineType::NURBS: {
-        std::vector<float> knotVector = {};
-        std::vector<float> weights = {};
-        auto nurbsBuilder = std::make_unique<RationalBSplineBuilder>(
-            points, 1, knotVector, weights);
-        setSplineBuilder(std::move(nurbsBuilder));
-      } break;
-      case SplineType::CubicSpline: {
-        auto cubicBuilder = std::make_unique<CubicSplineBuilder>(points);
-        setSplineBuilder(std::move(cubicBuilder));
-      } break;
-      }
-      update();
+      _interpolatedPoints.push_back(_splineBuilder->getSplinePoint(t));
     }
+
+    _rawData.clear();
+    for (auto point : _interpolatedPoints)
+    {
+      _rawData.insert(_rawData.end(),
+                      {point->getPosition().x, point->getPosition().y,
+                       point->getPosition().z});
+    }
+    _vertexArray->setVBOdata(0, &_rawData[0], _rawData.size() * sizeof(float));
   }
 
-  ImGui::Checkbox("isDirectionInversed", &_isDirectionInversed);
+  void Spline1::setPoints(const std::vector<sptr<Point>> &points)
+  {
+    _splineBuilder->setPoints(points);
+    update();
+  }
 
-  if (ImGui::TreeNode("Points")) {
-    ImGui::BeginGroup();
-    const bool child_is_visible = ImGui::BeginChild("pefe", {0, 200});
+  std::vector<sptr<Point>> Spline1::getInterpolatedPoints()
+  {
+    return _interpolatedPoints;
+  }
 
-    if (child_is_visible) {
-      auto i = 0;
-      for (auto point : _splineBuilder->getPoints()) {
-        auto point_name = std::string("Point_") + std::to_string(i);
-        if (point->selected()) {
-          ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+  void Spline1::setInterpolationPointsCount(uint count)
+  {
+    _interpolatedPointsCount = count;
+  }
+
+  glm::vec2 projectToLocal(const glm::vec3 &point, const glm::vec3 &origin, const glm::vec3 &u, const glm::vec3 &v)
+  {
+    glm::vec3 relative = point - origin;
+    double x = glm::dot(relative, u);
+    double y = glm::dot(relative, v);
+    return {x, y};
+  }
+
+  std::tuple<float, float> Spline1::intersect(sptr<Spline1> spline,
+                                              glm::vec2 t_initial,
+                                              float tolerance, int maxIter)
+  {
+
+    glm::vec2 t = t_initial;
+
+    auto learning_rate = 0.00001f;
+    glm::vec2 v;
+    for (int iter = 0; iter < maxIter; ++iter)
+    {
+
+      auto dts1 = getSplineDirs(t.x, 2);
+      auto dts2 = spline->getSplineDirs(t.y, 2);
+
+      auto origin = (dts1[0]->getPosition() + dts2[0]->getPosition()) / 2.0f;
+      auto i1 = glm::normalize(dts1[1]->getPosition());
+      auto i2 = glm::normalize(dts2[1]->getPosition());
+      auto p1 = projectToLocal(getSplinePoint(t.x), origin, i1, i2);
+      auto p2 = projectToLocal(spline->getSplinePoint(t.y), origin, i1, i2);
+
+      v = p1 - p2;
+
+      auto dc1_dt1 = projectToLocal(dts1[1]->getPosition(), origin, i1, i2);
+      auto dc2_dt2 = projectToLocal(dts2[1]->getPosition(), origin, i1, i2);
+
+      glm::mat2 J(-dc1_dt1.x, dc2_dt2.x,  // d(fx)/dt1, d(fx)/dt2
+                  -dc1_dt1.y, dc2_dt2.y); // d(fy)/dt1, d(fy)/dt2
+
+      float det = glm::determinant(J);
+      if (std::abs(det) < std::numeric_limits<float>::epsilon())
+      {
+        spdlog::error("Jacobian is singular.\n");
+        return {-100, -100};
+      }
+
+      // Метод Ньютона: t_next = t - J⁻¹ * f
+      glm::vec2 delta_t = glm::inverse(J) * v;
+      t -= delta_t;
+
+      // Проверяем расходимость
+      if (glm::length(delta_t) < tolerance)
+      {
+        return {t.x, t.y}; // Достигли нужной точности
+      }
+
+      spdlog::error("iter: {},t: {} {}, rash: {}, v: {} {}", iter, t.x, t.y, glm::length(delta_t), v.x, v.y);
+    }
+
+    return {-100, -100}; // Не удалось найти пересечение
+  }
+
+  void Spline1::update()
+  {
+    _splineBuilder->rebuild();
+    _calculateDrawPoints();
+  }
+
+  void Spline1::addPoint(sptr<Point> point)
+  {
+    _splineBuilder->addPoint(point);
+    update();
+  }
+
+  sptr<Spline1> Spline1::clone()
+  {
+    auto splineCopy = Spline1::create({}, _interpolatedPointsCount);
+    splineCopy->setSplineType(_splineType);
+    splineCopy->setSplineBuilder(_splineBuilder->clone());
+    return splineCopy;
+  }
+
+  void Spline1::removePoint(sptr<Point> point)
+  {
+    _splineBuilder->removePoint(point);
+  }
+
+  std::vector<sptr<Point>> Spline1::getPoints()
+  {
+    return _splineBuilder->getPoints();
+  }
+
+  sptr<Spline1> Spline1::create(const std::vector<sptr<Point>> &points,
+                                uint interpolatedPointsCount)
+  {
+    return sptr<Spline1>(new Spline1(points, interpolatedPointsCount));
+  }
+
+  void Spline1::setSplineType(SplineType splineType) { _splineType = splineType; }
+
+  void Spline1::setSplineBuilder(uptr<SplineBuilder> splineBuilder)
+  {
+    _splineBuilder = std::move(splineBuilder);
+  }
+
+  void Spline1::getPropertiesGUI(bool scrollToPoint)
+  {
+    std::vector<const char *> items = {
+        "Linear Interpolation", "Bezier", "Rational Bezier", "BSpline", "NURBS",
+        "Parametric", "Cubic"};
+    int currentItem = static_cast<int>(_splineType);
+
+    if (ImGui::Combo("Spline Type", &currentItem, &items[0], items.size()))
+    {
+      auto splineType = static_cast<SplineType>(currentItem);
+      if (_splineType != splineType)
+      {
+        _splineType = splineType;
+        auto points = _splineBuilder->getPoints();
+        switch (_splineType)
+        {
+        case SplineType::Bezier:
+        {
+          auto bezierBuilder =
+              std::make_unique<BezierBuilder>(points, points.size() - 1);
+          setSplineBuilder(std::move(bezierBuilder));
+        }
+        break;
+        case SplineType::LinearInterpolation:
+        {
+          auto linearBuilder = std::make_unique<LinearInterpolationBuilder>(
+              points, LinearInterpolationBuilder::ParamMethod::Uniform);
+          setSplineBuilder(std::move(linearBuilder));
+        }
+        break;
+        case SplineType::RationalBezier:
+        {
+          std::vector<float> weighs = {};
+          auto rationalBezierBuilder = std::make_unique<RationalBezierBuilder>(
+              points, points.size() - 1, weighs);
+          setSplineBuilder(std::move(rationalBezierBuilder));
+        }
+        break;
+        case SplineType::BSpline:
+        {
+          std::vector<float> knotVector = {};
+          auto bsplineBuilder =
+              std::make_unique<BSplineBuilder>(points, 1, knotVector);
+          setSplineBuilder(std::move(bsplineBuilder));
+        }
+        break;
+        case SplineType::NURBS:
+        {
+          std::vector<float> knotVector = {};
+          std::vector<float> weights = {};
+          auto nurbsBuilder = std::make_unique<RationalBSplineBuilder>(
+              points, 1, knotVector, weights);
+          setSplineBuilder(std::move(nurbsBuilder));
+        }
+        break;
+        case SplineType::CubicSpline:
+        {
+          auto cubicBuilder = std::make_unique<CubicSplineBuilder>(points);
+          setSplineBuilder(std::move(cubicBuilder));
+        }
+        break;
+        }
+        update();
+      }
+    }
+
+    ImGui::Checkbox("isDirectionInversed", &_isDirectionInversed);
+
+    if (ImGui::TreeNode("Points"))
+    {
+      ImGui::BeginGroup();
+      const bool child_is_visible = ImGui::BeginChild("pefe", {0, 200});
+
+      if (child_is_visible)
+      {
+        auto i = 0;
+        for (auto point : _splineBuilder->getPoints())
+        {
+          auto point_name = std::string("Point_") + std::to_string(i);
+          if (point->selected())
+          {
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+            ImGui::InputFloat3(point_name.c_str(),
+                               glm::value_ptr(point->getPosition()));
+            ImGui::PopStyleColor();
+            if (scrollToPoint)
+              ImGui::SetScrollHereY(0.25f);
+          }
+          else
+            ImGui::InputFloat3(point_name.c_str(),
+                               glm::value_ptr(point->getPosition()));
+          i++;
+          // }
+        }
+      }
+      ImGui::EndChild();
+      ImGui::EndGroup();
+
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(items[currentItem]))
+    {
+      if (_splineBuilder->drawPropertiesGui())
+        update();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Draw Points"))
+    {
+      ImGui::BeginGroup();
+      const bool child_is_visible = ImGui::BeginChild("pefe", {0, 200});
+
+      if (child_is_visible)
+      {
+        auto i = 0;
+        for (auto point : _interpolatedPoints)
+        {
+          auto point_name = std::string("Point_") + std::to_string(i);
           ImGui::InputFloat3(point_name.c_str(),
-                             glm::value_ptr(point->getPosition()));
-          ImGui::PopStyleColor();
-          if (scrollToPoint)
-            ImGui::SetScrollHereY(0.25f);
-        } else
-          ImGui::InputFloat3(point_name.c_str(),
-                             glm::value_ptr(point->getPosition()));
-        i++;
-        // }
+                             glm::value_ptr(point->getPosition()), "%.3f",
+                             ImGuiInputTextFlags_ReadOnly);
+          i++;
+        }
       }
+      ImGui::EndChild();
+      ImGui::EndGroup();
+
+      ImGui::TreePop();
     }
-    ImGui::EndChild();
-    ImGui::EndGroup();
-
-    ImGui::TreePop();
-  }
-  if (ImGui::TreeNode(items[currentItem])) {
-    if (_splineBuilder->drawPropertiesGui())
-      update();
-    ImGui::TreePop();
-  }
-  if (ImGui::TreeNode("Draw Points")) {
-    ImGui::BeginGroup();
-    const bool child_is_visible = ImGui::BeginChild("pefe", {0, 200});
-
-    if (child_is_visible) {
-      auto i = 0;
-      for (auto point : _interpolatedPoints) {
-        auto point_name = std::string("Point_") + std::to_string(i);
-        ImGui::InputFloat3(point_name.c_str(),
-                           glm::value_ptr(point->getPosition()), "%.3f",
-                           ImGuiInputTextFlags_ReadOnly);
-        i++;
-      }
+    if (ImGui::TreeNode("Material"))
+    {
+      material.drawImguiEdit();
+      ImGui::TreePop();
     }
-    ImGui::EndChild();
-    ImGui::EndGroup();
-
-    ImGui::TreePop();
   }
-  if (ImGui::TreeNode("Material")) {
-    material.drawImguiEdit();
-    ImGui::TreePop();
+
+  Spline1::SplineType Spline1::getSplineType() const { return _splineType; }
+
+  glm::vec3 Spline1::getSplinePoint(float u)
+  {
+    auto point = _splineBuilder->getSplinePoint(u);
+    return point->getPosition();
   }
-}
 
-Spline1::SplineType Spline1::getSplineType() const { return _splineType; }
-
-glm::vec3 Spline1::getSplinePoint(float u) {
-  auto point = _splineBuilder->getSplinePoint(u);
-  return point->getPosition();
-}
-
-std::vector<sptr<Point>> Spline1::getSplineDirs(float u, int dirsCount) {
-  return _splineBuilder->getSplineDerivatives(u, dirsCount);
-}
+  std::vector<sptr<Point>> Spline1::getSplineDirs(float u, int dirsCount)
+  {
+    return _splineBuilder->getSplineDerivativesSave(u, dirsCount);
+  }
 
 } // namespace EGEOM

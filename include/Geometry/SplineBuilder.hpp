@@ -20,11 +20,45 @@ public:
 
   std::vector<sptr<Point>> getPoints();
 
-  virtual sptr<Point> getSplinePoint(float t) = 0;
+  virtual sptr<Point> _getSplinePoint(float t) = 0;
+
+  virtual sptr<Point> getSplinePoint(float t) {
+    if (t > 1.0f) {
+      return aboveSplinePoint(t);
+    }
+    if (t < 0.0f) {
+      return belowSplinePoint(t);
+    }
+    return _getSplinePoint(t);
+  }
+
+  sptr<Point> aboveSplinePoint(float t) {
+    auto point1 = _getSplinePoint(1.0f);
+    auto glm_point = point1->getPosition();
+    auto dir = getSplineDerivatives(1.0, 3)[1]->getPosition();
+    glm::vec3 point = glm_point + (t - 1.0f) * dir;
+    return Point::create(point);
+  }
+
+  sptr<Point> belowSplinePoint(float t) {
+    auto point1 = _getSplinePoint(0.0f);
+    auto glm_point = point1->getPosition();
+    auto dir = getSplineDerivatives(0.0, 3)[1]->getPosition();
+    glm::vec3 point = glm_point + (t - 0.0f) * dir;
+    return Point::create(point);
+  }
 
   virtual std::vector<sptr<Point>> getSplineDerivatives(float t,
                                                         int dirsCount) {
     return {};
+  }
+
+  std::vector<sptr<Point>> getSplineDerivativesSave(float t, int dirsCount) {
+    if (t > 1.0)
+      return getSplineDerivatives(1.0, dirsCount);
+    if (t < 0.0)
+      return getSplineDerivatives(0.0, dirsCount);
+    return getSplineDerivatives(t, dirsCount);
   }
 
   virtual void rebuild() = 0;
@@ -48,7 +82,7 @@ private:
 public:
   ParametricBuilder(ParametricFunction paramFunc);
 
-  sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> _getSplinePoint(float t) override;
 
   void rebuild() override;
 
@@ -72,7 +106,7 @@ public:
                              ParamMethod paramMethod);
   void rebuild() override;
 
-  sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> _getSplinePoint(float t) override;
 
   bool drawPropertiesGui() override;
 
@@ -98,13 +132,20 @@ class CubicSplineBuilder : public SplineBuilder {
   float x_min;
   float x_max;
 
+  sptr<Point> _getSplineFirstDerivative(float t);
+  sptr<Point> _getSplineSecondDerivative(float t);
+
 public:
   CubicSplineBuilder(const std::vector<sptr<Point>> &points);
   CubicSplineBuilder(const std::vector<float> &x, const std::vector<float> &y);
 
   void rebuild() override;
 
-  sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> _getSplinePoint(float t) override;
+
+  std::vector<sptr<Point>> getSplineDerivatives(float t,
+                                                int dirsCount) override;
+
 
   bool drawPropertiesGui() override;
 
@@ -130,7 +171,7 @@ public:
 
   BezierBuilder(const std::vector<sptr<Point>> &points, int bezierPower);
 
-  sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> _getSplinePoint(float t) override;
 
   void rebuild() override;
 
@@ -157,7 +198,7 @@ public:
   RationalBezierBuilder(const std::vector<sptr<Point>> &points, int bezierPower,
                         const std::vector<float> &weights);
 
-  sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> _getSplinePoint(float t) override;
   void rebuild() override;
   bool drawPropertiesGui() override;
   uptr<SplineBuilder> clone() override;
@@ -177,7 +218,7 @@ public:
   BSplineBuilder(const std::vector<sptr<Point>> &points, int bSplinePower,
                  const std::vector<float> &knotVector);
 
-  sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> _getSplinePoint(float t) override;
   std::vector<sptr<Point>> getSplineDerivatives(float t,
                                                 int dirsCount) override;
   void rebuild() override;
@@ -202,7 +243,7 @@ public:
   RationalBSplineBuilder(const std::vector<sptr<Point>> &points,
                          int bSplinePower, const std::vector<float> &knotVector,
                          const std::vector<float> &weights);
-  sptr<Point> getSplinePoint(float t) override;
+  sptr<Point> _getSplinePoint(float t) override;
 
   std::vector<sptr<Point>> getSplineDerivatives(float t,
                                                 int dirsCount) override;

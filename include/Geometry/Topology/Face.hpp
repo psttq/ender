@@ -7,9 +7,9 @@
 namespace EGEOM {
 class Face : public ENDER::Object {
 
-  const int wirePointNumber = 2000;
-  const int surfacePointsNumberByU = 50;
-  const int surfacePointsNumberByV = 50;
+  const int wirePointNumber = 1000;
+  const int surfacePointsNumberByU = 20;
+  const int surfacePointsNumberByV = 20;
 
   sptr<Surface> _surface;
   sptr<Wire> _wire;

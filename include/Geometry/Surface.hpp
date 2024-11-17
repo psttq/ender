@@ -32,6 +32,7 @@ public:
 
   virtual glm::vec3 pointOnSurface(float u, float v) = 0;
   virtual glm::vec3 normalOnSurface(float u, float v) { return {}; }
+  virtual std::tuple<glm::vec3,glm::vec3> firstDir(float u, float v) { return {}; }
 };
 
 } // namespace EGEOM

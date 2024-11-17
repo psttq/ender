@@ -22,6 +22,7 @@ public:
   };
 
   float u_max = 1.0f;
+  float u_min = 0.0f;
 
 
 private:
@@ -71,6 +72,8 @@ public:
 
   void update();
 
+  std::tuple<float,float> intersect(sptr<Spline1> spline, glm::vec2 t_initial,
+     float tolerance = 1e-5, int maxIter = 15000);
 
   sptr<Spline1> clone();
 };
