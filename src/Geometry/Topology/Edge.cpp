@@ -16,10 +16,12 @@ void Edge::update() { _spline->update(); }
 
 sptr<Spline1> Edge::getSpline() const { return _spline; }
 
-glm::vec3 Edge::getPoint(float u) { 
-  if(isInvertedDirection)
+glm::vec3 Edge::getPoint(float u) {
+  if (isInvertedDirection)
     u = 1.0 - u;
-  return _spline->getSplinePoint(u); }
+  u = _spline->u_min + (_spline->u_max - _spline->u_min) * u;
+  return _spline->getSplinePoint(u);
+}
 
 sptr<Edge> Edge::clone() { return Edge::create(_spline->clone()); }
 
@@ -27,9 +29,8 @@ sptr<Edge> Edge::copy() { return Edge::create(_spline); }
 
 void Edge::drawProperties() {}
 
-
-std::vector<sptr<Point>> Edge::getEdgeDirs(float u, int dirsCount){
-    return _spline->getSplineDirs(u, dirsCount);
+std::vector<sptr<Point>> Edge::getEdgeDirs(float u, int dirsCount) {
+  return _spline->getSplineDirs(u, dirsCount);
 }
 
 void Edge::drawGizmo() {

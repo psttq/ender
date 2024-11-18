@@ -73,7 +73,7 @@ public:
   void update();
 
   std::tuple<float,float> intersect(sptr<Spline1> spline, glm::vec2 t_initial,
-     float tolerance = 1e-5, int maxIter = 15000);
+     float tolerance = 1e-5, int maxIter = 1500);
 
   sptr<Spline1> clone();
 };

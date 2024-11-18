@@ -289,25 +289,54 @@ void MyApplication::handleOperationPropertiesGUI() {
         auto cr_edge = EGEOM::Edge::create(cr);
         auto cs_edge = EGEOM::Edge::create(cs);
 
+        auto filletWire = EGEOM::Wire::create();
+        filletWire->addEdge(cr_edge);
+        filletWire->addEdge(cs_edge);
+        auto filletFace = EGEOM::Face::create(filletSurface, filletWire);
+
+        shell->addFace(filletFace);
+
         spdlog::info("R edge");
         r->getWire()->replaceEdge(c0copy, cr_edge);
         spdlog::info("s edge");
         s->getWire()->replaceEdge(c0, cs_edge);
-        r->setBasedOnSurface(true);
-        r->update();
-        s->setBasedOnSurface(true);
-        s->update();
 
         for (auto edge : s->getWire()->getEdges()) {
           auto [t1, t2] =
               cs_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
           spdlog::error("t1,t2: {} {}", t1, t2);
-          auto p1 = cs_edge->getPoint(t1);
-          auto p2 = edge->getPoint(t1);
-          spdlog::error("p1: {} {} {}", p1.x,p1.y,p1.z);
-          spdlog::error("p2: {} {} {}", p2.x,p2.y,p2.z);
-
+          if (t1 != -100) {
+            if (t1 < 0)
+              cs_edge->getSpline()->u_min = t1;
+            else
+              cs_edge->getSpline()->u_max = t1;
+            cs_edge->update();
+          }
+          if (t2 != -100) {
+            edge->getSpline()->u_min = t2;
+            edge->update();
+          }
         }
+        for (auto edge : r->getWire()->getEdges()) {
+          auto [t1, t2] =
+              cr_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
+          spdlog::error("t1,t2: {} {}", t1, t2);
+          if (t1 != -100) {
+            if (t1 < 0)
+              cr_edge->getSpline()->u_min = t1;
+            else
+              cr_edge->getSpline()->u_max = t1;
+            cr_edge->update();
+          }
+          if (t2 != -100) {
+            edge->getSpline()->u_max = t2;
+            edge->update();
+          }
+        }
+        r->setBasedOnSurface(true);
+        r->update();
+        s->setBasedOnSurface(true);
+        s->update();
 
         viewportScene->addObject(r);
 

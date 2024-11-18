@@ -62,7 +62,7 @@ glm::mat4 FilletSurface::_jacobian(float u, float v, float a, float b,
 
 glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
                                        float s) {
-  float eps = 1e-5;
+  float eps = 1e-7;
 
   float tol = 100;
   float step = 0.01;

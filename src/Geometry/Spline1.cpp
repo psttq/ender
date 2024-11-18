@@ -1,7 +1,9 @@
 #include "SplineBuilder.hpp"
+#include "glm/ext/quaternion_geometric.hpp"
 #include "imgui.h"
 
 #include <Spline1.hpp>
+#include <cmath>
 
 namespace EGEOM
 {
@@ -81,50 +83,51 @@ namespace EGEOM
                                               glm::vec2 t_initial,
                                               float tolerance, int maxIter)
   {
+      auto t = t_initial;
+      for (int iter = 0; iter < maxIter; ++iter) {
+           // Вычисляем текущие точки на кривых
+           glm::vec3 p1 = getSplinePoint(t.x);
+           glm::vec3 p2 = spline->getSplinePoint(t.y);
 
-    glm::vec2 t = t_initial;
+           // Вычисляем разницу в 3D
+           glm::vec3 delta = p1 - p2;
 
-    auto learning_rate = 0.00001f;
-    glm::vec2 v;
-    for (int iter = 0; iter < maxIter; ++iter)
-    {
+           // Проекция на плоскость
+           glm::vec3 origin = 0.5f * (p1 + p2);
+           glm::vec3 i1 = getSplineDirs(t.x,2)[1]->getPosition();
+           glm::vec3 i2 = spline->getSplineDirs(t.y,2)[1]->getPosition();
 
-      auto dts1 = getSplineDirs(t.x, 2);
-      auto dts2 = spline->getSplineDirs(t.y, 2);
+           glm::vec3 n = glm::cross(i1, i2); // Нормаль плоскости
+           glm::mat3 projectionMatrix(1.0f);
+           projectionMatrix[0] = i1;
+           projectionMatrix[1] = i2;
+           projectionMatrix[2] = glm::normalize(n);
 
-      auto origin = (dts1[0]->getPosition() + dts2[0]->getPosition()) / 2.0f;
-      auto i1 = glm::normalize(dts1[1]->getPosition());
-      auto i2 = glm::normalize(dts2[1]->getPosition());
-      auto p1 = projectToLocal(getSplinePoint(t.x), origin, i1, i2);
-      auto p2 = projectToLocal(spline->getSplinePoint(t.y), origin, i1, i2);
+           glm::vec2 delta2D = glm::vec2(glm::transpose(projectionMatrix) * delta); // Проекция разности
 
-      v = p1 - p2;
+           // Якобиан (матрица производных)
+           glm::mat2 J;
+           J[0][0] = glm::dot(i1, i1);
+           J[0][1] = -glm::dot(i2, i1);
+           J[1][0] = glm::dot(i1, i2);
+           J[1][1] = -glm::dot(i2, i2);
 
-      auto dc1_dt1 = projectToLocal(dts1[1]->getPosition(), origin, i1, i2);
-      auto dc2_dt2 = projectToLocal(dts2[1]->getPosition(), origin, i1, i2);
+           // Решение линейной системы J * dt = -delta2D
+           glm::vec2 dt = glm::inverse(J) * (-delta2D);
 
-      glm::mat2 J(-dc1_dt1.x, dc2_dt2.x,  // d(fx)/dt1, d(fx)/dt2
-                  -dc1_dt1.y, dc2_dt2.y); // d(fy)/dt1, d(fy)/dt2
+           // Обновляем параметры
+           t += dt;
 
-      float det = glm::determinant(J);
-      if (std::abs(det) < std::numeric_limits<float>::epsilon())
-      {
-        spdlog::error("Jacobian is singular.\n");
-        return {-100, -100};
-      }
+           // Проверяем условие выхода
+           if (glm::length(dt) < tolerance) {
+               return {t.x,t.y};
+           }
 
-      // Метод Ньютона: t_next = t - J⁻¹ * f
-      glm::vec2 delta_t = glm::inverse(J) * v;
-      t -= delta_t;
-
-      // Проверяем расходимость
-      if (glm::length(delta_t) < tolerance)
-      {
-        return {t.x, t.y}; // Достигли нужной точности
-      }
-
-      spdlog::error("iter: {},t: {} {}, rash: {}, v: {} {}", iter, t.x, t.y, glm::length(delta_t), v.x, v.y);
-    }
+           if(std::isnan(t.x) || std::isnan(t.y)){
+               return {-100, -100};
+           }
+           spdlog::error("iter: {}, t: {} {}, dt: {} ", iter, t.x,t.y, glm::length(dt));
+       }
 
     return {-100, -100}; // Не удалось найти пересечение
   }
