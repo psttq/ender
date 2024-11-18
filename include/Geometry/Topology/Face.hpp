@@ -28,6 +28,7 @@ public:
   void setBasedOnSurface(bool isBasedOnSurface);
 
   void addEdge(sptr<Edge> edge);
+  void insertAfterEdge(sptr<Edge> edgeToInsert, sptr<Edge> edgeAfter);
 
   void update();
 

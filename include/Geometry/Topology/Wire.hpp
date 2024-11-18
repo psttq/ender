@@ -14,6 +14,7 @@ public:
   void addEdge(sptr<Edge> edge);
   void removeEdge(sptr<Edge> edge);
   void replaceEdge(sptr<Edge> oldEdge, sptr<Edge> newEdge);
+  void insertAfterEdge(sptr<Edge> edgeToInsert, sptr<Edge> edgeAfter);
 
   void setCurrentEdge(sptr<Edge> edge);
   bool isCurrentEdge(sptr<Edge> edge);

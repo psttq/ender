@@ -32,6 +32,10 @@ sptr<Surface> Face::getSurface() { return _surface; }
 
 void Face::addEdge(sptr<Edge> edge) { _wire->addEdge(edge); }
 
+void Face::insertAfterEdge(sptr<Edge> edgeToInsert, sptr<Edge> edgeAfter){
+    _wire->insertAfterEdge(edgeToInsert, edgeAfter);
+}
+
 void Face::setBasedOnSurface(bool isBasedOnSurface) {
   _basedOnSurface = isBasedOnSurface;
   if (_basedOnSurface)

@@ -21,6 +21,11 @@ void Wire::replaceEdge(sptr<Edge> oldEdge, sptr<Edge> newEdge){
     }
 }
 
+void Wire::insertAfterEdge(sptr<Edge> edgeToInsert, sptr<Edge> edgeAfter){
+    auto iter = std::find(_edges.begin() , _edges.end(), edgeAfter);
+    _edges.insert(iter, edgeToInsert);
+}
+
 void Wire::setCurrentEdge(sptr<Edge> edge) {
   for (int i = 0; i < _edges.size(); i++) {
     if (_edges[i] == edge) {

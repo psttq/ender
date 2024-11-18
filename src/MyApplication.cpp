@@ -12,6 +12,8 @@
 #include "SectorialSurface.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
+#include "SplineBuilder.hpp"
+#include "SurfaceSplineBuilder.hpp"
 #include "Topology/Edge.hpp"
 #include "Topology/Face.hpp"
 #include "Topology/Shell.hpp"
@@ -289,13 +291,6 @@ void MyApplication::handleOperationPropertiesGUI() {
         auto cr_edge = EGEOM::Edge::create(cr);
         auto cs_edge = EGEOM::Edge::create(cs);
 
-        auto filletWire = EGEOM::Wire::create();
-        filletWire->addEdge(cr_edge);
-        filletWire->addEdge(cs_edge);
-        auto filletFace = EGEOM::Face::create(filletSurface, filletWire);
-
-        shell->addFace(filletFace);
-
         spdlog::info("R edge");
         r->getWire()->replaceEdge(c0copy, cr_edge);
         spdlog::info("s edge");
@@ -317,15 +312,21 @@ void MyApplication::handleOperationPropertiesGUI() {
             edge->update();
           }
         }
+        sptr<EGEOM::Edge> upper_edge_insert_after;
+        sptr<EGEOM::Edge> bottom_edge_insert_after;
+
         for (auto edge : r->getWire()->getEdges()) {
           auto [t1, t2] =
               cr_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
           spdlog::error("t1,t2: {} {}", t1, t2);
           if (t1 != -100) {
-            if (t1 < 0)
+            if (t1 <= 0) {
+              bottom_edge_insert_after = edge;
               cr_edge->getSpline()->u_min = t1;
-            else
+            } else {
+              upper_edge_insert_after = edge;
               cr_edge->getSpline()->u_max = t1;
+            }
             cr_edge->update();
           }
           if (t2 != -100) {
@@ -338,11 +339,61 @@ void MyApplication::handleOperationPropertiesGUI() {
         s->setBasedOnSurface(true);
         s->update();
 
-        viewportScene->addObject(r);
+        auto u_spline_1 =
+            EGEOM::Spline1::create({EGEOM::Point::create({0, 0, cs->u_max}),
+                                    EGEOM::Point::create({1, 0, cs->u_max})},
+                                   300);
+        u_spline_1->update();
+        auto v_spline_1 = EGEOM::Spline1::create(
+            {EGEOM::Point::create({0, 0, 0}), EGEOM::Point::create({1, 0, 1})},
+            300);
+        v_spline_1->update();
 
-        viewportScene->addObject(cr);
-        viewportScene->addObject(cs);
-        viewportScene->addObject(filletSurface);
+        auto upper_spline = EGEOM::Spline1::create({}, 300);
+        auto upper_surfaceSplineBuilder =
+            uptr<EGEOM::SurfaceSplineBuilder>(new EGEOM::SurfaceSplineBuilder(
+                filletSurface, u_spline_1, v_spline_1));
+        upper_spline->setSplineType(EGEOM::Spline1::SplineType::SurfaceSpline);
+        upper_spline->setSplineBuilder(std::move(upper_surfaceSplineBuilder));
+        upper_spline->update();
+
+        auto upper_edge = EGEOM::Edge::create(upper_spline);
+
+        upper_face->insertAfterEdge(upper_edge, upper_edge_insert_after);
+        upper_face->update();
+
+        auto u_spline_2 =
+            EGEOM::Spline1::create({EGEOM::Point::create({0, 0, cs->u_min}),
+                                    EGEOM::Point::create({1, 0, cs->u_min})},
+                                   300);
+        u_spline_2->update();
+        auto v_spline_2 = EGEOM::Spline1::create(
+            {EGEOM::Point::create({0, 0, 0}), EGEOM::Point::create({1, 0, 1})},
+            300);
+        v_spline_2->update();
+
+        auto bottom_spline = EGEOM::Spline1::create({}, 300);
+        auto bottom_surfaceSplineBuilder =
+            uptr<EGEOM::SurfaceSplineBuilder>(new EGEOM::SurfaceSplineBuilder(
+                filletSurface, u_spline_2, v_spline_2));
+        bottom_spline->setSplineType(EGEOM::Spline1::SplineType::SurfaceSpline);
+        bottom_spline->setSplineBuilder(std::move(bottom_surfaceSplineBuilder));
+        bottom_spline->update();
+
+        auto bottom_edge = EGEOM::Edge::create(bottom_spline);
+
+        bottom_face->insertAfterEdge(bottom_edge, bottom_edge_insert_after);
+        bottom_face->update();
+
+
+        auto filletWire = EGEOM::Wire::create();
+        filletWire->addEdge(cr_edge);
+        filletWire->addEdge(upper_edge);
+        filletWire->addEdge(cs_edge);
+        filletWire->addEdge(bottom_edge);
+        auto filletFace = EGEOM::Face::create(filletSurface, filletWire);
+
+        shell->addFace(filletFace);
       }
     }
     ImGui::End();
