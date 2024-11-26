@@ -124,6 +124,7 @@ namespace EGEOM
            }
 
            if(std::isnan(t.x) || std::isnan(t.y)){
+               spdlog::error("Spline::intersect: Get nan");
                return {-100, -100};
            }
            spdlog::error("iter: {}, t: {} {}, dt: {} ", iter, t.x,t.y, glm::length(dt));

@@ -7,8 +7,8 @@
 
 namespace EGEOM{
 
-#define MAX_ITERS 1000
-#define SPLINE_APPROX_POINTS 200
+#define MAX_ITERS 4000
+#define SPLINE_APPROX_POINTS 1000
 
 class FilletSurface: public Surface{
     sptr<Edge> _edge;

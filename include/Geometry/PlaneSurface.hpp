@@ -20,8 +20,11 @@ public:
   void setPivot(const glm::vec3 &pivot);
 
   void drawProperties() override;
+  void drawGizmo() override;
 
   glm::vec3 pointOnSurface(float u, float v) override;
   glm::vec3 normalOnSurface(float u, float v) override;
+  std::tuple<glm::vec3,glm::vec3> firstDir(float u, float v) override;
+
 };
 } // namespace EGEOM

@@ -223,7 +223,7 @@ namespace EGEOM
         return Point::create({t, 0, second_derivative});
       }
     }
-    spdlog::error("CubicSpline: t is out of bounds");
+    // spdlog::error("CubicSpline: t is out of bounds");
     return Point::create({0, 0, 0});
   }
 
@@ -290,7 +290,7 @@ namespace EGEOM
                                   coefficients[i].d * dx * dx * dx});
       }
     }
-    spdlog::error("CubicSpline: t is out of bounds");
+    // spdlog::error("CubicSpline: t is out of bounds");
     return Point::create({0, 0, 0});
   }
 

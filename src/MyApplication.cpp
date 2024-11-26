@@ -191,11 +191,11 @@ void MyApplication::handleOperationPropertiesGUI() {
         sptr<EGEOM::Face> prevFace;
         sptr<EGEOM::Edge> firstSideEdge;
 
-        bool filletReady = false; // FILLET
-        sptr<EGEOM::Face> r;      // Fillet
-        sptr<EGEOM::Face> s;      // Fillet
-        sptr<EGEOM::Edge> c0;     // Fillet
-        sptr<EGEOM::Edge> c0copy; // Fillet
+        bool filletReady = false;        // FILLET
+        sptr<EGEOM::Face> left_surface;  // Fillet
+        sptr<EGEOM::Face> right_surface; // Fillet
+        sptr<EGEOM::Edge> c0;            // Fillet
+        sptr<EGEOM::Edge> c0copy;        // Fillet
 
         for (auto edge : edges) {
           auto obj =
@@ -250,10 +250,13 @@ void MyApplication::handleOperationPropertiesGUI() {
             prevFace->addEdge(sideEdgeCopy);
 
             if (!filletReady) {
-              r = prevFace;
-              s = face;
-              c0 = sideEdge;
-              c0copy = sideEdgeCopy;
+              // left_surface = prevFace;
+              // right_surface = face;
+              // c0 = sideEdge;
+              // c0copy = sideEdgeCopy;
+              left_surface = face;
+              c0 = upperEdge;
+              c0copy = upperEdgeUpperFace;
               filletReady = true;
             }
           }
@@ -274,6 +277,8 @@ void MyApplication::handleOperationPropertiesGUI() {
                                                  upperWire->getPoint(0.3),
                                                  upperWire->getPoint(0.5));
 
+        upper->isSelectable = true;
+
         auto upper_face = EGEOM::Face::create(upper, upperWire);
         upper_face->isSelectable = true;
         upper_face->setBasedOnSurface(true);
@@ -282,8 +287,12 @@ void MyApplication::handleOperationPropertiesGUI() {
         viewportScene->addObject(shell);
 
         // TEST FILLET
-        auto filletSurface =
-            EGEOM::FilletSurface::create(c0, r->getSurface(), s->getSurface());
+        right_surface = upper_face; // FILLET
+        upper->update();
+
+        auto filletSurface = EGEOM::FilletSurface::create(
+            c0, left_surface->getSurface(), right_surface->getSurface());
+
         filletSurface->update();
         auto cr = filletSurface->getCrSpline();
         auto cs = filletSurface->getCsSpline();
@@ -291,14 +300,13 @@ void MyApplication::handleOperationPropertiesGUI() {
         auto cr_edge = EGEOM::Edge::create(cr);
         auto cs_edge = EGEOM::Edge::create(cs);
 
-        spdlog::info("R edge");
-        r->getWire()->replaceEdge(c0copy, cr_edge);
-        spdlog::info("s edge");
-        s->getWire()->replaceEdge(c0, cs_edge);
-
-        for (auto edge : s->getWire()->getEdges()) {
+        left_surface->getWire()->replaceEdge(c0, cr_edge);
+        right_surface->getWire()->replaceEdge(c0copy, cs_edge);
+        spdlog::error("Right surface");
+        for (auto edge : right_surface->getWire()->getEdges()) {
           auto [t1, t2] =
-              cs_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
+              cs_edge->getSpline()->intersect(edge->getSpline(), {0.5, 0.5});
+
           spdlog::error("t1,t2: {} {}", t1, t2);
           if (t1 != -100) {
             if (t1 < 0)
@@ -315,7 +323,8 @@ void MyApplication::handleOperationPropertiesGUI() {
         sptr<EGEOM::Edge> upper_edge_insert_after;
         sptr<EGEOM::Edge> bottom_edge_insert_after;
 
-        for (auto edge : r->getWire()->getEdges()) {
+        spdlog::error("Left surface");
+        for (auto edge : left_surface->getWire()->getEdges()) {
           auto [t1, t2] =
               cr_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
           spdlog::error("t1,t2: {} {}", t1, t2);
@@ -334,10 +343,10 @@ void MyApplication::handleOperationPropertiesGUI() {
             edge->update();
           }
         }
-        r->setBasedOnSurface(true);
-        r->update();
-        s->setBasedOnSurface(true);
-        s->update();
+        left_surface->setBasedOnSurface(true);
+        left_surface->update();
+        right_surface->setBasedOnSurface(true);
+        right_surface->update();
 
         auto u_spline_1 =
             EGEOM::Spline1::create({EGEOM::Point::create({0, 0, cs->u_max}),
@@ -359,7 +368,7 @@ void MyApplication::handleOperationPropertiesGUI() {
 
         auto upper_edge = EGEOM::Edge::create(upper_spline);
 
-        upper_face->insertAfterEdge(upper_edge, upper_edge_insert_after);
+        // upper_face->insertAfterEdge(upper_edge, upper_edge_insert_after);
         upper_face->update();
 
         auto u_spline_2 =
@@ -382,9 +391,8 @@ void MyApplication::handleOperationPropertiesGUI() {
 
         auto bottom_edge = EGEOM::Edge::create(bottom_spline);
 
-        bottom_face->insertAfterEdge(bottom_edge, bottom_edge_insert_after);
+        // bottom_face->insertAfterEdge(bottom_edge, bottom_edge_insert_after);
         bottom_face->update();
-
 
         auto filletWire = EGEOM::Wire::create();
         filletWire->addEdge(cr_edge);
