@@ -1,5 +1,4 @@
 #include "SplineBuilder.hpp"
-#include "glm/ext/quaternion_geometric.hpp"
 #include "imgui.h"
 
 #include <Spline1.hpp>

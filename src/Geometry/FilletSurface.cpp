@@ -26,14 +26,14 @@ glm::vec4 FilletSurface::_equationSystem(float u, float v, float a, float b,
   auto mr = _leftSurface->normalOnSurface(u, v);
   auto ms = _rightSurface->normalOnSurface(a, b);
 
-  auto residual1 = r + lR * mr - sp - rR * ms;
+  auto residual1 = r + lR(s) * mr - sp - rR(s) * ms;
 
   auto c0dirs = _edge->getEdgeDirs(s, 2);
 
   auto c0 = c0dirs[0]->getPosition();
   auto c0ds = -glm::normalize(c0dirs[1]->getPosition());
 
-  auto residual2 = glm::dot((c0 - 0.5f * (r + lR * mr + sp + rR * ms)), c0ds);
+  auto residual2 = glm::dot((c0 - 0.5f * (r + lR(s) * mr + sp + rR(s) * ms)), c0ds);
 
   return glm::vec4(residual1, residual2);
 }
@@ -158,6 +158,7 @@ void FilletSurface::update() {
 
   glm::vec4 initialGuess = {0.3, 0.4, 0.5, 0.7};
   spdlog::info("Starting fillet surface creation.");
+  int last_pers = -1;
   for (auto i = 0; i < SPLINE_APPROX_POINTS; i++) {
     auto approx = _newtonMethod(initialGuess.x, initialGuess.y, initialGuess.z,
                                 initialGuess.w, i * s_step);
@@ -168,12 +169,14 @@ void FilletSurface::update() {
     b_approx.push_back(approx.w);
 
     auto cur_pers = (int)((float)i / ((float)SPLINE_APPROX_POINTS) * 100.0f);
-    if(cur_pers%10 == 0)
+    if(cur_pers%10 == 0 && cur_pers!=last_pers){
         spdlog::info("{}% completed", cur_pers);
-        
+        last_pers = cur_pers;
+    }
     s.push_back(i * s_step);
     initialGuess = approx;
   }
+  spdlog::info("Fillet surface creation finished!");
 
   // for(auto i = 0; i < a_approx.size(); i++){
   //   spdlog::info("ab: {} {}", a_approx[i], b_approx[i]);
@@ -237,11 +240,11 @@ glm::vec3 FilletSurface::pointOnSurface(float u, float v) {
 
   auto omega =
       (float)(1.0f / glm::sqrt(2.0f) *
-              glm::sqrt(1.0f + glm::dot(lR * mr, rR * ms) / (lR * rR)));
+              glm::sqrt(1.0f + glm::dot(lR(u) * mr, rR(u) * ms) / (lR(u) * rR(u))));
 
   auto c =
       0.5f * (crp + csp -
-              (1.0f - omega * omega) * ((lR * mr + rR * ms) / (omega * omega)));
+              (1.0f - omega * omega) * ((lR(u) * mr + rR(u) * ms) / (omega * omega)));
 
   auto point =
       ((1.0f - v) * (1.0f - v) * crp + 2 * (1.0f - v) * v * omega * c +

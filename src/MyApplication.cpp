@@ -292,118 +292,118 @@ void MyApplication::handleOperationPropertiesGUI() {
         // // right_surface = upper_face; // FILLET
         // // upper->update();
 
-        // auto filletSurface = EGEOM::FilletSurface::create(
-        //     c0, left_surface->getSurface(), right_surface->getSurface());
+        auto filletSurface = EGEOM::FilletSurface::create(
+            c0, left_surface->getSurface(), right_surface->getSurface());
 
-        // filletSurface->update();
-        // auto cr = filletSurface->getCrSpline();
-        // auto cs = filletSurface->getCsSpline();
+        filletSurface->update();
+        auto cr = filletSurface->getCrSpline();
+        auto cs = filletSurface->getCsSpline();
 
-        // auto cr_edge = EGEOM::Edge::create(cr);
-        // auto cs_edge = EGEOM::Edge::create(cs);
+        auto cr_edge = EGEOM::Edge::create(cr);
+        auto cs_edge = EGEOM::Edge::create(cs);
 
-        // left_surface->getWire()->replaceEdge(c0copy, cr_edge);
-        // right_surface->getWire()->replaceEdge(c0, cs_edge);
-        // spdlog::error("Right surface");
-        // for (auto edge : right_surface->getWire()->getEdges()) {
-        //   auto [t1, t2] =
-        //       cs_edge->getSpline()->intersect(edge->getSpline(), {0.5, 0.5});
+        left_surface->getWire()->replaceEdge(c0copy, cr_edge);
+        right_surface->getWire()->replaceEdge(c0, cs_edge);
+        spdlog::error("Right surface");
+        for (auto edge : right_surface->getWire()->getEdges()) {
+          auto [t1, t2] =
+              cs_edge->getSpline()->intersect(edge->getSpline(), {0.5, 0.5});
 
-        //   spdlog::error("t1,t2: {} {}", t1, t2);
-        //   if (t1 != -100) {
-        //     if (t1 < 0)
-        //       cs_edge->getSpline()->u_min = t1;
-        //     else
-        //       cs_edge->getSpline()->u_max = t1;
-        //     cs_edge->update();
-        //   }
-        //   if (t2 != -100) {
-        //     edge->getSpline()->u_min = t2;
-        //     edge->update();
-        //   }
-        // }
-        // sptr<EGEOM::Edge> upper_edge_insert_after;
-        // sptr<EGEOM::Edge> bottom_edge_insert_after;
+          spdlog::error("t1,t2: {} {}", t1, t2);
+          if (t1 != -100) {
+            if (t1 < 0)
+              cs_edge->getSpline()->u_min = t1;
+            else
+              cs_edge->getSpline()->u_max = t1;
+            cs_edge->update();
+          }
+          if (t2 != -100) {
+            edge->getSpline()->u_min = t2;
+            edge->update();
+          }
+        }
+        sptr<EGEOM::Edge> upper_edge_insert_after;
+        sptr<EGEOM::Edge> bottom_edge_insert_after;
 
-        // spdlog::error("Left surface");
-        // for (auto edge : left_surface->getWire()->getEdges()) {
-        //   auto [t1, t2] =
-        //       cr_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
-        //   spdlog::error("t1,t2: {} {}", t1, t2);
-        //   if (t1 != -100) {
-        //     if (t1 <= 0) {
-        //       bottom_edge_insert_after = edge;
-        //       cr_edge->getSpline()->u_min = t1;
-        //     } else {
-        //       upper_edge_insert_after = edge;
-        //       cr_edge->getSpline()->u_max = t1;
-        //     }
-        //     cr_edge->update();
-        //   }
-        //   if (t2 != -100) {
-        //     edge->getSpline()->u_max = t2;
-        //     edge->update();
-        //   }
-        // }
-        // left_surface->setBasedOnSurface(true);
-        // left_surface->update();
-        // right_surface->setBasedOnSurface(true);
-        // right_surface->update();
+        spdlog::error("Left surface");
+        for (auto edge : left_surface->getWire()->getEdges()) {
+          auto [t1, t2] =
+              cr_edge->getSpline()->intersect(edge->getSpline(), {1, 1});
+          spdlog::error("t1,t2: {} {}", t1, t2);
+          if (t1 != -100) {
+            if (t1 <= 0) {
+              bottom_edge_insert_after = edge;
+              cr_edge->getSpline()->u_min = t1;
+            } else {
+              upper_edge_insert_after = edge;
+              cr_edge->getSpline()->u_max = t1;
+            }
+            cr_edge->update();
+          }
+          if (t2 != -100) {
+            edge->getSpline()->u_max = t2;
+            edge->update();
+          }
+        }
+        left_surface->setBasedOnSurface(true);
+        left_surface->update();
+        right_surface->setBasedOnSurface(true);
+        right_surface->update();
 
-        // auto u_spline_1 =
-        //     EGEOM::Spline1::create({EGEOM::Point::create({0, 0, cs->u_max}),
-        //                             EGEOM::Point::create({1, 0, cs->u_max})},
-        //                            300);
-        // u_spline_1->update();
-        // auto v_spline_1 = EGEOM::Spline1::create(
-        //     {EGEOM::Point::create({0, 0, 0}), EGEOM::Point::create({1, 0, 1})},
-        //     300);
-        // v_spline_1->update();
+        auto u_spline_1 =
+            EGEOM::Spline1::create({EGEOM::Point::create({0, 0, cs->u_max}),
+                                    EGEOM::Point::create({1, 0, cs->u_max})},
+                                   300);
+        u_spline_1->update();
+        auto v_spline_1 = EGEOM::Spline1::create(
+            {EGEOM::Point::create({0, 0, 0}), EGEOM::Point::create({1, 0, 1})},
+            300);
+        v_spline_1->update();
 
-        // auto upper_spline = EGEOM::Spline1::create({}, 300);
-        // auto upper_surfaceSplineBuilder =
-        //     uptr<EGEOM::SurfaceSplineBuilder>(new EGEOM::SurfaceSplineBuilder(
-        //         filletSurface, u_spline_1, v_spline_1));
-        // upper_spline->setSplineType(EGEOM::Spline1::SplineType::SurfaceSpline);
-        // upper_spline->setSplineBuilder(std::move(upper_surfaceSplineBuilder));
-        // upper_spline->update();
+        auto upper_spline = EGEOM::Spline1::create({}, 300);
+        auto upper_surfaceSplineBuilder =
+            uptr<EGEOM::SurfaceSplineBuilder>(new EGEOM::SurfaceSplineBuilder(
+                filletSurface, u_spline_1, v_spline_1));
+        upper_spline->setSplineType(EGEOM::Spline1::SplineType::SurfaceSpline);
+        upper_spline->setSplineBuilder(std::move(upper_surfaceSplineBuilder));
+        upper_spline->update();
 
-        // auto upper_edge = EGEOM::Edge::create(upper_spline);
+        auto upper_edge = EGEOM::Edge::create(upper_spline);
 
-        // upper_face->insertAfterEdge(upper_edge, upper_edge_insert_after);
-        // upper_face->update();
+        upper_face->insertAfterEdge(upper_edge, upper_edge_insert_after);
+        upper_face->update();
 
-        // auto u_spline_2 =
-        //     EGEOM::Spline1::create({EGEOM::Point::create({0, 0, cs->u_min}),
-        //                             EGEOM::Point::create({1, 0, cs->u_min})},
-        //                            300);
-        // u_spline_2->update();
-        // auto v_spline_2 = EGEOM::Spline1::create(
-        //     {EGEOM::Point::create({0, 0, 0}), EGEOM::Point::create({1, 0, 1})},
-        //     300);
-        // v_spline_2->update();
+        auto u_spline_2 =
+            EGEOM::Spline1::create({EGEOM::Point::create({0, 0, cs->u_min}),
+                                    EGEOM::Point::create({1, 0, cs->u_min})},
+                                   300);
+        u_spline_2->update();
+        auto v_spline_2 = EGEOM::Spline1::create(
+            {EGEOM::Point::create({0, 0, 0}), EGEOM::Point::create({1, 0, 1})},
+            300);
+        v_spline_2->update();
 
-        // auto bottom_spline = EGEOM::Spline1::create({}, 300);
-        // auto bottom_surfaceSplineBuilder =
-        //     uptr<EGEOM::SurfaceSplineBuilder>(new EGEOM::SurfaceSplineBuilder(
-        //         filletSurface, u_spline_2, v_spline_2));
-        // bottom_spline->setSplineType(EGEOM::Spline1::SplineType::SurfaceSpline);
-        // bottom_spline->setSplineBuilder(std::move(bottom_surfaceSplineBuilder));
-        // bottom_spline->update();
+        auto bottom_spline = EGEOM::Spline1::create({}, 300);
+        auto bottom_surfaceSplineBuilder =
+            uptr<EGEOM::SurfaceSplineBuilder>(new EGEOM::SurfaceSplineBuilder(
+                filletSurface, u_spline_2, v_spline_2));
+        bottom_spline->setSplineType(EGEOM::Spline1::SplineType::SurfaceSpline);
+        bottom_spline->setSplineBuilder(std::move(bottom_surfaceSplineBuilder));
+        bottom_spline->update();
 
-        // auto bottom_edge = EGEOM::Edge::create(bottom_spline);
+        auto bottom_edge = EGEOM::Edge::create(bottom_spline);
 
-        // bottom_face->insertAfterEdge(bottom_edge, bottom_edge_insert_after);
-        // bottom_face->update();
+        bottom_face->insertAfterEdge(bottom_edge, bottom_edge_insert_after);
+        bottom_face->update();
 
-        // auto filletWire = EGEOM::Wire::create();
-        // filletWire->addEdge(cr_edge);
-        // filletWire->addEdge(upper_edge);
-        // filletWire->addEdge(cs_edge);
-        // filletWire->addEdge(bottom_edge);
-        // auto filletFace = EGEOM::Face::create(filletSurface, filletWire);
+        auto filletWire = EGEOM::Wire::create();
+        filletWire->addEdge(cr_edge);
+        filletWire->addEdge(upper_edge);
+        filletWire->addEdge(cs_edge);
+        filletWire->addEdge(bottom_edge);
+        auto filletFace = EGEOM::Face::create(filletSurface, filletWire);
 
-        // shell->addFace(filletFace);
+        shell->addFace(filletFace);
       }
     }
     ImGui::End();
