@@ -26,7 +26,7 @@ sptr<PlaneSurface> PlaneSurface::create(const glm::vec3 &a, const glm::vec3 &b,
 void PlaneSurface::update() {
   auto vao = ENDER::Utils::createParametricSurfaceVAO(
       [&](float u, float v) { return pointOnSurface(u, v); }, u_min, v_min,
-      u_max, v_max, 200, 200);
+      1.0, 1.0, 200, 200);
   setVertexArray(vao);
 }
 

@@ -80,7 +80,8 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
   auto b_min = 0;
   auto b_max = 1;
 
-  // spdlog::info("Starting newton method. U_MAX: {}, U_MIN: {}, V_MAX: {}, V_MIN: {}", u_max, u_min, v_max, v_min);;
+  // spdlog::info("Starting newton method. U_MAX: {}, U_MIN: {}, V_MAX: {},
+  // V_MIN: {}", u_max, u_min, v_max, v_min);;
   for (i = 0; i < MAX_ITERS && tol > eps; i++) {
     if (u < u_min)
       u = u_min;
@@ -139,8 +140,9 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
     if (b > b_max)
       b = b_max;
   }
-  spdlog::info("iter: {}, tolerance: {}", i, tol);
-  spdlog::info("u_i = {}, v_i = {}, a_i = {}, b_i = {}, s = {}", u, v, a, b, s);
+  // spdlog::info("iter: {}, tolerance: {}", i, tol);
+  // spdlog::info("u_i = {}, v_i = {}, a_i = {}, b_i = {}, s = {}", u, v, a, b,
+  // s);
 
   return {u, v, a, b};
 }
@@ -155,6 +157,7 @@ void FilletSurface::update() {
   std::vector<float> b_approx;
 
   glm::vec4 initialGuess = {0.3, 0.4, 0.5, 0.7};
+  spdlog::info("Starting fillet surface creation.");
   for (auto i = 0; i < SPLINE_APPROX_POINTS; i++) {
     auto approx = _newtonMethod(initialGuess.x, initialGuess.y, initialGuess.z,
                                 initialGuess.w, i * s_step);
@@ -164,6 +167,10 @@ void FilletSurface::update() {
     a_approx.push_back(approx.z);
     b_approx.push_back(approx.w);
 
+    auto cur_pers = (int)((float)i / ((float)SPLINE_APPROX_POINTS) * 100.0f);
+    if(cur_pers%10 == 0)
+        spdlog::info("{}% completed", cur_pers);
+        
     s.push_back(i * s_step);
     initialGuess = approx;
   }

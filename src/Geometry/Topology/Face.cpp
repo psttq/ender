@@ -116,6 +116,7 @@ void Face::update() {
         maxValues.x = std::max(maxValues.x, pr1);
         maxValues.y = std::max(maxValues.y, pr2);
       }
+
       pivot = pivot + minValues.x * b1 + minValues.y * b2;
       plane->setPivot(pivot);
       _surface->setUMinMax(0, maxValues.x - minValues.x);
@@ -143,7 +144,11 @@ void Face::update() {
     }
 
     std::vector<glm::vec3> surfacePoints;
-    auto [u_min, u_max, v_min, v_max] = _surface->getUVMinMax();
+    // auto [u_min, u_max, v_min, v_max] = _surface->getUVMinMax();
+    auto u_max = 1.0f;
+    auto u_min = 0.0f;
+    auto v_max = 1.0f;
+    auto v_min = 0.0f;
 
     float u_step = (u_max - u_min) / (surfacePointsNumberByU - 1);
     float v_step = (v_max - v_min) / (surfacePointsNumberByV - 1);
