@@ -5,6 +5,8 @@
 namespace EGEOM {
 
 class SplineBuilder {
+public:
+  bool shouldHandleParameterOverflow = true;
 protected:
   std::vector<sptr<Point>> points;
   bool isDirected = false;
@@ -23,11 +25,13 @@ public:
   virtual sptr<Point> _getSplinePoint(float t) = 0;
 
   virtual sptr<Point> getSplinePoint(float t) {
-    if (t > 1.0f) {
-      return aboveSplinePoint(t);
-    }
-    if (t < 0.0f) {
-      return belowSplinePoint(t);
+    if(shouldHandleParameterOverflow){
+      if (t > 1.0f) {
+        return aboveSplinePoint(t);
+      }
+      if (t < 0.0f) {
+        return belowSplinePoint(t);
+      }
     }
     return _getSplinePoint(t);
   }

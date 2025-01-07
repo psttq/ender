@@ -27,7 +27,9 @@ namespace EGEOM
   /////////////////////////////////////
 
   ParametricBuilder::ParametricBuilder(ParametricFunction paramFunc)
-      : SplineBuilder({}), _paramFunc(paramFunc) {}
+      : SplineBuilder({}), _paramFunc(paramFunc) {
+        shouldHandleParameterOverflow = false;
+      }
 
   sptr<Point> ParametricBuilder::_getSplinePoint(float t)
   {
