@@ -323,4 +323,24 @@ namespace EGEOM
     return _splineBuilder->getSplineDerivativesSave(u, dirsCount);
   }
 
+
+  std::vector<float> Spline1::generateAdaptivePoints(float maxTanDeviation){
+    std::vector<float> result;
+    float t = 0.0f;
+    result.push_back(t);
+    while(t <= 1.0f){
+      auto dirs = getSplineDirs(t, 4);
+      auto c1 = dirs[1]->getPosition();
+      auto c2 = glm::vec3(0,0,0);
+      if(dirs.size() == 3){
+        auto c2 = dirs[2]->getPosition();
+      }
+
+      auto dt = maxTanDeviation * glm::pow(c1.length(),2)/(glm::cross(c1,c2).length());
+      t += dt;
+      result.push_back(t);
+    }
+    return result;
+  }
+
 } // namespace EGEOM

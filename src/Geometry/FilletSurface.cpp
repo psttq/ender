@@ -4,6 +4,7 @@
 #include "SurfaceSplineBuilder.hpp"
 #include "Utilities.hpp"
 #include <FilletSurface.hpp>
+#include <algorithm>
 
 namespace EGEOM {
 
@@ -31,9 +32,10 @@ glm::vec4 FilletSurface::_equationSystem(float u, float v, float a, float b,
   auto c0dirs = _edge->getEdgeDirs(s, 2);
 
   auto c0 = c0dirs[0]->getPosition();
-  auto c0ds = -glm::normalize(c0dirs[1]->getPosition());
+  auto c0ds = c0dirs[1]->getPosition();
 
-  auto residual2 = glm::dot((c0 - 0.5f * (r + lR(s) * mr + sp + rR(s) * ms)), c0ds);
+  auto residual2 =
+      glm::dot((c0 - 0.5f * (r - lR(s) * mr + sp + rR(s) * ms)), c0ds);
 
   return glm::vec4(residual1, residual2);
 }
@@ -70,7 +72,7 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
 
   // auto [u_min, u_max, v_min, v_max] = _leftSurface->getUVMinMax();
   // auto [a_min, a_max, b_min, b_max] = _rightSurface->getUVMinMax();
-  auto u_min = 0;
+  auto u_min = 0.0;
   auto u_max = 1;
   auto v_min = 0;
   auto v_max = 1;
@@ -83,23 +85,16 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
   // spdlog::info("Starting newton method. U_MAX: {}, U_MIN: {}, V_MAX: {},
   // V_MIN: {}", u_max, u_min, v_max, v_min);;
   for (i = 0; i < MAX_ITERS && tol > eps; i++) {
-    if (u < u_min)
-      u = u_min;
-    if (v < v_min)
-      v = v_min;
-    if (a < a_min)
-      a = a_min;
-    if (b < b_min)
-      b = b_min;
+    u = std::max(u, 0.0f);
+    v = std::max(v, 0.0f);
+    a = std::max(a, 0.0f);
+    b = std::max(b, 0.0f);
 
-    if (u > u_max)
-      u = u_max;
-    if (v > v_max)
-      v = v_max;
-    if (a > a_max)
-      a = a_max;
-    if (b > b_max)
-      b = b_max;
+    u = std::min(u, 1.0f);
+    v = std::min(v, 1.0f);
+    a = std::min(a, 1.0f);
+    b = std::min(b, 1.0f);
+
     auto F = _equationSystem(u, v, a, b, s);
     auto J = _jacobian(u, v, a, b, s);
     auto Jdet = glm::determinant(J);
@@ -122,30 +117,95 @@ glm::vec4 FilletSurface::_newtonMethod(float u, float v, float a, float b,
     a -= delta.z;
     b -= delta.w;
 
-    if (u < u_min)
-      u = u_min;
-    if (v < v_min)
-      v = v_min;
-    if (a < a_min)
-      a = a_min;
-    if (b < b_min)
-      b = b_min;
+    u = std::max(u, 0.0f);
+    v = std::max(v, 0.0f);
+    a = std::max(a, 0.0f);
+    b = std::max(b, 0.0f);
 
-    if (u > u_max)
-      u = u_max;
-    if (v > v_max)
-      v = v_max;
-    if (a > a_max)
-      a = a_max;
-    if (b > b_max)
-      b = b_max;
+    u = std::min(u, 1.0f);
+    v = std::min(v, 1.0f);
+    a = std::min(a, 1.0f);
+    b = std::min(b, 1.0f);
   }
-  // spdlog::info("iter: {}, tolerance: {}", i, tol);
+  spdlog::info("iter: {}, tolerance: {}", i, tol);
   // spdlog::info("u_i = {}, v_i = {}, a_i = {}, b_i = {}, s = {}", u, v, a, b,
   // s);
 
   return {u, v, a, b};
 }
+
+glm::vec4 FilletSurface::_findInitialGuess(float s){
+  auto adaptivePoints = _edge->getSpline()->generateAdaptivePoints(0.01);
+  auto adaptiveLeft = _leftSurface->generateAdaptiveGrid(0.01);
+  auto adaptiveRight = _rightSurface->generateAdaptiveGrid(0.01);
+  // spdlog::error("ADAP: {}", adaptivePoints.size());
+  // spdlog::error("ADAPL: {}", adaptiveLeft.size());
+  // spdlog::error("ADAPR: {}", adaptiveRight.size());
+  float min_residual = std::numeric_limits<float>::max();
+    glm::vec4 best_guess;
+
+    std::vector<glm::vec4> residuals;
+
+    for (auto [u, v] : adaptiveLeft) {
+        for (auto [a, b] : adaptiveRight) {
+            glm::vec4 residual = _equationSystem(u, v, a, b, s);
+            float res_norm = glm::length(residual);
+            residuals.emplace_back(glm::vec4(u, v, a, b));
+
+            if (res_norm < min_residual) {
+                min_residual = res_norm;
+                best_guess = {u, v, a, b};
+            }
+        }
+    }
+
+    // // 4. Ищем смену знака
+    // std::pair<float, float> s_interval;
+    // std::pair<glm::vec4, glm::vec4> uvab_interval;
+
+    // for (size_t i = 1; i < residuals.size(); ++i) {
+    //     auto [s1, uvab1] = residuals[i - 1];
+    //     auto [s2, uvab2] = residuals[i];
+
+    //     glm::vec4 r1 = _equationSystem(uvab1.x, uvab1.y, uvab1.z, uvab1.w, s1);
+    //     glm::vec4 r2 = _equationSystem(uvab2.x, uvab2.y, uvab2.z, uvab2.w, s2);
+
+    //     if ((glm::length(r1) * glm::length(r2)) < 0) { // Смена знака
+    //         s_interval = {s1, s2};
+    //         uvab_interval = {uvab1, uvab2};
+    //         break;
+    //     }
+    // }
+
+    // // 5. Бисекция
+    // float s_low = s_interval.first, s_high = s_interval.second;
+    // glm::vec4 uvab_low = uvab_interval.first, uvab_high = uvab_interval.second;
+
+    // while (fabs(s_high - s_low) > 1e-6) {
+    //     float s_mid = (s_low + s_high) / 2.0f;
+
+    //     glm::vec4 uvab_mid = (uvab_low + uvab_high) / 2.0f; // Среднее по всем параметрам
+
+    //     glm::vec4 residual = _equationSystem(uvab_mid.x, uvab_mid.y, uvab_mid.z, uvab_mid.w, s_mid);
+
+    //     if (glm::length(residual) < min_residual) {
+    //         min_residual = glm::length(residual);
+    //         best_guess = uvab_mid;
+    //     }
+
+    //     if ((glm::length(_equationSystem(uvab_low.x, uvab_low.y, uvab_low.z, uvab_low.w, s_low)) *
+    //          glm::length(residual)) < 0) {
+    //         s_high = s_mid;
+    //         uvab_high = uvab_mid;
+    //     } else {
+    //         s_low = s_mid;
+    //         uvab_low = uvab_mid;
+    //     }
+    // }
+
+    return best_guess;
+}
+
 
 void FilletSurface::update() {
   const float s_step = 1.0 / (SPLINE_APPROX_POINTS - 1);
@@ -156,9 +216,14 @@ void FilletSurface::update() {
   std::vector<float> a_approx;
   std::vector<float> b_approx;
 
-  glm::vec4 initialGuess = {0.3, 0.4, 0.5, 0.7};
-  spdlog::info("Starting fillet surface creation.");
+
+  glm::vec4 initialGuess = _findInitialGuess(0);
+  // glm::vec4 initialGuess = {0.2, 0.4, 0.3, 0.5};
+
+  spdlog::info("Starting fillet surface creation. Initial guess: {} {} {} {}", initialGuess.x, initialGuess.y, initialGuess.z, initialGuess.w);
   int last_pers = -1;
+  auto cur_time = glfwGetTime();
+  glm::vec4 prev_approx = {-1, -1, -1, -1};
   for (auto i = 0; i < SPLINE_APPROX_POINTS; i++) {
     auto approx = _newtonMethod(initialGuess.x, initialGuess.y, initialGuess.z,
                                 initialGuess.w, i * s_step);
@@ -169,12 +234,18 @@ void FilletSurface::update() {
     b_approx.push_back(approx.w);
 
     auto cur_pers = (int)((float)i / ((float)SPLINE_APPROX_POINTS) * 100.0f);
-    if(cur_pers%10 == 0 && cur_pers!=last_pers){
-        spdlog::info("{}% completed", cur_pers);
-        last_pers = cur_pers;
+    if (cur_pers % 10 == 0 && cur_pers != last_pers) {
+      auto dt = glfwGetTime() - cur_time;
+      spdlog::info("{}% completed, est: {}", cur_pers, dt);
+      last_pers = cur_pers;
+       cur_time = glfwGetTime();
     }
     s.push_back(i * s_step);
-    initialGuess = approx;
+    if(prev_approx != glm::vec4{-1,-1,-1,-1})
+      initialGuess = approx + (approx - prev_approx);
+    else
+      initialGuess = approx;
+    prev_approx = approx;
   }
   spdlog::info("Fillet surface creation finished!");
 
@@ -238,13 +309,13 @@ glm::vec3 FilletSurface::pointOnSurface(float u, float v) {
   auto mr = _leftSurface->normalOnSurface(u_cur, v_cur);
   auto ms = _rightSurface->normalOnSurface(a_cur, b_cur);
 
-  auto omega =
-      (float)(1.0f / glm::sqrt(2.0f) *
-              glm::sqrt(1.0f + glm::dot(lR(u) * mr, rR(u) * ms) / (lR(u) * rR(u))));
+  auto omega = (float)(1.0f / glm::sqrt(2.0f) *
+                       glm::sqrt(1.0f + glm::dot(lR(u) * mr, rR(u) * ms) /
+                                            (lR(u) * rR(u))));
 
-  auto c =
-      0.5f * (crp + csp -
-              (1.0f - omega * omega) * ((lR(u) * mr + rR(u) * ms) / (omega * omega)));
+  auto c = 0.5f * (crp + csp -
+                   (1.0f - omega * omega) *
+                       ((lR(u) * mr + rR(u) * ms) / (omega * omega)));
 
   auto point =
       ((1.0f - v) * (1.0f - v) * crp + 2 * (1.0f - v) * v * omega * c +

@@ -75,6 +75,8 @@ public:
   std::tuple<float,float> intersect(sptr<Spline1> spline, glm::vec2 t_initial,
      float tolerance = 1e-5, int maxIter = 2500);
 
+  std::vector<float> generateAdaptivePoints(float maxTanDeviation);
+
   sptr<Spline1> clone();
 };
 } // namespace EGEOM

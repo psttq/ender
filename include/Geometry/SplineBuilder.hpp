@@ -113,12 +113,16 @@ public:
   sptr<Point> _getSplinePoint(float t) override;
 
   bool drawPropertiesGui() override;
+  std::vector<sptr<Point>> getSplineDerivatives(float t, int dirsCount) override;
 
   uptr<SplineBuilder> clone() override;
 
 private:
   void calculateParameter();
   void calculateUniformParameter();
+  sptr<Point> _getSplineFirstDerivative(float t);
+  sptr<Point> _getSplineSecondDerivative(float t);
+
 };
 
 /////////////////////////////////////

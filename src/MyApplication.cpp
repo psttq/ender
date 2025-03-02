@@ -9,7 +9,6 @@
 #include "Point.hpp"
 #include "Renderer.hpp"
 #include "RotationSurface.hpp"
-#include "SectorialSurface.hpp"
 #include "Sketch.hpp"
 #include "Spline1.hpp"
 #include "SplineBuilder.hpp"
@@ -250,13 +249,13 @@ void MyApplication::handleOperationPropertiesGUI() {
             prevFace->addEdge(sideEdgeCopy);
 
             if (!filletReady) {
-              left_surface = prevFace;
-              right_surface = face;
-              c0 = sideEdge;
-              c0copy = sideEdgeCopy;
-              // left_surface = face;
-              // c0 = upperEdge;
-              // c0copy = upperEdgeUpperFace;
+              // left_surface = prevFace;
+              // right_surface = face;
+              // c0 = sideEdge;
+              // c0copy = sideEdgeCopy;
+              left_surface = face;
+              c0 = upperEdge;
+              c0copy = upperEdgeUpperFace;
               filletReady = true;
             }
           }
@@ -287,11 +286,12 @@ void MyApplication::handleOperationPropertiesGUI() {
 
         shell->addFace(upper_face);
         viewportScene->addObject(shell);
+        viewportScene->addObject(upper_face);
 
         // // TEST FILLET
-        // // right_surface = upper_face; // FILLET
+        right_surface = upper_face; // FILLET
         // // upper->update();
-
+        #if 1
         auto filletSurface = EGEOM::FilletSurface::create(
             c0, left_surface->getSurface(), right_surface->getSurface());
 
@@ -404,6 +404,7 @@ void MyApplication::handleOperationPropertiesGUI() {
         auto filletFace = EGEOM::Face::create(filletSurface, filletWire);
 
         shell->addFace(filletFace);
+        #endif
       }
     }
     ImGui::End();

@@ -28,15 +28,15 @@ class FilletSurface : public Surface {
   // float rR = 0.4f;
 
   float lR(float s) {
-    // return static_cast<float>(0.4 +
-    // 0.3 * glm::sin(s * glm::pi<float>() / 2.0f));
+    return static_cast<float>(0.4 +
+     0.5 * glm::sin(s * glm::pi<float>() / 2.0f));
 
     return 0.4f;
   }
 
   float rR(float s) {
-    // return static_cast<float>(0.4 +
-    // 0.5 * glm::sin(s * glm::pi<float>() / 2.0f));
+    return static_cast<float>(0.4 +
+    0.5 * glm::sin(s * glm::pi<float>() / 2.0f));
     return 0.4f;
   }
 
@@ -48,6 +48,8 @@ class FilletSurface : public Surface {
   glm::mat4 _jacobian(float u, float v, float a, float b, float s);
 
   glm::vec4 _newtonMethod(float u, float v, float a, float b, float s);
+
+  glm::vec4 _findInitialGuess(float s);
 
 public:
   static sptr<FilletSurface> create(sptr<Edge> edge, sptr<Surface> leftSurface,

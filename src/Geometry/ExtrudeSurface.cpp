@@ -48,6 +48,17 @@ std::tuple<glm::vec3, glm::vec3> ExtrudeSurface::firstDir(float u, float v) {
   glm::vec3 cdv = _length * direction;
   return {cdu, cdv};
 }
+std::tuple<glm::vec3, glm::vec3, glm::vec3> ExtrudeSurface::secondDir(float u,
+                                                                      float v) {
+  auto splDirs = _baseSpline->getSplineDirs(u, 3);
+  glm::vec3 cduu = {0, 0, 0};
+  if (splDirs.size() >= 3) {
+    cduu = splDirs[2]->getPosition();
+  }
+  glm::vec3 cdvv = {0, 0, 0};
+  glm::vec3 cdvu = {0, 0, 0};
+  return {cduu, cdvu, cdvv};
+}
 
 void ExtrudeSurface::drawProperties() {
   ENDER::Object::drawProperties();

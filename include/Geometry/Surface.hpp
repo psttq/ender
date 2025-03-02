@@ -20,19 +20,29 @@ public:
 
   std::tuple<float, float, float, float> getUVMinMax();
 
-  void setUMinMax(float u_min, float u_max){
-      this->u_min = u_min;
-      this->u_max = u_max;
+  void setUMinMax(float u_min, float u_max) {
+    this->u_min = u_min;
+    this->u_max = u_max;
   }
 
-  void setVMinMax(float v_min, float v_max){
-      this->v_min = v_min;
-      this->v_max = v_max;
+  void setVMinMax(float v_min, float v_max) {
+    this->v_min = v_min;
+    this->v_max = v_max;
   }
 
   virtual glm::vec3 pointOnSurface(float u, float v) = 0;
   virtual glm::vec3 normalOnSurface(float u, float v) { return {}; }
-  virtual std::tuple<glm::vec3,glm::vec3> firstDir(float u, float v) { return {}; }
+  virtual std::tuple<glm::vec3, glm::vec3> firstDir(float u, float v) {
+    return {};
+  }
+  virtual std::tuple<glm::vec3, glm::vec3, glm::vec3> secondDir(float u,
+                                                                float v) {
+    spdlog::error("Surface::secondDir: Not implemented for {}", _name);
+    return {};
+  }
+
+  std::vector<std::tuple<float, float>>
+  generateAdaptiveGrid(float maxNormalDeviation);
 };
 
 } // namespace EGEOM
